@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>TECOM 本科生 出欠管理</title>
+  <meta name="theme-color" content="#1f3b5b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="本科出欠">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+  <style>
+    :root{
+      --nav:#1f3b5b;--nav2:#284d78;--accent:#2d89ef;--ok:#27ae60;--warn:#e67e22;
+      --danger:#e74c3c;--done:#5b7cfa;--muted:#95a5a6;
+      --bg:#eef2f7;--card:#fff;--text:#243447;--line:#d8e0ea;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;padding:0;font-family:"Segoe UI","Yu Gothic","Hiragino Sans",sans-serif;background:var(--bg);color:var(--text)}
+    /* ===== 共通 ===== */
+    button{border:none;border-radius:12px;padding:10px 18px;background:var(--accent);color:#fff;cursor:pointer;font:inherit;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:opacity .15s}
+    button:active{opacity:.75} button:disabled{opacity:.45;cursor:not-allowed}
+    button.ok{background:var(--ok)} button.warn{background:var(--warn)} button.danger{background:var(--danger)} button.light{background:#e8f0fb;color:#1f3b5b} button.secondary{background:#6c7a89}
+    input[type=text],input[type=date],input[type=time],input[type=email],input[type=month],select,textarea{width:100%;padding:10px 12px;border:1.5px solid #cfd8e3;border-radius:10px;font:inherit;font-size:14px;background:#fff}
+    .panel,.card,.section{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 2px 8px rgba(20,40,80,.06)}
+    .panel-header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+    .panel-header h2,.panel-header h3{margin:0;font-size:17px}
+    .panel-body{padding:16px 18px}
+    .alert{padding:12px 14px;border-radius:10px;font-size:14px;margin-top:10px}
+    .alert.ok{background:#e8f7ee;color:#0f6a32} .alert.warn{background:#fff3df;color:#7a4a00} .alert.err{background:#fdeaea;color:#8c2424}
+    .muted{color:#6b7a89;font-size:13px}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    table{width:100%;border-collapse:collapse} th,td{padding:10px 12px;border-bottom:1px solid #e7edf4;font-size:14px;text-align:left;vertical-align:top}
+    th{position:sticky;top:0;background:#f7fafe;z-index:1;font-weight:700}
+    tr:hover td{background:#fbfdff}
+    .list-wrap{max-height:55vh;overflow:auto;border:1px solid var(--line);border-radius:12px}
+    .empty{padding:22px;text-align:center;color:#708090}
+    .form-group{margin-bottom:14px}
+    .form-group label{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
+    .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+    .right-actions{display:flex;gap:6px}
+    .status-chip{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;color:#fff}
+    .status-none{background:var(--muted)} .status-in{background:var(--ok)} .status-out{background:var(--done)} .status-early{background:var(--warn)} .status-absent{background:var(--danger)}
+    /* ===== ヘッダー ===== */
+    .app-header{background:var(--nav);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .app-header h1{font-size:20px;margin:0}
+    /* ===== Shell ===== */
+    .shell{display:grid;grid-template-columns:380px 1fr;gap:16px;max-width:1500px;margin:0 auto;padding:16px}
+    .left-col,.right-col{display:flex;flex-direction:column;gap:14px;min-width:0}
+    .sticky-tools{position:sticky;top:14px}
+    /* ===== サマリー ===== */
+    .summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .summary-item{padding:12px;border-radius:12px;background:#f7fafe;border:1px solid var(--line)}
+    .summary-item .lbl{font-size:12px;color:#607080}.summary-item .val{font-weight:700;font-size:22px;margin-top:4px}
+    /* ===== タブ ===== */
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line)}
+    .tab-btn{background:#edf3fb;color:#234;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700}
+    .tab-btn.active{background:var(--accent);color:#fff}
+    .tab-pane{display:none}.tab-pane.active{display:block}
+    /* ===== QRスキャン ===== */
+    .qr-scan-wrap{position:relative;width:100%;max-width:420px;margin:0 auto;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:4/3}
+    .qr-video{width:100%;height:100%;object-fit:cover;display:block}
+    .qr-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+    .qr-frame{width:55%;aspect-ratio:1;border:3px solid rgba(255,255,255,.8);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.4)}
+    .qr-frame.hit{border-color:#22c55e;box-shadow:0 0 0 9999px rgba(0,0,0,.4),0 0 0 3px #22c55e}
+    .scan-result-big{padding:20px;text-align:center}
+    .scan-result-big .name{font-size:28px;font-weight:800;margin:8px 0 4px}
+    .scan-result-big .sub{font-size:15px;color:#526579}
+    .scan-result-big .badge{display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:999px;font-size:17px;font-weight:800;color:#fff;margin-top:12px}
+    /* ===== ログ ===== */
+    .log-list{max-height:220px;overflow:auto;padding:0 18px 14px}
+    .log-item{padding:8px 0;border-bottom:1px solid #eef2f7;font-size:13px}
+    /* ===== 学生証 ===== */
+    .tecom-card{width:85mm;max-width:85mm;min-height:55mm;margin:0 auto;background:#d8d8d8;border-radius:4mm;padding:2.4mm;box-shadow:0 8px 20px rgba(0,0,0,.12);position:relative;overflow:visible;border:none}
+    .tecom-card::before{display:none}
+    .tecom-card-inner{background:#fff;border-radius:2mm;overflow:hidden;height:calc(55mm - 4.8mm);min-height:calc(55mm - 4.8mm);max-height:calc(55mm - 4.8mm);display:grid;grid-template-rows:auto 1fr}
+    .tecom-head{padding:3mm 4mm 2.4mm;border-bottom:1px solid #d9d9d9;display:grid;grid-template-columns:30mm 1fr;align-items:center;column-gap:3mm}
+    .tecom-logo img{width:100%;height:auto;display:block;object-fit:contain}
+    .tecom-head-center{display:flex;align-items:center;justify-content:center;gap:3.2mm;min-width:0}
+    .tecom-year{font-size:8.8pt;font-weight:800;white-space:nowrap;letter-spacing:.02em;color:#111}
+    .tecom-title{font-size:10pt;font-weight:800;white-space:nowrap;letter-spacing:.03em;color:#111}
+    .tecom-body{padding:3.2mm 3.2mm 3.2mm 3mm;display:grid;grid-template-columns:1fr 28mm;column-gap:2.4mm;align-items:start}
+    .tecom-info{min-width:0}
+    .tecom-row{display:grid;grid-template-columns:10mm 1fr;column-gap:1mm;align-items:center;margin-bottom:1.8mm}
+    .tecom-label{font-size:7pt;font-weight:800;letter-spacing:.06em;white-space:nowrap;color:#111}
+    .tecom-value{min-width:0;font-size:7.2pt;font-weight:700;line-height:1.4;word-break:keep-all;overflow-wrap:anywhere;color:#111}
+    .tecom-name{font-size:10pt;line-height:1.1;letter-spacing:.03em;margin-top:0;color:#111;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tecom-statement{margin-top:0.5mm;font-size:6.5pt;line-height:1.3;font-weight:700;word-break:keep-all;overflow-wrap:anywhere;color:#111}
+    .tecom-school{margin-top:0.6mm;font-size:6.8pt;font-weight:800;letter-spacing:.02em;color:#111}
+    .tecom-school .space{display:inline-block;width:2.4mm}
+    .tecom-contact{margin-top:0.5mm;font-size:4.9pt;line-height:1.15;color:#333;letter-spacing:-0.01em;word-break:keep-all}
+    .tecom-qr-area{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1mm;padding-top:0.5mm}
+    .tecom-qr-box{width:100%;border:1px solid #d2d2d2;border-radius:2mm;padding:1.5mm;background:#fff;box-shadow:none;text-align:center}
+    .tecom-qr-box canvas,.tecom-qr-box img{width:100%!important;height:auto!important;display:block}
+    .tecom-qr-id{text-align:center;font-size:6.5pt;color:#444;letter-spacing:.05em;margin-top:.6mm;word-break:break-all;line-height:1.2}
+    .footer-line{height:4px;background:linear-gradient(90deg,#20d4d7,#5b7cfa,#9d4edd)}
+    .print-card-wrap{display:flex;justify-content:center}
+    .print-sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;padding:10px}
+    .card-item{break-inside:avoid}
+    #printWorkspace{display:none}
+    /* ===== 印刷 ===== */
+    @page{size:A4 portrait;margin:8mm}
+    @media print{
+      body.printing-cards #normalApp{display:none!important}
+      body.printing-cards #printWorkspace{display:block!important}
+      body:not(.printing-cards) #printWorkspace{display:none!important}
+      body:not(.printing-cards) .app-header,.app-note,.left-col,.tabs,.toolbar,.right-actions{display:none!important}
+      body:not(.printing-cards) .shell{display:block;padding:0}
+      body:not(.printing-cards) .panel,.section,.card{box-shadow:none;border:none}
+      body:not(.printing-cards) .tab-pane{display:block!important}
+      .print-sheet{grid-template-columns:repeat(2,85mm);gap:8mm;justify-content:center;padding:0}
+      .card-item{width:85mm}
+      .tecom-card{width:85mm!important;max-width:85mm!important;min-height:55mm!important;box-shadow:none;border:0.25mm solid #cfd8e3;padding:2.4mm}
+      .tecom-card-inner{height:calc(55mm - 4.8mm)!important}
+    }
+    @media(max-width:1100px){.shell{grid-template-columns:1fr}.list-wrap{max-height:none}.sticky-tools{position:static}}
+    @media(max-width:720px){.grid-2{grid-template-columns:1fr}.app-header h1{font-size:17px} th,td{font-size:13px;padding:8px}}
+    /* ===== install hint ===== */
+    .app-note{background:#fff7d6;border-bottom:1px solid #eedc8d;padding:8px 16px;font-size:13px;color:#6c5c16;display:none}
+    .row-selected td{background:#eaf4ff !important}
+  </style>
+</head>
+<body>
+<div id="normalApp" style="display:none">
+  <header class="app-header">
+    <div>
+      <h1 id="headerTitle">本科生 出欠管理</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="muted" id="todayLabel" style="color:#b0c4d8;font-size:13px"></div>
+      <button id="toggleAdminBtn" style="background:rgba(255,255,255,.2);border-radius:10px;padding:8px 16px;font-size:14px;font-weight:700;color:#fff;height:38px;display:none">⚙️ 管理者</button>
+      <!-- 暗証番号テンキーモーダル -->
+      <div id="pinModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:24px;padding:32px 28px;width:min(92vw,360px);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+          <div style="font-size:20px;font-weight:800;color:var(--nav);margin-bottom:6px">🔐 管理者認証</div>
+          <div style="font-size:14px;color:#6b7a89;margin-bottom:20px">暗証番号を入力してください</div>
+          <div id="pinDisplay" style="font-size:36px;letter-spacing:.3em;color:var(--nav);font-weight:800;height:52px;margin-bottom:20px;background:#f7fafe;border-radius:12px;display:flex;align-items:center;justify-content:center">
+            ────
+          </div>
+          <div id="pinError" style="color:var(--danger);font-size:14px;min-height:20px;margin-bottom:10px"></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+            <button class="pin-key light" data-k="1" style="height:60px;font-size:24px;font-weight:700;border-radius:14px">1</button>
+            <button class="pin-key light" data-k="2" style="height:60px;font-size:24px;font-weight:700;border-radius:14px">2</button>
+            <button class="pin-key light" data-k="3" style="height:60px;font-size:24px;font-weight:700;border-radius:14px">3</button>
+            <button class="pin-key light" data-k="4" style="height:60px;font-size:24px;font-weight:700;border-radius:14px">4</button>
+            <button class="pin-key light" data-k="5" style="height:60px;font-size:24px;font-weight:700;border-radius:14px">5</button>
+            <button class="pin-key light" data-k="6" style="height:60px;font-size:24px;font-weight:700;border-radius:14px">6</button>
+            <button class="pin-key light" data-k="7" style="height:60px;font-size:24px;font-weight:700;border-radius:14px">7</button>
+            <button class="pin-key light" data-k="8" style="height:60px;font-size:24px;font-weight:700;border-radius:14px">8</button>
+            <button class="pin-key light" data-k="9" style="height:60px;font-size:24px;font-weight:700;border-radius:14px">9</button>
+            <button id="pinClear" class="secondary" style="height:60px;font-size:16px;font-weight:700;border-radius:14px">C</button>
+            <button class="pin-key light" data-k="0" style="height:60px;font-size:24px;font-weight:700;border-radius:14px">0</button>
+            <button id="pinCancel" class="danger" style="height:60px;font-size:16px;font-weight:700;border-radius:14px">✕</button>
+          </div>
+        </div>
+      </div>
+      <!-- ヘッダー右端に透明タップエリア（3回タップで暗証番号入力を開く） -->
+      <div id="hiddenAdminTap" style="width:44px;height:44px;cursor:default;-webkit-tap-highlight-color:transparent" title=""></div>
+    </div>
+  </header>
+  <div class="app-note" id="installNote">📱 ホーム画面に追加すると全画面アプリとして使えます（Safari → 共有 → ホーム画面に追加）</div>
+
+  <!-- 通常スキャン画面（横向き最適化） -->
+  <div id="scanScreen" style="height:calc(100vh - 60px);display:flex;flex-direction:row;align-items:stretch;background:var(--bg);overflow:hidden">
+
+    <!-- 左：カメラエリア -->
+    <div style="flex:0 0 42%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 10px 12px 16px;gap:10px">
+      <!-- 待機メッセージ -->
+      <div id="scanIdleMsg" style="text-align:center;padding:20px">
+        <div style="font-size:56px;margin-bottom:8px">📷</div>
+        <div style="font-size:22px;font-weight:800;color:var(--nav);margin-bottom:6px">QRコードをかざしてください</div>
+        <div style="font-size:14px;color:#6b7a89">学生証のQRコードをカメラに向けると<br>自動で記録されます</div>
+      </div>
+      <!-- カメラ映像 -->
+      <div style="position:relative;width:100%;border-radius:16px;overflow:hidden;background:#000;box-shadow:0 6px 24px rgba(0,0,0,.25);display:none;flex-shrink:0" id="scanCameraWrap">
+        <video id="scanQrVideo" class="qr-video" playsinline autoplay muted style="width:100%;display:block;max-height:calc(100vh - 140px);object-fit:cover"></video>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+          <div id="scanQrFrame" style="width:55%;aspect-ratio:1;border:3px solid rgba(255,255,255,.8);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.4)"></div>
+        </div>
+      </div>
+      <button class="secondary" id="startCameraBtn2" style="height:40px;padding:0 20px;font-size:14px;flex-shrink:0">📷 カメラ再起動</button>
+    </div>
+
+    <!-- 右：結果・フォームエリア -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 16px 12px 10px;gap:12px;overflow-y:auto">
+      <!-- 読取結果 -->
+      <div id="scanResultBig" style="display:none;text-align:center;background:#fff;border-radius:20px;padding:24px 28px;box-shadow:0 4px 20px rgba(0,0,0,.08);width:100%;max-width:460px">
+      </div>
+      <!-- エラー時の手入力フォーム -->
+      <div id="scanErrorInput" style="display:none;background:#fff;border-radius:20px;padding:20px 24px;box-shadow:0 4px 20px rgba(0,0,0,.08);width:100%;max-width:460px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:10px;color:var(--danger)">⚠️ QRが読み取れない場合</div>
+        <div style="font-size:13px;color:#6b7a89;margin-bottom:10px">学籍番号を入力して登校・下校を記録してください</div>
+        <input type="text" id="scanManualId" placeholder="学籍番号（下3桁でもOK）" autocomplete="off" autocorrect="off" spellcheck="false"
+          style="width:100%;padding:12px;font-size:18px;text-align:center;letter-spacing:.08em;border:2px solid #cfd8e3;border-radius:12px;margin-bottom:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button class="ok" id="scanManualCheckinBtn" style="height:52px;font-size:15px;font-weight:700">現在時刻で登校記録</button>
+          <button class="warn" id="scanManualCheckoutBtn" style="height:52px;font-size:15px;font-weight:700">現在時刻で下校記録</button>
+        </div>
+        <div id="scanManualResult" style="margin-top:8px"></div>
+      </div>
+      <!-- 待機中のメッセージ（右側） -->
+      <div id="scanRightIdle" style="text-align:center;color:#b0bec5">
+        <div style="font-size:48px;margin-bottom:8px">✨</div>
+        <div style="font-size:16px">読み取り結果がここに表示されます</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="shell" id="adminShell" style="display:none">
+    <!-- 左カラム：本日一覧 -->
+    <aside class="left-col">
+      <section class="panel sticky-tools">
+        <div class="panel-header"><h2>本日の一覧</h2><span class="muted">固定</span></div>
+        <div class="panel-body">
+          <div class="summary-grid" id="summaryGrid"></div>
+          <div style="height:10px"></div>
+          <div class="toolbar">
+            <input type="text" id="todaySearch" placeholder="氏名・番号で検索" style="flex:1;min-width:140px">
+            <select id="todayFilter" style="width:120px">
+              <option value="all">全員</option>
+              <option value="none">未登校</option>
+              <option value="in">在校中</option>
+              <option value="out">下校済み</option>
+              <option value="early">早退</option>
+              <option value="absent">欠席</option>
+            </select>
+          </div>
+          <div style="height:10px"></div>
+          <div class="list-wrap">
+            <table><thead><tr><th>学籍番号</th><th>氏名</th><th>状態</th><th>滞在</th></tr></thead>
+            <tbody id="todayTableBody"></tbody></table>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h3>本日の行動ログ</h3></div>
+        <div class="log-list" id="todayLog"></div>
+      </section>
+    </aside>
+
+    <!-- 右カラム：タブ -->
+    <main class="right-col">
+      <section class="panel">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="scan">QRスキャン</button>
+          <button class="tab-btn" data-tab="manual">手動記録</button>
+          <button class="tab-btn" data-tab="students">学生登録・取込</button>
+          <button class="tab-btn" data-tab="cards">学生証発行</button>
+          <button class="tab-btn" data-tab="history">履歴・集計</button>
+          <button class="tab-btn" data-tab="backup">設定・バックアップ</button>
+        </div>
+        <div class="panel-body">
+
+          <!-- QRスキャンタブ -->
+          <div id="tab-scan" class="tab-pane active">
+            <div class="grid-2" style="gap:16px">
+              <div class="section" style="padding:16px">
+                <div class="panel-header" style="padding:0 0 12px"><h3>QRコードリーダー</h3></div>
+                <div class="qr-scan-wrap" id="qrScanWrap">
+                  <video id="adminQrVideo" class="qr-video" playsinline autoplay muted></video>
+                  <div class="qr-overlay"><div class="qr-frame" id="adminQrFrame"></div></div>
+                </div>
+                <div style="margin-top:12px" class="toolbar">
+                  <button class="ok" id="startCameraBtn">📷 カメラ起動</button>
+                  <button class="secondary" id="stopCameraBtn" style="display:none">停止</button>
+                </div>
+                <div id="scanStatus" class="alert ok" style="margin-top:10px">カメラを起動してiPadを学生証のQRコードにかざしてください。</div>
+              </div>
+              <div class="section" style="padding:16px">
+                <div class="panel-header" style="padding:0 0 12px"><h3>読取結果</h3></div>
+                <div id="scanResult">
+                  <div class="empty">QRコードを読み取ると結果が表示されます。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 手動記録タブ -->
+          <div id="tab-manual" class="tab-pane">
+            <div class="grid-2">
+              <div class="section" style="padding:16px">
+                <div class="panel-header" style="padding:0 0 14px"><h3>手動記録</h3></div>
+                <p class="muted">左の一覧から学生を選択し、対象日を指定してから操作してください。未来日の欠席登録にも対応しています。</p>
+                <div class="form-group"><label>対象日</label><div style="display:flex;gap:8px;align-items:center"><input type="date" id="manualTargetDate" style="max-width:180px"><button type="button" class="light" id="manualTargetTodayBtn" style="white-space:nowrap">今日に戻す</button></div></div>
+                <div id="manualSelectedInfo" style="margin:12px 0;padding:12px;background:#f7fafe;border-radius:10px;font-size:14px;min-height:48px">学生を選択してください。</div>
+                <div class="toolbar" style="gap:10px">
+                  <button class="ok" id="manualCheckinBtn" style="flex:1;height:52px;font-size:15px;font-weight:700">現在時刻で登校記録</button>
+                  <button class="warn" id="manualCheckoutBtn" style="flex:1;height:52px;font-size:15px;font-weight:700">現在時刻で下校記録</button>
+                </div>
+                <div style="margin-top:10px">
+                  <button class="danger" id="manualAbsentBtn" style="width:100%;height:52px;font-size:15px;font-weight:700">欠席として記録</button>
+                </div>
+                <div style="height:14px"></div>
+                <div class="form-group"><label>備考（欠席理由など）</label><input type="text" id="manualNoteInput" placeholder="例: 体調不良、公欠 など"></div>
+                <div class="form-group"><label>登校時刻を修正</label><input type="time" id="manualCheckinTime" step="60"></div>
+                <div class="form-group"><label>下校時刻を修正</label><input type="time" id="manualCheckoutTime" step="60"></div>
+                <div class="toolbar" style="margin-top:4px">
+                  <button class="secondary" id="manualSaveBtn">手入力で保存</button>
+                  <button class="light" id="manualDelCheckinBtn">登校削除</button>
+                  <button class="light" id="manualDelCheckoutBtn">下校削除</button>
+                  <button class="danger" id="manualDelAllBtn">対象日削除</button>
+                </div>
+                <div id="manualAlert"></div>
+              </div>
+              <div class="section" style="padding:16px">
+                <div class="panel-header" style="padding:0 0 12px"><h3>対象日の記録詳細</h3></div>
+                <div id="todayDetailBox">学生を選択してください。</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 学生登録タブ -->
+          <div id="tab-students" class="tab-pane">
+            <div class="grid-2">
+              <section class="section">
+                <div class="panel-header"><h3>学生登録 / 編集</h3></div>
+                <div class="panel-body">
+                  <form id="studentForm">
+                    <div class="grid-2">
+                      <div class="form-group"><label>学籍番号 *</label><input type="text" id="sId" required autocomplete="off" autocorrect="off" spellcheck="false"></div>
+                      <div class="form-group"><label>氏名 *</label><input type="text" id="sName" required></div>
+                      <div class="form-group"><label>学年</label>
+                        <input type="text" id="sGrade" list="gradeList" placeholder="例: 既卒1年目">
+                        <datalist id="gradeList">
+                          <option value="既卒1年目"><option value="既卒2年目"><option value="既卒3年目以上"><option value="医学部6年">
+                        </datalist>
+                      </div>
+                      <div class="form-group"><label>基準登校時刻</label>
+                        <select id="sStart"><option value="09:00">09:00</option><option value="09:30">09:30</option></select>
+                      </div>
+                      <div class="form-group"><label>基準下校時刻</label>
+                        <select id="sEnd"><option value="17:00">17:00</option><option value="17:30">17:30</option></select>
+                      </div>
+                      <div class="form-group"><label>メールアドレス</label><input type="email" id="sEmail"></div>
+                    </div>
+                    <div class="form-group"><label>備考</label><textarea id="sNote" rows="2"></textarea></div>
+                    <div class="toolbar" style="margin-top:10px">
+                      <button type="submit" class="ok" id="sSubmitBtn">登録</button>
+                      <button type="button" class="secondary" id="sCancelBtn" style="display:none">キャンセル</button>
+                    </div>
+                  </form>
+                  <div id="studentAlert"></div>
+                </div>
+              </section>
+              <section class="section">
+                <div class="panel-header"><h3>Excel / CSV 取込</h3></div>
+                <div class="panel-body">
+                  <p class="muted">推奨列名: <code>学籍番号 / 氏名 / 学年 / 基準登校時刻 / 基準下校時刻 / メールアドレス / 備考</code></p>
+                  <div class="toolbar" style="margin-top:10px">
+                    <label class="btn light" style="cursor:pointer;border-radius:10px;padding:10px 14px;font-size:14px">ファイル選択<input type="file" id="importFile" accept=".xlsx,.xls,.csv" hidden></label>
+                    <button class="secondary" id="dlTemplateBtn">テンプレート出力</button>
+                  </div>
+                  <div id="importResult" class="muted" style="margin-top:10px">未取込</div>
+                  <div style="height:12px"></div>
+                  <div class="list-wrap" style="max-height:300px">
+                    <table><thead><tr><th>学籍番号</th><th>氏名</th><th>学年</th><th>登校</th><th>下校</th><th>操作</th></tr></thead>
+                    <tbody id="studentListBody"></tbody></table>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- 学生証タブ -->
+          <div id="tab-cards" class="tab-pane">
+            <div class="grid-2">
+              <section class="section">
+                <div class="panel-header"><h3>QRコード付き学生証の発行</h3></div>
+                <div class="panel-body">
+                  <p class="muted">学生証は横型カードサイズ（8.5cm × 5.5cm）で印刷して配布します。QRコードをiPadのカメラにかざすと登下校が記録されます。</p>
+                  <p class="muted" style="margin-top:8px;color:#8c2424">※ 印刷時はブラウザの倍率を <strong>100%</strong>、余白は<strong>既定</strong>または<strong>最小</strong>、『ページに合わせる』は <strong>OFF</strong> にしてください。</p>
+                  <div class="toolbar" style="margin-top:12px">
+                    <button class="ok" id="printSelectedBtn">選択した学生証を印刷</button>
+                    <button class="secondary" id="printAllBtn">全学生証をまとめて印刷</button>
+                  </div>
+                  <div style="height:12px"></div>
+                  <div id="cardActionArea">左の一覧から学生を選択すると情報が表示されます。</div>
+                </div>
+              </section>
+              <section class="section">
+                <div class="panel-header"><h3>学生証プレビュー</h3></div>
+                <div class="panel-body" id="cardPreviewArea">
+                  <div class="empty">学生を選択してください。</div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- 履歴・集計タブ -->
+          <div id="tab-history" class="tab-pane">
+            <div class="grid-2">
+              <section class="section">
+                <div class="panel-header"><h3>出席履歴</h3></div>
+                <div class="panel-body">
+                  <div class="toolbar">
+                    <input type="date" id="histStart" style="width:150px">
+                    <input type="date" id="histEnd" style="width:150px">
+                    <select id="histStudent" style="width:170px"></select>
+                    <button id="histRefreshBtn">表示</button>
+                  </div>
+                  <div class="toolbar" style="margin-top:8px">
+                    <select id="histGrade" style="width:150px"><option value="">学年: すべて</option></select>
+                  </div>
+                  <div style="height:10px"></div>
+                  <div class="list-wrap" style="max-height:400px">
+                    <table><thead><tr><th>日付</th><th>学生</th><th>登校</th><th>下校</th><th>滞在</th></tr></thead>
+                    <tbody id="histBody"></tbody></table>
+                  </div>
+                </div>
+              </section>
+              <section class="section">
+                <div class="panel-header"><h3>滞在時間集計</h3></div>
+                <div class="panel-body">
+                  <div class="toolbar">
+                    <input type="date" id="repStart" style="width:150px">
+                    <input type="date" id="repEnd" style="width:150px">
+                    <button id="repRefreshBtn">集計</button>
+                  </div>
+                  <div class="toolbar" style="margin-top:8px">
+                    <select id="repGrade" style="width:150px"><option value="">学年: すべて</option></select>
+                  </div>
+                  <div class="toolbar" style="margin-top:8px">
+                    <input type="month" id="exportMonth" style="width:160px">
+                    <select id="exportGrade" style="width:150px"><option value="">学年: すべて</option></select>
+                    <button class="secondary" id="exportAllBtn">全員横型Excel</button>
+                    <button class="ok" id="exportIndivBtn">個人別縦型Excel</button>
+                  </div>
+                  <div style="height:10px"></div>
+                  <div class="list-wrap" style="max-height:360px">
+                    <table><thead><tr><th>学籍番号</th><th>氏名</th><th>学年</th><th>登校日数</th><th>欠席日数</th><th>総滞在</th><th>平均滞在</th></tr></thead>
+                    <tbody id="repBody"></tbody></table>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- バックアップタブ -->
+          <div id="tab-backup" class="tab-pane">
+            <div class="grid-2">
+              <section class="section">
+                <div class="panel-header"><h3>バックアップ</h3></div>
+                <div class="panel-body">
+                  <div class="toolbar">
+                    <button class="secondary" id="exportJsonBtn">JSONバックアップ出力</button>
+                    <label class="btn light" style="cursor:pointer;border-radius:10px;padding:10px 14px;font-size:14px">JSON読込<input type="file" id="importJsonFile" accept=".json" hidden></label>
+                  </div>
+                  <p class="muted" style="margin-top:12px">端末のブラウザデータが消えた場合に備え、定期的にバックアップを出力してください。</p>
+                </div>
+              </section>
+              <section class="section">
+                <div class="panel-header"><h3>運用メモ</h3></div>
+                <div class="panel-body">
+                  <ul class="muted" style="line-height:1.9;padding-left:18px">
+                    <li>このファイルは<strong>本科生専用</strong>です。帝京大学生は別ファイルで管理してください。</li>
+                    <li>データはこのiPadのSafari内（IndexedDB）に保存されます。</li>
+                    <li>QRコードをカメラにかざすと登校・下校が自動記録されます。</li>
+                    <li>端末トラブルに備え、定期的にJSONバックアップを出力してください。</li>
+                  </ul>
+                </div>
+              </section>
+            </div>
+          </div>
+
+        </div><!-- /panel-body -->
+      </section>
+    </main>
+  </div><!-- /shell -->
+</div><!-- /normalApp -->
+
+<div id="cardApp" style="display:none"></div>
+<div id="printWorkspace"></div>
+
+<script>
+const TECOM_LOGO = 'data:image/png;base64,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';
+
+
+// ===== 定数・グローバル =====
+const DB_NAME = 'honka_attendance_db';
+const DB_VERSION = 1;
+const STUDENT_STORE = 'students';
+const ATTENDANCE_STORE = 'attendance';
+const DEFAULT_START = '09:00';
+const DEFAULT_END = '17:00';
+
+let db = null;
+let students = [];
+let attendance = [];
+let selectedStudentId = null;
+let editingStudentId = null;
+let videoStream = null;
+let scanning = false;
+let scanCooldown = false;
+
+const qs = id => document.getElementById(id);
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+};
+const nowTime = () => { const d=new Date(); return `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`; };
+const p2 = n => String(n).padStart(2,'0');
+const esc = (s='') => String(s).replace(/[&<>'"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
+const fmtJP = ds => { const d=new Date(ds+'T00:00:00'); return `${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())}`; };
+const byId = id => students.find(s=>s.id===id);
+// 下3桁または完全一致で学生を検索
+function findStudentByShortId(input){
+  const v = input.trim().toUpperCase();
+  if(!v) return null;
+  // 完全一致を優先
+  const exact = students.find(s=>s.id===v);
+  if(exact) return exact;
+  // 下3桁で照合（入力が3桁以下の場合）
+  if(v.length<=3){
+    const matched = students.filter(s=>s.id.slice(-3)===v.padStart(3,'0')||s.id.endsWith(v));
+    if(matched.length===1) return matched[0];
+    if(matched.length>1) return {_multiple:true, candidates:matched};
+  }
+  return null;
+}
+const minsBetween = (a,b) => { if(!a||!b) return null; const[ah,am]=a.split(':').map(Number),[bh,bm]=b.split(':').map(Number); return (bh*60+bm)-(ah*60+am); };
+const fmtMin = m => { if(m==null||m<0) return '-'; return `${Math.floor(m/60)}時間${p2(m%60)}分`; };
+const toMin = v => { if(!v) return null; const[h,m]=String(v).split(':').map(Number); return h*60+m; };
+function showAlert(id,kind,msg){ const el=qs(id); if(!el) return; el.innerHTML=`<div class="alert ${kind}">${msg}</div>`; setTimeout(()=>{if(qs(id))qs(id).innerHTML='';},3500); }
+function currentYearLabel(){ const d=new Date(); const y=d.getFullYear(); return `${d.getMonth()+1>=4?y:y-1}年度`; }
+function currentIssueDateJP(){ const d=new Date(); return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`; }
+
+// ===== IndexedDB =====
+function openDb(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,DB_VERSION);
+    r.onupgradeneeded=e=>{ const d=e.target.result; [STUDENT_STORE,ATTENDANCE_STORE].forEach(n=>{ if(!d.objectStoreNames.contains(n)) d.createObjectStore(n,{keyPath:n===STUDENT_STORE?'id':'key'}); }); };
+    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+  });
+}
+const dbAll = store => new Promise((res,rej)=>{ const tx=db.transaction(store,'readonly'); const r=tx.objectStore(store).getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>rej(r.error); });
+const dbPut = (store,v) => new Promise((res,rej)=>{ const tx=db.transaction(store,'readwrite'); tx.objectStore(store).put(v); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); });
+const dbDel = (store,k) => new Promise((res,rej)=>{ const tx=db.transaction(store,'readwrite'); tx.objectStore(store).delete(k); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); });
+
+async function loadAll(){ students=await dbAll(STUDENT_STORE); attendance=await dbAll(ATTENDANCE_STORE); }
+async function saveStudent(s){ await dbPut(STUDENT_STORE,s); }
+async function deleteStudentDB(id){ await dbDel(STUDENT_STORE,id); }
+async function saveAttendance(r){ if(!r.key) r.key=`${r.date}__${r.studentId}`; await dbPut(ATTENDANCE_STORE,r); }
+async function deleteAttKey(k){ await dbDel(ATTENDANCE_STORE,k); }
+
+// ===== 出欠処理 =====
+function todayRec(sid){ return attendance.find(a=>a.date===todayStr()&&a.studentId===sid)||null; }
+function recByDate(sid,date){ return attendance.find(a=>a.date===date&&a.studentId===sid)||null; }
+function manualTargetDate(){ return (qs('manualTargetDate')?.value||todayStr()).trim(); }
+function studentStatus(sid){ const r=todayRec(sid); if(!r) return 'none'; if(r.absent) return 'absent'; if(!r.checkinTime) return 'none'; if(r.checkoutTime&&isEarlyOut(r.checkoutTime,sid)) return 'early'; if(r.checkoutTime) return 'out'; return 'in'; }
+function statusLabel(st){ return {none:'未登校',in:'在校中',out:'下校済み',early:'早退',absent:'欠席'}[st]||'-'; }
+function statusChip(st){ return `<span class="status-chip status-${st}">${statusLabel(st)}</span>`; }
+function isEarlyOut(t,sid){ const s=byId(sid); const em=toMin(s?.endTime||DEFAULT_END); return toMin(t)!=null&&em!=null&&toMin(t)<em; }
+
+async function processAttendance(studentId){
+  const s=byId(studentId);
+  if(!s) return {ok:false,msg:'登録されていない学籍番号です。'};
+  const date=todayStr(), key=`${date}__${studentId}`;
+  // dateフィールドも必ず今日と一致するものだけを対象にする（昨日以前のレコード混入防止）
+  let rec=attendance.find(a=>a.key===key && a.date===date);
+  const t=nowTime();
+  if(!rec){ rec={key,date,studentId,checkinTime:t,checkoutTime:null,absent:false,note:'',source:'qr'}; await saveAttendance(rec); return {ok:true,type:'in',msg:`登校を記録しました（${t}）`,student:s}; }
+  if(rec.absent) return {ok:false,msg:`${s.name} さんは本日欠席として記録されています。`};
+  if(!rec.checkinTime){ rec.checkinTime=t; rec.source='qr'; await saveAttendance(rec); return {ok:true,type:'in',msg:`登校を記録しました（${t}）`,student:s}; }
+  if(!rec.checkoutTime){ rec.checkoutTime=t; await saveAttendance(rec); return {ok:true,type:'out',msg:`下校を記録しました（${t}）`,student:s}; }
+  return {ok:false,msg:`${s.name} さんは本日の記録が完了しています。`};
+}
+
+// ===== QRスキャン =====
+const scanCanvas = document.createElement('canvas');
+const scanCtx = scanCanvas.getContext('2d');
+const SCAN_VIDEO_IDS = ['scanQrVideo','adminQrVideo'];
+const SCAN_FRAME_IDS = ['scanQrFrame','adminQrFrame'];
+
+function getScanVideos(){
+  return SCAN_VIDEO_IDS.map(id=>qs(id)).filter(Boolean);
+}
+function getActiveScanVideo(){
+  const videos=getScanVideos();
+  return videos.find(v=>v.readyState>=2 && v.videoWidth>0 && v.videoHeight>0) || videos[0] || null;
+}
+function setScanFrameActive(active){
+  SCAN_FRAME_IDS.forEach(id=>{
+    const frame=qs(id);
+    if(frame) frame.style.borderColor = active ? '#22c55e' : 'rgba(255,255,255,.8)';
+  });
+}
+async function bindVideoStreamToScreens(stream){
+  for(const video of getScanVideos()){
+    try{
+      if(video.srcObject !== stream) video.srcObject = stream;
+      await video.play();
+    }catch(e){}
+  }
+}
+function explainCameraError(err){
+  const msg=String(err && (err.message || err.name) || '');
+  if(!window.isSecureContext) return 'このページは安全な接続ではありません。カメラ利用には HTTPS または localhost で開いてください。';
+  if(/NotAllowedError|Permission/i.test(msg)) return 'カメラの利用が許可されていません。Safari / Edge / Chrome の設定でカメラを許可してください。';
+  if(/NotFoundError|DevicesNotFoundError/i.test(msg)) return '利用できるカメラが見つかりませんでした。';
+  if(/NotReadableError|TrackStartError|Could not start video source/i.test(msg)) return 'カメラが他のアプリで使用中の可能性があります。いったん他アプリを閉じて再試行してください。';
+  return 'カメラにアクセスできませんでした。ブラウザ設定と端末のカメラ権限をご確認ください。';
+}
+
+// ===== ピッ音 =====
+function playBeep(ok=true){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value=ok?1200:400;
+    osc.type='sine';
+    gain.gain.setValueAtTime(1.0,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime+0.3);
+  }catch(e){}
+}
+
+async function startCamera(){
+  try{
+    if(typeof jsQR !== 'function') throw new Error('QR_LIBRARY_NOT_LOADED');
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('MEDIA_DEVICES_NOT_SUPPORTED');
+    if(videoStream){ videoStream.getTracks().forEach(t=>t.stop()); videoStream=null; }
+    videoStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'user'},width:{ideal:1280},height:{ideal:720}}});
+    await bindVideoStreamToScreens(videoStream);
+    scanning=true;
+    setScanFrameActive(false);
+    // 大画面：カメラ表示
+    if(qs('scanCameraWrap')) qs('scanCameraWrap').style.display='block';
+    if(qs('scanIdleMsg')) qs('scanIdleMsg').style.display='none';
+    // 管理タブ内のボタン表示切替
+    if(qs('startCameraBtn')) qs('startCameraBtn').style.display='none';
+    if(qs('stopCameraBtn')) qs('stopCameraBtn').style.display='';
+    if(qs('scanStatus')){ qs('scanStatus').className='alert ok'; qs('scanStatus').textContent='スキャン中… 学生証のQRコードにiPadをかざしてください。'; }
+    requestAnimationFrame(scanLoop);
+    startCameraWatchdog(); // カメラ死活監視を開始
+  }catch(e){
+    scanning=false;
+    const detail = String(e && (e.message || e.name) || '');
+    const msg = detail === 'QR_LIBRARY_NOT_LOADED'
+      ? 'QRライブラリの読み込みに失敗しました。ネットワーク接続を確認してページを再読み込みしてください。'
+      : detail === 'MEDIA_DEVICES_NOT_SUPPORTED'
+      ? 'このブラウザはカメラ起動に対応していません。'
+      : explainCameraError(e);
+    if(qs('scanStatus')){ qs('scanStatus').className='alert err'; qs('scanStatus').textContent=msg; }
+    if(qs('scanIdleMsg')) qs('scanIdleMsg').innerHTML=`<div style="font-size:48px">⚠️</div><div style="font-size:20px;color:var(--danger);font-weight:700">カメラを起動できませんでした</div><div style="font-size:14px;color:#6b7a89;margin-top:8px">${esc(msg)}</div>`;
+  }
+}
+
+function stopCamera(){
+  scanning=false;
+  stopCameraWatchdog();
+  if(videoStream){ videoStream.getTracks().forEach(t=>t.stop()); videoStream=null; }
+  getScanVideos().forEach(v=>{ try{ v.pause(); v.srcObject=null; }catch(e){} });
+  setScanFrameActive(false);
+  if(qs('startCameraBtn')) qs('startCameraBtn').style.display='';
+  if(qs('stopCameraBtn')) qs('stopCameraBtn').style.display='none';
+  if(qs('scanStatus')){ qs('scanStatus').className='alert warn'; qs('scanStatus').textContent='カメラを停止しました。'; }
+  if(qs('scanCameraWrap')) qs('scanCameraWrap').style.display='none';
+  if(qs('scanIdleMsg')){ qs('scanIdleMsg').style.display='block'; }
+}
+
+// ===== カメラ死活監視（Watchdog）=====
+let _cameraWatchdogTimer = null;
+
+function startCameraWatchdog(){
+  stopCameraWatchdog();
+  _cameraWatchdogTimer = setInterval(async()=>{
+    if(!scanning) return;
+    const v = getActiveScanVideo();
+    const trackEnded = videoStream && videoStream.getTracks().some(t=>t.readyState==='ended');
+    const videoStalled = !v || v.readyState < 2 || v.videoWidth === 0;
+    if(trackEnded || videoStalled){
+      console.warn('[Watchdog] カメラ停止を検知 → 自動再起動');
+      await startCamera();
+    }
+  }, 3000);
+}
+
+function stopCameraWatchdog(){
+  if(_cameraWatchdogTimer){ clearInterval(_cameraWatchdogTimer); _cameraWatchdogTimer=null; }
+}
+
+function scanLoop(){
+  if(!scanning) return;
+  requestAnimationFrame(scanLoop);
+  const v=getActiveScanVideo();
+  if(!v || v.readyState!==v.HAVE_ENOUGH_DATA || scanCooldown || typeof jsQR !== 'function') return;
+  scanCanvas.width=v.videoWidth; scanCanvas.height=v.videoHeight;
+  scanCtx.drawImage(v,0,0);
+  const img=scanCtx.getImageData(0,0,scanCanvas.width,scanCanvas.height);
+  const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+  if(code&&code.data) handleQrResult(code.data);
+}
+
+async function handleQrResult(raw){
+  if(scanCooldown) return;
+  scanCooldown=true;
+  setScanFrameActive(true);
+
+  let sid=raw.trim();
+  try{ const p=JSON.parse(raw); if(p.studentId) sid=String(p.studentId).trim(); }catch(e){}
+  sid=sid.toUpperCase();
+
+  const result=await processAttendance(sid);
+  // ピッ音
+  playBeep(result.ok);
+  await loadAll();
+  // 大画面に結果表示
+  renderScanResultBig(result);
+  // 管理タブの結果も更新
+  renderScanResult(result);
+  await refreshAll();
+
+  clearTimeout(window._scanReset);
+  if(result.ok){
+    // 成功時：3秒後にリセット
+    window._scanReset=setTimeout(()=>{
+      setScanFrameActive(false);
+      if(qs('scanResult')) qs('scanResult').innerHTML='<div class="empty">QRコードを読み取ると結果が表示されます。</div>';
+      if(qs('scanResultBig')) qs('scanResultBig').style.display='none';
+      if(qs('scanErrorInput')) qs('scanErrorInput').style.display='none';
+      if(qs('scanRightIdle')) qs('scanRightIdle').style.display='block';
+      scanCooldown=false;
+    },3000);
+  } else {
+    // エラー時：タイマーをセットせずフォームを表示したまま、クールダウンだけ解除
+    setScanFrameActive(false);
+    if(qs('scanResult')) qs('scanResult').innerHTML='<div class="empty">QRコードを読み取ると結果が表示されます。</div>';
+    scanCooldown=false;
+  }
+}
+
+function renderScanResultBig(result){
+  const root=qs('scanResultBig');
+  if(!root) return;
+  root.style.display='block';
+  if(qs('scanRightIdle')) qs('scanRightIdle').style.display='none';
+  if(result.ok){
+    const isIn=result.type==='in';
+    root.innerHTML=`
+      <div style="font-size:56px;margin-bottom:6px">${isIn?'✅':'👋'}</div>
+      <div style="font-size:28px;font-weight:800;margin-bottom:4px">${esc(result.student.name)}</div>
+      <div style="font-size:14px;color:#526579;margin-bottom:12px">${esc(result.student.id)}${result.student.grade?' / '+esc(result.student.grade):''}</div>
+      <div style="display:inline-flex;align-items:center;padding:8px 22px;border-radius:999px;font-size:18px;font-weight:800;color:#fff;background:${isIn?'var(--ok)':'var(--done)'};margin-bottom:14px">${isIn?'登校記録完了':'下校記録完了'}</div>
+      <div style="font-size:20px;font-weight:700;color:${isIn?'var(--ok)':'var(--done)'};margin-bottom:6px">${isIn?'今日もよろしくお願いします':'本日はお疲れさまでした。'}</div>
+      ${isIn?'':'<div style="font-size:17px;color:var(--done);margin-bottom:6px">お気をつけてお帰りください</div>'}
+      <div style="font-size:13px;color:#6b7a89">${esc(result.msg)}</div>`;
+    if(qs('scanErrorInput')) qs('scanErrorInput').style.display='none';
+  } else {
+    root.innerHTML=`
+      <div style="font-size:52px;margin-bottom:6px">❌</div>
+      <div style="font-size:22px;font-weight:800;margin-bottom:6px;color:var(--danger)">読み取りエラー</div>
+      <div style="font-size:14px;color:#6b7a89;margin-bottom:12px">${esc(result.msg)}</div>`;
+    if(qs('scanErrorInput')) qs('scanErrorInput').style.display='block';
+    if(qs('scanManualId')) qs('scanManualId').focus();
+  }
+}
+
+function renderScanResult(result){
+  const root=qs('scanResult');
+  if(result.ok){
+    const isIn=result.type==='in';
+    root.innerHTML=`<div class="scan-result-big">
+      <div style="font-size:56px">${isIn?'✅':'👋'}</div>
+      <div class="name">${esc(result.student.name)}</div>
+      <div class="sub">${esc(result.student.id)}${result.student.grade?' / '+esc(result.student.grade):''}</div>
+      <div class="badge" style="background:${isIn?'var(--ok)':'var(--done)'}">${isIn?'登校記録完了':'下校記録完了'}</div>
+      <div class="muted" style="margin-top:10px">${esc(result.msg)}</div>
+    </div>`;
+  } else {
+    if(!root) return;
+    root.innerHTML=`<div class="scan-result-big">
+      <div style="font-size:56px">❌</div>
+      <div class="name">エラー</div>
+      <div class="badge" style="background:var(--danger)">読み取り失敗</div>
+      <div class="muted" style="margin-top:10px">${esc(result.msg||'')}</div>
+    </div>`;
+  }
+}
+
+// ===== 手動記録 =====
+async function manualCheckin(){
+  if(!selectedStudentId){ showAlert('manualAlert','warn','左の一覧から学生を選択してください。'); return; }
+  const date=manualTargetDate(), key=`${date}__${selectedStudentId}`;
+  let rec=attendance.find(a=>a.key===key);
+  if(rec?.checkinTime){ showAlert('manualAlert','warn',`${fmtJP(date)} の登校記録は既にあります。`); return; }
+  if(!rec) rec={key,date,studentId:selectedStudentId,checkinTime:nowTime(),checkoutTime:null,source:'manual'};
+  else rec.checkinTime=nowTime();
+  rec.absent=false;
+  await saveAttendance(rec); await refreshAll(); showAlert('manualAlert','ok',`${fmtJP(date)} の登校を記録しました。`);
+}
+async function manualCheckout(){
+  if(!selectedStudentId){ showAlert('manualAlert','warn','左の一覧から学生を選択してください。'); return; }
+  const date=manualTargetDate();
+  const rec=attendance.find(a=>a.key===`${date}__${selectedStudentId}`);
+  if(!rec?.checkinTime){ showAlert('manualAlert','warn',`${fmtJP(date)} は先に登校記録が必要です。`); return; }
+  if(rec.checkoutTime){ showAlert('manualAlert','warn',`${fmtJP(date)} の下校記録は既にあります。`); return; }
+  rec.checkoutTime=nowTime(); rec.absent=false; await saveAttendance(rec); await refreshAll(); showAlert('manualAlert','ok',`${fmtJP(date)} の下校を記録しました。`);
+}
+async function manualSaveTimes(){
+  if(!selectedStudentId){ showAlert('manualAlert','warn','左の一覧から学生を選択してください。'); return; }
+  const date=manualTargetDate();
+  const ci=(qs('manualCheckinTime').value||'').trim();
+  const co=(qs('manualCheckoutTime').value||'').trim();
+  const note=(qs('manualNoteInput')?.value||'').trim();
+  if(!ci&&!co){ showAlert('manualAlert','warn','時刻を入力してください。'); return; }
+  if(ci&&co&&co<ci){ showAlert('manualAlert','warn','下校時刻は登校時刻以降にしてください。'); return; }
+  const key=`${date}__${selectedStudentId}`;
+  let rec=attendance.find(a=>a.key===key)||{key,date,studentId:selectedStudentId,checkinTime:null,checkoutTime:null,source:'manual-edit'};
+  rec.date=date; rec.checkinTime=ci||null; rec.checkoutTime=co||null; rec.note=note; rec.absent=false; rec.source='manual-edit';
+  if(!rec.checkinTime&&!rec.checkoutTime) await deleteAttKey(key); else await saveAttendance(rec);
+  await refreshAll(); showAlert('manualAlert','ok',`${fmtJP(date)} の手入力内容を保存しました。`);
+}
+async function manualDelCheckin(){
+  if(!selectedStudentId){ showAlert('manualAlert','warn','左の一覧から学生を選択してください。'); return; }
+  const date=manualTargetDate();
+  const key=`${date}__${selectedStudentId}`;
+  const rec=attendance.find(a=>a.key===key);
+  if(!rec?.checkinTime){ showAlert('manualAlert','warn',`${fmtJP(date)} に削除する登校記録がありません。`); return; }
+  if(!confirm(`${fmtJP(date)} の登校記録を削除しますか？`)) return;
+  rec.checkinTime=null; rec.source='manual-edit'; rec.absent=false;
+  if(!rec.checkoutTime) await deleteAttKey(key); else await saveAttendance(rec);
+  await refreshAll(); showAlert('manualAlert','ok',`${fmtJP(date)} の登校記録を削除しました。`);
+}
+async function manualDelCheckout(){
+  if(!selectedStudentId){ showAlert('manualAlert','warn','左の一覧から学生を選択してください。'); return; }
+  const date=manualTargetDate();
+  const key=`${date}__${selectedStudentId}`;
+  const rec=attendance.find(a=>a.key===key);
+  if(!rec?.checkoutTime){ showAlert('manualAlert','warn',`${fmtJP(date)} に削除する下校記録がありません。`); return; }
+  if(!confirm(`${fmtJP(date)} の下校記録を削除しますか？`)) return;
+  rec.checkoutTime=null; rec.source='manual-edit'; rec.absent=false;
+  if(!rec.checkinTime) await deleteAttKey(key); else await saveAttendance(rec);
+  await refreshAll(); showAlert('manualAlert','ok',`${fmtJP(date)} の下校記録を削除しました。`);
+}
+async function manualDelAll(){
+  if(!selectedStudentId){ showAlert('manualAlert','warn','左の一覧から学生を選択してください。'); return; }
+  const date=manualTargetDate();
+  const key=`${date}__${selectedStudentId}`;
+  const rec=attendance.find(a=>a.key===key);
+  if(!rec){ showAlert('manualAlert','warn',`${fmtJP(date)} に削除する記録がありません。`); return; }
+  if(!confirm(`${fmtJP(date)} の記録を削除しますか？`)) return;
+  await deleteAttKey(key); await refreshAll(); showAlert('manualAlert','ok',`${fmtJP(date)} の記録を削除しました。`);
+}
+
+async function manualAbsent(){
+  if(!selectedStudentId){ showAlert('manualAlert','warn','左の一覧から学生を選択してください。'); return; }
+  const s=byId(selectedStudentId);
+  const date=manualTargetDate();
+  if(!confirm(`${s?.name} さんを ${fmtJP(date)} の欠席として記録しますか？`)) return;
+  const key=`${date}__${selectedStudentId}`;
+  const note=(qs('manualNoteInput')?.value||'').trim();
+  let rec=attendance.find(a=>a.key===key)||{key,date,studentId:selectedStudentId,checkinTime:null,checkoutTime:null,source:'manual'};
+  rec.date=date; rec.absent=true; rec.note=note; rec.checkinTime=null; rec.checkoutTime=null; rec.source='manual';
+  await saveAttendance(rec); await refreshAll();
+  showAlert('manualAlert','ok',`${s?.name} さんを ${fmtJP(date)} の欠席として記録しました。`);
+}
+
+// ===== 画面描画 =====
+async function refreshAll(){
+  await loadAll();
+  renderSummary(); renderTodayList(); renderSelectedStudent(); renderTodayLog();
+  renderStudentList(); renderHistory(); renderReport(); refreshFilterOptions();
+}
+
+function renderSummary(){
+  let none=0,ins=0,out=0,early=0,absent=0;
+  students.forEach(s=>{ const st=studentStatus(s.id); if(st==='none') none++; else if(st==='in') ins++; else if(st==='early') early++; else if(st==='absent') absent++; else out++; });
+  qs('summaryGrid').innerHTML=[['対象人数',students.length],['在校中',ins],['未登校',none],['欠席',absent],['下校済み',out]].map(x=>`<div class="summary-item"><div class="lbl">${x[0]}</div><div class="val">${x[1]}</div></div>`).join('');
+}
+
+function renderTodayList(){
+  const q=(qs('todaySearch').value||'').toLowerCase();
+  const f=qs('todayFilter').value;
+  const rows=[...students].sort((a,b)=>a.name.localeCompare(b.name,'ja')).filter(s=>{
+    const hit=!q||`${s.id} ${s.name}`.toLowerCase().includes(q);
+    const st=studentStatus(s.id);
+    return hit&&(f==='all'||st===f);
+  }).map(s=>{
+    const st=studentStatus(s.id); const r=todayRec(s.id);
+    const mins=r?minsBetween(r.checkinTime,r.checkoutTime):null;
+    return `<tr data-sid="${esc(s.id)}" class="${selectedStudentId===s.id?'row-selected':''}">
+      <td>${esc(s.id)}</td><td>${esc(s.name)}</td><td>${statusChip(st)}</td><td>${fmtMin(mins)}</td></tr>`;
+  }).join('');
+  const body=qs('todayTableBody');
+  body.innerHTML=rows||`<tr><td colspan="4" class="empty">該当学生がいません</td></tr>`;
+  body.querySelectorAll('tr[data-sid]').forEach(tr=>tr.addEventListener('click',()=>selectStudent(tr.dataset.sid)));
+}
+
+function renderSelectedStudent(){
+  const box=qs('manualSelectedInfo'), detail=qs('todayDetailBox');
+  const targetDate=manualTargetDate();
+  if(!selectedStudentId){ box.innerHTML='学生を選択してください。'; detail.innerHTML='学生を選択してください。'; renderCardPreview(); return; }
+  const s=byId(selectedStudentId); if(!s) return;
+  const rec=recByDate(s.id,targetDate);
+  let st='none';
+  if(rec){
+    if(rec.absent) st='absent';
+    else if(rec.checkinTime && rec.checkoutTime && isEarlyOut(rec.checkoutTime,s.id)) st='early';
+    else if(rec.checkoutTime) st='out';
+    else if(rec.checkinTime) st='in';
+  }
+  const stay=rec?fmtMin(minsBetween(rec.checkinTime,rec.checkoutTime)):'-';
+  const info=`<strong>${esc(s.name)}</strong>　${esc(s.id)}${s.grade?' / '+esc(s.grade):''}　${statusChip(st)}<div class="muted" style="margin-top:6px">対象日: ${fmtJP(targetDate)}</div>`;
+  box.innerHTML=info;
+  detail.innerHTML=`${info}<hr style="border:none;border-top:1px solid var(--line);margin:10px 0">
+    <div>日付: ${fmtJP(targetDate)}</div>
+    <div style="margin-top:6px">登校: ${rec?.checkinTime||'-'}</div>
+    <div style="margin-top:6px">下校: ${rec?.checkoutTime||'-'}</div>
+    <div style="margin-top:6px">滞在: ${stay}</div>
+    ${rec?.absent?'<div style="margin-top:6px;color:var(--danger);font-weight:700">欠席</div>':''}
+    ${rec?.note?`<div style="margin-top:6px;color:#526579">備考: ${esc(rec.note)}</div>`:''}`;
+  if(qs('manualCheckinTime')) qs('manualCheckinTime').value=rec?.checkinTime?String(rec.checkinTime).slice(0,5):'';
+  if(qs('manualCheckoutTime')) qs('manualCheckoutTime').value=rec?.checkoutTime?String(rec.checkoutTime).slice(0,5):'';
+  if(qs('manualNoteInput')) qs('manualNoteInput').value=rec?.note||'';
+  renderCardActionArea(); renderCardPreview();
+}
+
+function renderTodayLog(){
+  const logs=attendance.filter(a=>a.date===todayStr()).flatMap(a=>{
+    const s=byId(a.studentId); const name=s?s.name:a.studentId; const items=[];
+    if(a.absent) items.push({time:'00:00:00',text:`${name} が欠席${a.note?'（'+a.note+'）':''}`,isAbsent:true});
+    if(a.checkinTime) items.push({time:a.checkinTime,text:`${name} が登校`});
+    if(a.checkoutTime) items.push({time:a.checkoutTime,text:`${name} が下校`});
+    return items;
+  }).sort((a,b)=>b.time.localeCompare(a.time));
+  qs('todayLog').innerHTML=logs.length?logs.map(l=>`<div class="log-item" style="${l.isAbsent?'color:var(--danger)':''}"><strong>${l.isAbsent?'欠席':l.time}</strong>　${esc(l.text)}</div>`).join(''):`<div class="empty">本日のログはありません</div>`;
+}
+
+function selectStudent(id){ selectedStudentId=id; renderTodayList(); renderSelectedStudent(); }
+
+function renderStudentList(){
+  const body=qs('studentListBody');
+  body.innerHTML=[...students].sort((a,b)=>a.name.localeCompare(b.name,'ja')).map(s=>`<tr>
+    <td>${esc(s.id)}</td><td>${esc(s.name)}</td><td>${esc(s.grade||'')}</td><td>${esc(s.startTime||DEFAULT_START)}</td><td>${esc(s.endTime||DEFAULT_END)}</td>
+    <td><div class="right-actions"><button class="light" style="font-size:12px;padding:5px 10px" data-edit="${esc(s.id)}">編集</button><button class="danger" style="font-size:12px;padding:5px 10px" data-del="${esc(s.id)}">削除</button></div></td>
+  </tr>`).join('')||`<tr><td colspan="6" class="empty">学生が未登録です</td></tr>`;
+  body.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>startEditStudent(b.dataset.edit)));
+  body.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>removeStudent(b.dataset.del)));
+  qs('histStudent').innerHTML='<option value="">全学生</option>'+[...students].sort((a,b)=>a.name.localeCompare(b.name,'ja')).map(s=>`<option value="${esc(s.id)}">${esc(s.id)} - ${esc(s.name)}</option>`).join('');
+}
+
+function refreshFilterOptions(){
+  const grades=[...new Set(students.map(s=>s.grade||'').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));
+  const opts='<option value="">学年: すべて</option>'+grades.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
+  ['histGrade','repGrade','exportGrade'].forEach(id=>{ if(qs(id)) qs(id).innerHTML=opts; });
+}
+
+function renderHistory(){
+  const start=qs('histStart').value||todayStr(), end=qs('histEnd').value||todayStr();
+  const sid=qs('histStudent').value, gf=(qs('histGrade')?.value||'');
+  const rows=attendance.filter(a=>{
+    if(a.date<start||a.date>end) return false;
+    if(!a.checkinTime&&!a.absent) return false; // 登校記録も欠席フラグもない空レコードは除外
+    if(sid&&a.studentId!==sid) return false;
+    const s=byId(a.studentId); if(gf&&(s?.grade||'')!==gf) return false;
+    return true;
+  }).sort((a,b)=>b.date.localeCompare(a.date)||((b.checkinTime||'').localeCompare(a.checkinTime||'')));
+  qs('histBody').innerHTML=rows.length?rows.map(a=>{
+    const s=byId(a.studentId);
+    const markCell = a.absent
+      ? `<td colspan="2" style="color:var(--danger);font-weight:700;text-align:center">欠席${a.note?'（'+esc(a.note)+'）':''}</td><td>-</td>`
+      : `<td>${a.checkinTime||'-'}</td><td>${a.checkoutTime||'-'}</td><td>${fmtMin(minsBetween(a.checkinTime,a.checkoutTime))}</td>`;
+    return `<tr><td>${fmtJP(a.date)}</td><td>${esc(s?`${s.id}-${s.name}`:a.studentId)}</td>${markCell}</tr>`;
+  }).join(''):`<tr><td colspan="5" class="empty">履歴がありません</td></tr>`;
+}
+
+function renderReport(){
+  const start=qs('repStart').value||todayStr(), end=qs('repEnd').value||todayStr();
+  const gf=(qs('repGrade')?.value||'');
+  const rows=[...students].filter(s=>!gf||(s.grade||'')===gf).sort((a,b)=>a.name.localeCompare(b.name,'ja')).map(s=>{
+    const allRecs=attendance.filter(a=>a.studentId===s.id&&a.date>=start&&a.date<=end);
+    const absentDays=allRecs.filter(a=>a.absent).length;
+    const recs=allRecs.filter(a=>a.checkinTime&&!a.absent);
+    const days=recs.length; const total=recs.reduce((sum,r)=>{ const m=minsBetween(r.checkinTime,r.checkoutTime); return sum+(m&&m>0?m:0); },0); const avg=days?Math.round(total/days):0;
+    return `<tr><td>${esc(s.id)}</td><td>${esc(s.name)}</td><td>${esc(s.grade||'')}</td><td>${days}</td><td>${absentDays}</td><td>${fmtMin(total)}</td><td>${days?fmtMin(avg):'-'}</td></tr>`;
+  }).join('');
+  qs('repBody').innerHTML=rows||`<tr><td colspan="7" class="empty">該当する学生がいません</td></tr>`;
+}
+
+// ===== 学生証（QRコード付き） =====
+function buildCardHtml(student, qrContainerId){
+  const yearLabel=currentYearLabel();
+  const issueDate=currentIssueDateJP();
+  return `<div class="tecom-card">
+    <div class="tecom-card-inner">
+      <div class="tecom-head">
+        <div class="tecom-logo"><img src="${TECOM_LOGO}" alt="TECOMロゴ"></div>
+        <div class="tecom-head-center">
+          <div class="tecom-year">${esc(yearLabel)}</div>
+          <div class="tecom-title">学生証</div>
+        </div>
+      </div>
+      <div class="tecom-body">
+        <div class="tecom-info">
+          <div class="tecom-row">
+            <div class="tecom-label">氏名</div>
+            <div class="tecom-value tecom-name">${esc(student.name.replace(/ /g,'　'))}</div>
+          </div>
+          <div class="tecom-row">
+            <div class="tecom-label">発行日</div>
+            <div class="tecom-value">${esc(issueDate)}</div>
+          </div>
+          <div class="tecom-statement">上記の者は登校の通学コース生であることを証明する。</div>
+          <div class="tecom-school">医師国家試験予備校<span class="space"></span>TECOM</div>
+          <div class="tecom-contact">〒160-0023 東京都新宿区西新宿1-20-2<br>西新宿室町ビル12F<br>TEL 03-6879-4413</div>
+        </div>
+        <div class="tecom-qr-area">
+          <div class="tecom-qr-box">
+            <div id="${qrContainerId}"></div>
+          </div>
+          <div class="tecom-qr-id">${esc(student.id)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-line"></div>
+  </div>`;
+}
+
+function renderQr(containerId, value){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML='';
+  new QRCode(el,{
+    text: value,
+    width: 96, height: 96,
+    colorDark:'#000000', colorLight:'#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  // canvasをリサイズ
+  const canvas=el.querySelector('canvas');
+  if(canvas){ canvas.style.width='100%'; canvas.style.height='auto'; }
+}
+
+function renderCardActionArea(){
+  const root=qs('cardActionArea');
+  if(!selectedStudentId){ root.innerHTML='左の一覧から学生を選択すると情報が表示されます。'; return; }
+  const s=byId(selectedStudentId);
+  root.innerHTML=`<div><strong>${esc(s.name)}</strong> / ${esc(s.id)}</div>
+    <div class="muted" style="margin-top:6px">学年: ${esc(s.grade||'-')}</div>
+    <div class="toolbar" style="margin-top:12px">
+      <button class="ok" id="printSelCardBtn">この学生証を印刷</button>
+      <button class="secondary" id="printAllCardsInlineBtn">全学生証を印刷</button>
+    </div>`;
+  qs('printSelCardBtn').onclick=()=>printCards('selected');
+  qs('printAllCardsInlineBtn').onclick=()=>printCards('all');
+}
+
+function renderCardPreview(){
+  const root=qs('cardPreviewArea');
+  if(!selectedStudentId){ root.innerHTML='<div class="empty">学生を選択してください。</div>'; return; }
+  const s=byId(selectedStudentId);
+  root.innerHTML=`<div class="print-card-wrap">${buildCardHtml(s,'previewQr')}</div>`;
+  renderQr('previewQr', s.id);
+}
+
+function printCards(mode='selected'){
+  const targets=mode==='all'?[...students].sort((a,b)=>a.id.localeCompare(b.id,'ja')):(selectedStudentId?[byId(selectedStudentId)].filter(Boolean):[]);
+  if(!targets.length){ alert('印刷対象の学生がいません。'); return; }
+  const wrap=qs('printWorkspace');
+  wrap.style.display='block'; wrap.style.position='fixed'; wrap.style.left='-9999px';
+  wrap.innerHTML=`<div class="print-sheet">${targets.map((s,i)=>`<div class="card-item">${buildCardHtml(s,`pqr_${i}`)}</div>`).join('')}</div>`;
+  targets.forEach((s,i)=>renderQr(`pqr_${i}`, s.id));
+  document.body.classList.add('printing-cards');
+  setTimeout(()=>{ wrap.style.position=''; wrap.style.left=''; window.print(); }, 400);
+}
+
+window.addEventListener('afterprint',()=>{ document.body.classList.remove('printing-cards'); const el=qs('printWorkspace'); if(el){el.innerHTML='';el.style.display='none';} });
+
+// ===== 学生フォーム =====
+async function handleStudentForm(e){
+  e.preventDefault();
+  const id=(qs('sId').value||'').trim();
+  const name=(qs('sName').value||'').trim();
+  const grade=(qs('sGrade').value||'').trim();
+  const start=qs('sStart').value||DEFAULT_START;
+  const end=qs('sEnd').value||DEFAULT_END;
+  const email=(qs('sEmail').value||'').trim();
+  const note=(qs('sNote').value||'').trim();
+  if(!id||!name){ showAlert('studentAlert','err','学籍番号と氏名は必須です。'); return; }
+  if(!/^[A-Za-z0-9\-_]+$/.test(id)){ showAlert('studentAlert','err','学籍番号は半角英数字・ハイフン・アンダースコアのみ使用できます。'); return; }
+  const exists=students.find(s=>s.id===id);
+  if(editingStudentId){
+    if(id!==editingStudentId&&exists){ showAlert('studentAlert','err','変更後の学籍番号は既に存在します。'); return; }
+    await deleteStudentDB(editingStudentId);
+    for(const r of attendance.filter(a=>a.studentId===editingStudentId)){ await deleteAttKey(r.key); r.studentId=id; r.key=`${r.date}__${id}`; await saveAttendance(r); }
+    editingStudentId=null; qs('sSubmitBtn').textContent='登録'; qs('sCancelBtn').style.display='none';
+    showAlert('studentAlert','ok','学生情報を更新しました。');
+  } else {
+    if(exists){ showAlert('studentAlert','err','この学籍番号は既に登録されています。'); return; }
+    showAlert('studentAlert','ok','学生を登録しました。');
+  }
+  await saveStudent({id,name,grade,startTime:start,endTime:end,email,note});
+  qs('studentForm').reset(); qs('sStart').value=DEFAULT_START; qs('sEnd').value=DEFAULT_END;
+  await refreshAll(); selectStudent(id);
+}
+
+function startEditStudent(id){
+  const s=byId(id); if(!s) return;
+  editingStudentId=id;
+  qs('sId').value=s.id; qs('sName').value=s.name; qs('sGrade').value=s.grade||'';
+  qs('sStart').value=s.startTime||DEFAULT_START; qs('sEnd').value=s.endTime||DEFAULT_END;
+  qs('sEmail').value=s.email||''; qs('sNote').value=s.note||'';
+  qs('sSubmitBtn').textContent='更新'; qs('sCancelBtn').style.display='inline-flex';
+  switchTab('students');
+}
+
+function cancelEditStudent(){
+  editingStudentId=null; qs('studentForm').reset(); qs('sStart').value=DEFAULT_START; qs('sEnd').value=DEFAULT_END;
+  qs('sSubmitBtn').textContent='登録'; qs('sCancelBtn').style.display='none';
+}
+
+async function removeStudent(id){
+  const s=byId(id); if(!s) return;
+  if(!confirm(`${s.name} を削除します。出欠履歴も削除されます。`)) return;
+  await deleteStudentDB(id);
+  for(const r of attendance.filter(a=>a.studentId===id)) await deleteAttKey(r.key);
+  if(selectedStudentId===id) selectedStudentId=null;
+  await refreshAll();
+}
+
+// ===== Excel取込 =====
+async function importStudents(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  let rows=[];
+  if(ext==='csv'){ const t=await file.text(); const wb=XLSX.read(t,{type:'string'}); rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}); }
+  else { const buf=await file.arrayBuffer(); const wb=XLSX.read(buf,{type:'array'}); rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}); }
+  let added=0,updated=0,skipped=0;
+  for(const r of rows){
+    const id=String(r['学籍番号']??r['学生番号']??r['ID']??'').trim();
+    const name=String(r['氏名']??r['名前']??r['Name']??'').trim();
+    if(!id||!name){skipped++;continue;}
+    if(!/^[A-Za-z0-9\-_]+$/.test(id)){skipped++;continue;}
+    const student={id,name,grade:String(r['学年']??'').trim(),startTime:String(r['基準登校時刻']??'').trim()||DEFAULT_START,endTime:String(r['基準下校時刻']??'').trim()||DEFAULT_END,email:String(r['メールアドレス']??r['メール']??'').trim(),note:String(r['備考']??'').trim()};
+    if(students.find(s=>s.id===id)) updated++; else added++;
+    await saveStudent(student);
+  }
+  await refreshAll();
+  qs('importResult').textContent=`取込完了: 新規 ${added}件 / 更新 ${updated}件${skipped?` / スキップ ${skipped}件`:''} / ${file.name}`;
+}
+
+function downloadTemplate(){
+  const ws=XLSX.utils.json_to_sheet([{学籍番号:'FY26T000001',氏名:'山田太郎',学年:'既卒1年目',基準登校時刻:'09:00',基準下校時刻:'17:00',メールアドレス:'student@example.com',備考:''}]);
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'students'); XLSX.writeFile(wb,'本科生取込テンプレート.xlsx');
+}
+
+// ===== 祝日・出欠記号 =====
+function p2v(n){ return String(n).padStart(2,'0'); }
+function vernalEq(y){ return Math.floor(20.8431+0.242194*(y-1980)-Math.floor((y-1980)/4)); }
+function autumnEq(y){ return Math.floor(23.2488+0.242194*(y-1980)-Math.floor((y-1980)/4)); }
+function nthMon(y,m,n){ const f=new Date(y,m-1,1); return 1+((8-f.getDay())%7)+(n-1)*7; }
+function jpHols(y){
+  const hs=new Set(); const add=(m,d)=>hs.add(`${y}-${p2v(m)}-${p2v(d)}`);
+  add(1,1);add(1,y>=2000?nthMon(y,1,2):15);if(y>=1967)add(2,11);if(y>=2020)add(2,23);
+  add(3,vernalEq(y));add(4,29);add(5,3);add(5,4);add(5,5);
+  add(7,y>=2003?nthMon(y,7,3):20);add(8,11);add(9,y>=2003?nthMon(y,9,3):15);add(9,autumnEq(y));
+  add(10,y>=2000?nthMon(y,10,2):10);add(11,3);add(11,23);if(y<=2018)add(12,23);
+  [...hs].sort().forEach(ds=>{ const d=new Date(ds+'T00:00:00'); if(d.getDay()===0){ const s=new Date(d); do{s.setDate(s.getDate()+1);}while(hs.has(`${s.getFullYear()}-${p2v(s.getMonth()+1)}-${p2v(s.getDate())}`)); hs.add(`${s.getFullYear()}-${p2v(s.getMonth()+1)}-${p2v(s.getDate())}`); } });
+  const arr=[...hs].sort();
+  for(let i=0;i<arr.length-1;i++){ const a=new Date(arr[i]+'T00:00:00'),b=new Date(arr[i+1]+'T00:00:00'); if(Math.round((b-a)/86400000)===2){ const mid=new Date(a);mid.setDate(mid.getDate()+1);if(mid.getDay()!==0)hs.add(`${mid.getFullYear()}-${p2v(mid.getMonth()+1)}-${p2v(mid.getDate())}`); } }
+  return hs;
+}
+function isHoliday(ds){ const y=Number(ds.slice(0,4)); const dow=new Date(ds+'T00:00:00').getDay(); return dow===0||dow===6||jpHols(y).has(ds); }
+function attMark(rec,ds){
+  if(isHoliday(ds)) return '';
+  if(!rec) return '欠';
+  if(rec.absent) return '欠'; // 欠席フラグが立っている場合
+  if(!rec.checkinTime) return '欠';
+  const s=byId(rec.studentId);
+  if(rec.checkoutTime){ const em=toMin(s?.endTime||DEFAULT_END); if(toMin(rec.checkoutTime)<em) return '早退'; }
+  const sm=toMin(s?.startTime||DEFAULT_START); if(toMin(rec.checkinTime)>sm) return '遅';
+  return '○';
+}
+
+// ===== Excel出力 =====
+function buildExcelStyles(){
+  const color={titleBg:'1F4E78',headerBg:'D9EAF7',subHeaderBg:'EAF3FB',summaryBg:'BDD7EE',holidayBg:'D9D9D9',lateBg:'FFF2CC',earlyBg:'FCE4D6',absentBg:'F4CCCC',okBg:'E2EFDA',white:'FFFFFF',text:'1F1F1F',border:'A6A6A6'};
+  const thin={style:'thin',color:{rgb:color.border}};
+  const border={top:thin,bottom:thin,left:thin,right:thin};
+  return {color, border, center:{horizontal:'center',vertical:'center',wrapText:true}, left:{horizontal:'left',vertical:'center'}, font:{name:'Meiryo UI',sz:10,color:{rgb:color.text}}};
+}
+
+function exportAllExcel(){
+  const month=qs('exportMonth').value; if(!month){alert('月を選択してください。');return;}
+  const [year,monthNo]=month.split('-').map(Number);
+  const daysInMonth=new Date(year,monthNo,0).getDate();
+  const gf=(qs('exportGrade')?.value||'');
+  const targets=[...students].filter(s=>!gf||(s.grade||'')===gf).sort((a,b)=>String(a.id).localeCompare(String(b.id),'ja'));
+  if(!targets.length){alert('対象の学生がいません。');return;}
+  const {color,border,center,left,font}=buildExcelStyles();
+  const fills={title:{patternType:'solid',fgColor:{rgb:color.titleBg}},header:{patternType:'solid',fgColor:{rgb:color.headerBg}},subHeader:{patternType:'solid',fgColor:{rgb:color.subHeaderBg}},summary:{patternType:'solid',fgColor:{rgb:color.summaryBg}},holiday:{patternType:'solid',fgColor:{rgb:color.holidayBg}}};
+
+  const titleRow=[`${year}年${monthNo}月 出欠一覧`];
+  const row1=['学籍番号','氏名']; const row2=['',''];
+  for(let d=1;d<=daysInMonth;d++){ const dt=new Date(year,monthNo-1,d); row1.push(d,''); row2.push(['日','月','火','水','木','金','土'][dt.getDay()],''); }
+  row1.push('出席','遅','早退','欠席'); row2.push('','','','');
+  const data=[titleRow,row1,row2];
+
+  for(const s of targets){
+    const sr=[s.id,s.name]; const tr=['','']; const nr=['','']; let cnt={'○':0,'遅':0,'早退':0,'欠':0};
+    for(let d=1;d<=daysInMonth;d++){
+      const ds=`${month}-${p2v(d)}`;
+      const rec=attendance.find(a=>a.studentId===s.id&&a.date===ds);
+      const mark=attMark(rec,ds);
+      sr.push(mark,''); tr.push(rec?.checkinTime||'',rec?.checkoutTime||'');
+      // 欠席かつ理由あり → 欠席理由行に記入
+      nr.push(rec?.absent&&rec?.note?rec.note:'', '');
+      if(cnt[mark]!==undefined) cnt[mark]++;
+    }
+    sr.push(cnt['○'],cnt['遅'],cnt['早退'],cnt['欠']); tr.push('','','',''); nr.push('','','','');
+    data.push(sr,tr,nr);
+  }
+
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  const lastCol=2+daysInMonth*2+3;
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:lastCol}}];
+  for(let c=2;c<2+daysInMonth*2;c+=2){ ws['!merges'].push({s:{r:1,c},e:{r:1,c:c+1}}); ws['!merges'].push({s:{r:2,c},e:{r:2,c:c+1}}); }
+  ws['!merges'].push({s:{r:1,c:0},e:{r:2,c:0}},{s:{r:1,c:1},e:{r:2,c:1}});
+  const ss=2+daysInMonth*2; for(let c=ss;c<=lastCol;c++) ws['!merges'].push({s:{r:1,c},e:{r:2,c}});
+  ws['!cols']=[{wch:12},{wch:16}]; for(let d=1;d<=daysInMonth;d++) ws['!cols'].push({wch:5.5},{wch:8}); ws['!cols'].push({wch:8},{wch:8},{wch:8},{wch:8});
+  ws['!rows']=[{hpt:24},{hpt:22},{hpt:20}]; for(let i=3;i<data.length;i++) ws['!rows'].push({hpt:18});
+  const range=XLSX.utils.decode_range(ws['!ref']);
+  for(let R=range.s.r;R<=range.e.r;R++) for(let C=range.s.c;C<=range.e.c;C++){ const addr=XLSX.utils.encode_cell({r:R,c:C}); if(!ws[addr]) continue; ws[addr].s={border,alignment:center,font:{...font}}; }
+  if(ws['A1']){ ws['A1'].s.fill=fills.title; ws['A1'].s.font={name:'Meiryo UI',sz:13,bold:true,color:{rgb:color.white}}; }
+  for(let c=0;c<=lastCol;c++){ const a1=XLSX.utils.encode_cell({r:1,c}),a2=XLSX.utils.encode_cell({r:2,c}); if(ws[a1]){ws[a1].s.fill=c>=ss?fills.summary:fills.header;ws[a1].s.font={...font,bold:true};} if(ws[a2]){ws[a2].s.fill=c>=ss?fills.summary:fills.subHeader;ws[a2].s.font={...font,bold:true};} }
+  for(let d=1;d<=daysInMonth;d++){ const ds=`${month}-${p2v(d)}`; if(!isHoliday(ds)) continue; const sc=2+(d-1)*2; for(let r=1;r<data.length;r++) for(let c=sc;c<=sc+1;c++){ const addr=XLSX.utils.encode_cell({r,c}); if(!ws[addr]) ws[addr]={t:'s',v:''}; ws[addr].s={...(ws[addr].s||{}),fill:fills.holiday,border,alignment:center}; } }
+  // 欠席理由行（3行目：index2から3行ごと）のスタイル：薄赤背景・左寄せ・小フォント
+  for(let r=3+2;r<=range.e.r;r+=3){
+    for(let c=2;c<2+daysInMonth*2;c++){
+      const addr=XLSX.utils.encode_cell({r,c});
+      if(ws[addr]&&ws[addr].v){
+        ws[addr].s={...ws[addr].s,fill:{patternType:'solid',fgColor:{rgb:'FDEAEA'}},alignment:{horizontal:'left',vertical:'center'},font:{name:'Meiryo UI',sz:9,color:{rgb:'8C2424'}}};
+      }
+    }
+    // 学籍番号・氏名列も薄グレーで統一
+    for(let c=0;c<=1;c++){
+      const addr=XLSX.utils.encode_cell({r,c});
+      if(!ws[addr]) ws[addr]={t:'s',v:''};
+      ws[addr].s={...ws[addr].s,fill:{patternType:'solid',fgColor:{rgb:'F7F7F7'}},font:{name:'Meiryo UI',sz:9,color:{rgb:'999999'}}};
+    }
+  }
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,`${monthNo}月出欠`);
+  XLSX.writeFile(wb,`${month}_本科生出欠一覧.xlsx`,{cellStyles:true});
+}
+
+function exportIndivExcel(){
+  const month=qs('exportMonth').value; if(!month){alert('月を選択してください。');return;}
+  const [year,monthNo]=month.split('-').map(Number);
+  const daysInMonth=new Date(year,monthNo,0).getDate();
+  const gf=(qs('exportGrade')?.value||'');
+  const targets=[...students].filter(s=>!gf||(s.grade||'')===gf).sort((a,b)=>String(a.id).localeCompare(String(b.id),'ja'));
+  if(!targets.length){alert('対象の学生がいません。');return;}
+  const {color,border,center,left,font}=buildExcelStyles();
+  const fills={title:{patternType:'solid',fgColor:{rgb:color.titleBg}},header:{patternType:'solid',fgColor:{rgb:color.headerBg}},summary:{patternType:'solid',fgColor:{rgb:color.summaryBg}},holiday:{patternType:'solid',fgColor:{rgb:color.holidayBg}},late:{patternType:'solid',fgColor:{rgb:color.lateBg}},early:{patternType:'solid',fgColor:{rgb:color.earlyBg}},absent:{patternType:'solid',fgColor:{rgb:color.absentBg}},ok:{patternType:'solid',fgColor:{rgb:color.okBg}}};
+  const wb=XLSX.utils.book_new();
+  for(const s of targets){
+    let cnt={ok:0,late:0,early:0,absent:0};
+    const dayRows=[];
+    for(let d=1;d<=daysInMonth;d++){
+      const ds=`${month}-${p2v(d)}`;
+      const dt=new Date(ds+'T00:00:00');
+      const dow=['日','月','火','水','木','金','土'][dt.getDay()];
+      const rec=attendance.find(a=>a.studentId===s.id&&a.date===ds);
+      const mark=attMark(rec,ds);
+      const stay=rec?minsBetween(rec.checkinTime,rec.checkoutTime):null;
+      if(mark==='○')cnt.ok++;else if(mark==='遅')cnt.late++;else if(mark==='早退')cnt.early++;else if(mark==='欠')cnt.absent++;
+      const absNote=rec?.absent?rec?.note||'':'';
+      dayRows.push({ds,dow,mark,ci:rec?.checkinTime||'',co:rec?.checkoutTime||'',stay,hol:isHoliday(ds),note:absNote});
+    }
+    const data=[
+      [`${year}年${monthNo}月　出欠記録`,'','','','','',''],
+      ['学籍番号',s.id,'','学年',s.grade||'','',''],
+      ['氏名',s.name,'','備考',s.note||'','',''],
+      ['基準登校',s.startTime||DEFAULT_START,'','基準下校',s.endTime||DEFAULT_END,'',''],
+      ['','','','','','',''],
+      ['出席',cnt.ok,'遅刻',cnt.late,'早退',cnt.early,''],
+      ['欠席',cnt.absent,'','','','',''],
+      ['','','','','','',''],
+      ['日付','曜日','出欠','登校時刻','下校時刻','滞在時間','欠席理由'],
+    ];
+    for(const d of dayRows) data.push([fmtJP(d.ds),d.dow,d.mark,d.ci,d.co,d.stay!=null&&d.stay>=0?fmtMin(d.stay):'',d.note||'']);
+    data.push(['合計','',`出席${cnt.ok}日`,'','','','']);
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:13},{wch:5},{wch:7},{wch:10},{wch:10},{wch:12},{wch:20}];
+    ws['!rows']=[{hpt:22}]; for(let i=1;i<data.length;i++) ws['!rows'].push({hpt:18});
+    ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:1},e:{r:1,c:2}},{s:{r:2,c:1},e:{r:2,c:2}},{s:{r:3,c:1},e:{r:3,c:2}}];
+    const range=XLSX.utils.decode_range(ws['!ref']||'A1');
+    for(let R=range.s.r;R<=range.e.r;R++) for(let C=range.s.c;C<=range.e.c;C++){ const addr=XLSX.utils.encode_cell({r:R,c:C}); if(!ws[addr]) ws[addr]={t:'s',v:''}; ws[addr].s={border,alignment:center,font:{...font}}; }
+    if(ws['A1']){ws['A1'].s.fill=fills.title;ws['A1'].s.font={name:'Meiryo UI',sz:13,bold:true,color:{rgb:color.white}};}
+    for(let r=1;r<=3;r++){ const la=XLSX.utils.encode_cell({r,c:0}),v1=XLSX.utils.encode_cell({r,c:1}),l2=XLSX.utils.encode_cell({r,c:3}),v2=XLSX.utils.encode_cell({r,c:4}); if(ws[la])ws[la].s={...ws[la].s,fill:fills.header,font:{...font,bold:true}}; if(ws[v1])ws[v1].s={...ws[v1].s,alignment:left}; if(ws[l2])ws[l2].s={...ws[l2].s,fill:fills.header,font:{...font,bold:true}}; if(ws[v2])ws[v2].s={...ws[v2].s,alignment:left}; }
+    for(let r=5;r<=6;r++) for(let c=0;c<=6;c++){ const addr=XLSX.utils.encode_cell({r,c}); if(ws[addr])ws[addr].s={...ws[addr].s,fill:fills.summary,font:{...font,bold:true},alignment:c%2===0?left:center}; }
+    for(let c=0;c<=6;c++){ const addr=XLSX.utils.encode_cell({r:8,c}); if(ws[addr])ws[addr].s={...ws[addr].s,fill:fills.header,font:{...font,bold:true}}; }
+    for(let i=0;i<dayRows.length;i++){
+      const r=9+i,d=dayRows[i];
+      if(d.hol) for(let c=0;c<=6;c++){ const addr=XLSX.utils.encode_cell({r,c}); if(!ws[addr])ws[addr]={t:'s',v:''}; ws[addr].s={...ws[addr].s,fill:fills.holiday}; }
+      const ma=XLSX.utils.encode_cell({r,c:2});
+      if(ws[ma]&&d.mark){ let fl=null; if(d.mark==='遅')fl=fills.late;else if(d.mark==='早退')fl=fills.early;else if(d.mark==='欠')fl=fills.absent;else if(d.mark==='○')fl=fills.ok; if(fl)ws[ma].s={...ws[ma].s,fill:fl,font:{...font,bold:true}}; }
+      // 欠席理由セルも薄い赤で塗る
+      if(d.mark==='欠'&&d.note){
+        const na=XLSX.utils.encode_cell({r,c:6});
+        if(ws[na]) ws[na].s={...ws[na].s,fill:{patternType:'solid',fgColor:{rgb:'FDEAEA'}},alignment:{...center,horizontal:'left'},font:{...font,color:{rgb:'8C2424'}}};
+      }
+    }
+    const tr=9+daysInMonth; for(let c=0;c<=6;c++){ const addr=XLSX.utils.encode_cell({r:tr,c}); if(!ws[addr])ws[addr]={t:'s',v:''}; ws[addr].s={...ws[addr].s,fill:fills.summary,font:{...font,bold:true}}; }
+    const sheetName=`${s.id}_${s.name}`.replace(/[:\\/\?\*\[\]]/g,'').slice(0,31);
+    XLSX.utils.book_append_sheet(wb,ws,sheetName);
+  }
+  XLSX.writeFile(wb,`${month}_本科生個人別出欠.xlsx`,{cellStyles:true});
+}
+
+// ===== バックアップ =====
+function exportJson(){
+  const blob=new Blob([JSON.stringify({students,attendance},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='honka_backup.json';a.click();URL.revokeObjectURL(a.href);
+}
+async function importJson(file){
+  const data=JSON.parse(await file.text());
+  if(Array.isArray(data.students)) for(const s of data.students) await saveStudent(s);
+  if(Array.isArray(data.attendance)) for(const r of data.attendance) await saveAttendance(r);
+  await refreshAll(); alert('バックアップを読み込みました。');
+}
+
+// ===== タブ切替 =====
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.id===`tab-${name}`));
+}
+
+// ===== サンプルデータ =====
+async function seedIfEmpty(){
+  if(students.length) return;
+  const s=[{id:'FY26T000001',name:'山田太郎',grade:'既卒1年目',note:'',startTime:'09:00',endTime:'17:00',email:''},{id:'FY26T000002',name:'佐藤花子',grade:'既卒1年目',note:'',startTime:'09:00',endTime:'17:00',email:''}];
+  for(const st of s) await saveStudent(st);
+  await loadAll();
+}
+
+function renderFatalStartupError(err){
+  const msg = String(err && (err.message || err) || '不明なエラー');
+  document.body.innerHTML = `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#eef2f7;padding:24px">
+      <div style="max-width:680px;width:100%;background:#fff;border:1px solid #d8e0ea;border-radius:18px;box-shadow:0 8px 28px rgba(20,40,80,.08);padding:28px">
+        <div style="font-size:28px;font-weight:800;color:#8c2424;margin-bottom:10px">出欠管理システムを起動できませんでした</div>
+        <div style="font-size:15px;color:#425466;line-height:1.8">ブラウザの保存領域や読み込み環境に問題がある可能性があります。ページ再読み込み後も改善しない場合は、バックアップファイルの有無とブラウザ権限を確認してください。</div>
+        <div style="margin-top:16px;padding:14px 16px;border-radius:12px;background:#fdeaea;color:#8c2424;font-family:ui-monospace, SFMono-Regular, Menlo, monospace;white-space:pre-wrap">${esc(msg)}</div>
+      </div>
+    </div>`;
+}
+
+// ===== 初期化 =====
+async function init(){
+  db=await openDb(); await loadAll(); await seedIfEmpty();
+  qs('normalApp').style.display='block';
+  qs('scanScreen').style.display='flex';
+  qs('adminShell').style.display='none';
+  await refreshAll();
+  const today=new Date();
+  qs('todayLabel').textContent=`${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+  const first=`${today.getFullYear()}-${p2(today.getMonth()+1)}-01`;
+  const cm=`${today.getFullYear()}-${p2(today.getMonth()+1)}`;
+  qs('histStart').value=first; qs('histEnd').value=todayStr();
+  qs('repStart').value=first; qs('repEnd').value=todayStr();
+  qs('exportMonth').value=cm;
+  if(qs('manualTargetDate')) qs('manualTargetDate').value=todayStr();
+
+  // PWAヒント
+  if(/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.navigator.standalone) qs('installNote').style.display='block';
+
+  // ===== 暗証番号・管理者認証 =====
+  const ADMIN_PIN = '1234'; // ← この番号を変更してください
+  let adminMode = false;
+  let pinBuffer = '';
+  let hiddenTapCount = 0;
+  let hiddenTapTimer = null;
+
+  function openPinModal(){
+    pinBuffer = '';
+    updatePinDisplay();
+    qs('pinError').textContent = '';
+    qs('pinModal').style.display = 'flex';
+  }
+  function closePinModal(){
+    pinBuffer = '';
+    qs('pinModal').style.display = 'none';
+  }
+  function updatePinDisplay(){
+    const filled = '●'.repeat(pinBuffer.length);
+    const empty = '─'.repeat(Math.max(0, ADMIN_PIN.length - pinBuffer.length));
+    qs('pinDisplay').textContent = filled + empty || '─'.repeat(ADMIN_PIN.length);
+  }
+  function submitPin(){
+    if(pinBuffer === ADMIN_PIN){
+      closePinModal();
+      openAdmin();
+    } else {
+      qs('pinError').textContent = '暗証番号が違います';
+      pinBuffer = '';
+      updatePinDisplay();
+      setTimeout(()=>{ if(qs('pinError')) qs('pinError').textContent=''; }, 1500);
+    }
+  }
+  function openAdmin(){
+    adminMode = true;
+    qs('scanScreen').style.display = 'none';
+    qs('adminShell').style.display = 'grid';
+    qs('toggleAdminBtn').style.display = 'inline-flex';
+    qs('toggleAdminBtn').textContent = '📷 スキャン画面';
+    qs('headerTitle').textContent = '管理者画面';
+    refreshAll();
+  }
+  function closeAdmin(){
+    adminMode = false;
+    qs('scanScreen').style.display = 'flex';
+    qs('adminShell').style.display = 'none';
+    qs('toggleAdminBtn').style.display = 'none';
+    qs('headerTitle').textContent = '本科生 出欠管理';
+  }
+
+  // テンキーボタン
+  document.querySelectorAll('.pin-key').forEach(b=>{
+    b.addEventListener('click',()=>{
+      if(pinBuffer.length >= ADMIN_PIN.length) return;
+      pinBuffer += b.dataset.k;
+      updatePinDisplay();
+      if(pinBuffer.length === ADMIN_PIN.length) setTimeout(submitPin, 150);
+    });
+  });
+  if(qs('pinClear')) qs('pinClear').addEventListener('click',()=>{ pinBuffer=''; updatePinDisplay(); qs('pinError').textContent=''; });
+  if(qs('pinCancel')) qs('pinCancel').addEventListener('click', closePinModal);
+  if(qs('pinModal')) qs('pinModal').addEventListener('click', e=>{ if(e.target===qs('pinModal')) closePinModal(); });
+
+  // 管理者ボタン（管理画面から戻るとき用）
+  qs('toggleAdminBtn').addEventListener('click', closeAdmin);
+
+  // ヘッダー右端を素早く3回タップで暗証番号入力を開く
+  if(qs('hiddenAdminTap')){
+    qs('hiddenAdminTap').addEventListener('click',()=>{
+      hiddenTapCount++;
+      clearTimeout(hiddenTapTimer);
+      hiddenTapTimer = setTimeout(()=>{ hiddenTapCount=0; }, 800);
+      if(hiddenTapCount >= 3){
+        hiddenTapCount = 0;
+        if(adminMode) closeAdmin(); else openPinModal();
+      }
+    });
+  }
+
+  if(qs('startCameraBtn2')) qs('startCameraBtn2').addEventListener('click',startCamera);
+
+  // エラー時手入力ボタン
+  // 手入力後の共通処理：成功表示→3秒後にフォーム非表示・画面更新
+  async function handleScanManualSuccess(s, type){
+    playBeep(true);
+    await loadAll();
+    const isIn = type==='in';
+    // 結果を大きく表示
+    const root=qs('scanResultBig');
+    if(root){
+      root.style.display='block';
+      root.innerHTML=`
+        <div style="font-size:72px;margin-bottom:8px">${isIn?'✅':'👋'}</div>
+        <div style="font-size:36px;font-weight:800;margin-bottom:6px">${esc(s.name)}</div>
+        <div style="font-size:16px;color:#526579;margin-bottom:16px">${esc(s.id)}${s.grade?' / '+esc(s.grade):''}</div>
+        <div style="display:inline-flex;align-items:center;padding:8px 22px;border-radius:999px;font-size:18px;font-weight:800;color:#fff;background:${isIn?'var(--ok)':'var(--done)'};margin-bottom:14px">${isIn?'登校記録完了':'下校記録完了'}</div>
+        <div style="font-size:20px;font-weight:700;color:${isIn?'var(--ok)':'var(--done)'};margin-bottom:6px">${isIn?'今日もよろしくお願いします':'本日はお疲れさまでした。'}</div>
+        ${isIn?'':'<div style="font-size:17px;color:var(--done);margin-bottom:6px">お気をつけてお帰りください</div>'}
+        <div style="font-size:13px;color:#6b7a89">${isIn?'登校を記録しました':'下校を記録しました'}</div>`;
+    }
+    // 入力欄をクリア、フォームは表示したまま
+    if(qs('scanRightIdle')) qs('scanRightIdle').style.display='none';
+    if(qs('scanManualId')) qs('scanManualId').value='';
+    if(qs('scanManualResult')) qs('scanManualResult').innerHTML='';
+    // 3秒後にフォーム非表示・結果非表示・画面更新
+    clearTimeout(window._manualReset);
+    window._manualReset=setTimeout(async()=>{
+      if(qs('scanResultBig')) qs('scanResultBig').style.display='none';
+      if(qs('scanErrorInput')) qs('scanErrorInput').style.display='none';
+      if(qs('scanRightIdle')) qs('scanRightIdle').style.display='block';
+      await refreshAll();
+    },3000);
+  }
+
+  if(qs('scanManualCheckinBtn')) qs('scanManualCheckinBtn').addEventListener('click',async()=>{
+    const input=(qs('scanManualId').value||'').trim();
+    if(!input){ showAlert('scanManualResult','warn','学籍番号を入力してください。'); return; }
+    const found=findStudentByShortId(input);
+    if(!found){ showAlert('scanManualResult','err','登録されていない学籍番号です。'); return; }
+    if(found._multiple){ showAlert('scanManualResult','warn',`該当学生が複数います（${found.candidates.map(c=>c.id).join('、')}）。もう少し入力してください。`); return; }
+    const s=found;
+    const date=todayStr(),key=`${date}__${s.id}`;
+    let rec=attendance.find(a=>a.key===key);
+    if(rec?.checkinTime){ showAlert('scanManualResult','warn','既に登校記録があります。'); return; }
+    if(!rec) rec={key,date,studentId:s.id,checkinTime:nowTime(),checkoutTime:null,source:'manual'};
+    else rec.checkinTime=nowTime();
+    await saveAttendance(rec);
+    await handleScanManualSuccess(s,'in');
+  });
+  if(qs('scanManualCheckoutBtn')) qs('scanManualCheckoutBtn').addEventListener('click',async()=>{
+    const input=(qs('scanManualId').value||'').trim();
+    if(!input){ showAlert('scanManualResult','warn','学籍番号を入力してください。'); return; }
+    const found=findStudentByShortId(input);
+    if(!found){ showAlert('scanManualResult','err','登録されていない学籍番号です。'); return; }
+    if(found._multiple){ showAlert('scanManualResult','warn',`該当学生が複数います（${found.candidates.map(c=>c.id).join('、')}）。もう少し入力してください。`); return; }
+    const s=found;
+    const key=`${todayStr()}__${s.id}`;
+    const rec=attendance.find(a=>a.key===key);
+    if(!rec?.checkinTime){ showAlert('scanManualResult','warn','先に登校記録が必要です。'); return; }
+    if(rec.checkoutTime){ showAlert('scanManualResult','warn','既に下校記録があります。'); return; }
+    rec.checkoutTime=nowTime(); rec.absent=false; await saveAttendance(rec);
+    await handleScanManualSuccess(s,'out');
+  });
+
+  // タブ
+  document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+  // 本日一覧
+  qs('todaySearch').addEventListener('input',renderTodayList);
+  qs('todayFilter').addEventListener('change',renderTodayList);
+  // QRスキャン
+  qs('startCameraBtn').addEventListener('click',startCamera);
+  qs('stopCameraBtn').addEventListener('click',stopCamera);
+  // 手動記録
+  qs('manualCheckinBtn').addEventListener('click',manualCheckin);
+  qs('manualCheckoutBtn').addEventListener('click',manualCheckout);
+  qs('manualAbsentBtn').addEventListener('click',manualAbsent);
+  qs('manualSaveBtn').addEventListener('click',manualSaveTimes);
+  if(qs('manualTargetDate')) qs('manualTargetDate').addEventListener('change',renderSelectedStudent);
+  if(qs('manualTargetTodayBtn')) qs('manualTargetTodayBtn').addEventListener('click',()=>{ qs('manualTargetDate').value=todayStr(); renderSelectedStudent(); });
+  qs('manualDelCheckinBtn').addEventListener('click',manualDelCheckin);
+  qs('manualDelCheckoutBtn').addEventListener('click',manualDelCheckout);
+  qs('manualDelAllBtn').addEventListener('click',manualDelAll);
+  // 学生フォーム
+  qs('studentForm').addEventListener('submit',handleStudentForm);
+  qs('sCancelBtn').addEventListener('click',cancelEditStudent);
+  // 取込
+  qs('importFile').addEventListener('change',e=>{ const f=e.target.files[0]; if(f)importStudents(f); e.target.value=''; });
+  qs('dlTemplateBtn').addEventListener('click',downloadTemplate);
+  // 学生証
+  qs('printSelectedBtn').addEventListener('click',()=>printCards('selected'));
+  qs('printAllBtn').addEventListener('click',()=>printCards('all'));
+  // 履歴・集計
+  qs('histRefreshBtn').addEventListener('click',renderHistory);
+  qs('repRefreshBtn').addEventListener('click',renderReport);
+  ['histGrade'].forEach(id=>{ if(qs(id)) qs(id).addEventListener('change',renderHistory); });
+  ['repGrade'].forEach(id=>{ if(qs(id)) qs(id).addEventListener('change',renderReport); });
+  // Excel出力
+  qs('exportAllBtn').addEventListener('click',exportAllExcel);
+  qs('exportIndivBtn').addEventListener('click',exportIndivExcel);
+  // バックアップ
+  qs('exportJsonBtn').addEventListener('click',exportJson);
+  qs('importJsonFile').addEventListener('change',e=>{ const f=e.target.files[0]; if(f)importJson(f); e.target.value=''; });
+
+  // 日付変わり目の自動更新スケジュール
+  _lastKnownDate = todayStr();
+  scheduleMidnightRefresh();
+
+  // カメラ自動起動
+  startCamera();
+}
+
+// 画面スリープ復帰・タブ切替復帰時にカメラ再起動＋日付チェック
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){
+    checkDateChange(); // 復帰時に日付が変わっていれば更新
+    if(scanning) startCamera();
+  }
+});
+
+// ===== 日付変わり目の自動更新 =====
+let _lastKnownDate = todayStr();
+
+function checkDateChange(){
+  const current = todayStr();
+  if(current !== _lastKnownDate){
+    _lastKnownDate = current;
+    // ヘッダー日付更新
+    const d = new Date();
+    if(qs('todayLabel')) qs('todayLabel').textContent=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+    // 手動記録の対象日も今日にリセット
+    if(qs('manualTargetDate')) qs('manualTargetDate').value=current;
+    // 一覧・サマリー全更新
+    refreshAll();
+    console.log('[DateChange] 日付が変わりました →', current);
+  }
+}
+
+function scheduleMidnightRefresh(){
+  const now = new Date();
+  // 次の0:00まで何ミリ秒か計算
+  const msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0, 0, 1).getTime() - now.getTime();
+  setTimeout(()=>{
+    checkDateChange();
+    scheduleMidnightRefresh(); // 翌日の0:00に向けて再スケジュール
+  }, msToMidnight);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{ init().catch(renderFatalStartupError); });
+</script>
+</body>
+</html>
