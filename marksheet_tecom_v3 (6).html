@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TECOM マークシート採点システム</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f0f4f8;--bg2:#ffffff;--bg3:#e8eef5;
+  --navy:#1a3a5c;--navy-mid:#2a5298;--navy-light:#3a6bb5;
+  --accent:#e63946;--gold:#f4811f;--sky:#0099cc;
+  --teal:#00b4d8;--white:#ffffff;--gray:#6b7a8d;
+  --green:#2dc653;--red:#e63946;
+  --card:#ffffff;--border:#d0dce8;
+  --text:#1a2b3c;--text2:#4a6080;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+header{background:linear-gradient(135deg,#1a3a5c,#2a5298);border-bottom:3px solid #f4811f;padding:10px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 3px 12px rgba(26,58,92,0.25);}
+.logo-img{height:28px;width:auto;display:block;}
+.hdr-text h1{font-size:15px;font-weight:700;color:#fff;letter-spacing:0.3px;}
+.hdr-text p{font-size:10px;color:rgba(255,255,255,0.7);}
+.hdr-badge{margin-left:auto;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:16px;padding:4px 14px;font-size:12px;color:#fff;white-space:nowrap;}
+.hdr-badge span{color:#7dd3f0;font-weight:700;font-size:16px;}
+
+.tabs{display:flex;background:#fff;border-bottom:2px solid #d0dce8;box-shadow:0 2px 4px rgba(0,0,0,0.06);}
+.tab{flex:1;padding:10px 4px;background:none;border:none;color:var(--gray);font-size:11px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;text-align:center;margin-bottom:-2px;}
+.tab .ti{font-size:16px;display:block;margin-bottom:2px;}
+.tab.active{color:var(--navy-mid);border-bottom-color:var(--gold);background:#f8fbff;}
+
+.panel{display:none;padding:14px;background:var(--bg);}
+.panel.active{display:block;}
+
+.card{background:#fff;border:1px solid #d0dce8;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.ctitle{font-size:11px;font-weight:700;color:var(--navy-mid);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;padding-bottom:8px;border-bottom:2px solid #e8eef5;}
+
+.upload-zone{border:2px dashed #b0c8e0;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:.2s;background:#f5f9ff;}
+.upload-zone:hover{border-color:var(--sky);background:#eaf5ff;}
+.upload-zone .icon{font-size:30px;margin-bottom:6px;}
+.upload-zone p{font-size:13px;color:var(--text2);}
+.upload-zone small{font-size:11px;color:#8da0b3;}
+input[type=file]{display:none;}
+
+/* 問題設定グリッド（20問・5列×4行） */
+.ans-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.ans-item{background:#f5f9ff;border:1px solid #ccdcee;border-radius:7px;padding:6px 4px;text-align:center;}
+.ans-item .qn{font-size:10px;color:var(--text2);margin-bottom:3px;}
+.ans-item .ak-inp{width:100%;background:#fff;border:1.5px solid #b0c8e0;border-radius:4px;color:var(--text);font-size:12px;font-weight:700;text-align:center;padding:3px 2px;cursor:pointer;}
+.ans-item .ak-inp.multi{color:var(--gold);border-color:var(--gold);}
+.ans-item .ak-inp.single{color:var(--navy-mid);border-color:var(--navy-mid);}
+.ans-item .ak-inp.empty{color:var(--gray);}
+/* 単元タグ */
+.unit-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700;margin-left:4px;}
+.unit-循環器{background:rgba(230,57,70,0.15);color:#e63946;}
+.unit-呼吸器{background:rgba(72,202,228,0.15);color:#48cae4;}
+.unit-感染症{background:rgba(45,198,83,0.15);color:#2dc653;}
+.unit-消化器{background:rgba(244,162,97,0.15);color:#f4a261;}
+/* 単元別集計 */
+.unit-bar-section{margin-bottom:14px;}
+.unit-header{font-size:12px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+/* チェックボックス式解答 */
+.mitem-multi{background:#f5f9ff;border:1px solid #ccdcee;border-radius:8px;padding:5px 3px;text-align:center;}
+.mitem-multi .ql{font-size:10px;color:var(--text2);margin-bottom:3px;font-weight:600;}
+.mitem-multi.ok-mark{background:#eafaf1;border-color:#7dcea0;}
+.mitem-multi.ng-mark{background:#fdf2f2;border-color:#f1948a;}
+.cbtn-row-multi{display:flex;justify-content:center;gap:2px;flex-wrap:wrap;}
+
+.sform{display:flex;gap:8px;margin-bottom:10px;}
+.sform input{flex:1;background:#fff;border:1.5px solid #ccdcee;border-radius:8px;color:var(--text);font-size:15px;padding:10px 12px;}
+.sform input::placeholder{color:#9ab0c6;}
+.sform input:focus{outline:none;border-color:var(--sky);box-shadow:0 0 0 3px rgba(0,153,204,0.12);}
+.sform select{background:#fff;border:1.5px solid #ccdcee;border-radius:8px;color:var(--text);font-size:14px;padding:10px 8px;cursor:pointer;}
+
+/* 解答グリッド: 2カラム構成 */
+.mgrid-2col{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
+.mgrid-col{display:flex;flex-direction:column;gap:4px;}
+.mitem{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:5px 3px;text-align:center;}
+.mitem .ql{font-size:10px;color:var(--gray);margin-bottom:3px;font-weight:600;}
+.cbtn-row{display:flex;justify-content:center;gap:2px;}
+.cbtn{width:22px;height:22px;border-radius:50%;border:1.5px solid #b0c8e0;background:#fff;color:var(--text2);font-size:10px;font-weight:700;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;}
+.cbtn:hover{border-color:var(--sky);color:var(--sky);background:#eaf5ff;}
+.cbtn.sel{background:var(--navy-mid);border-color:var(--navy-mid);color:#fff;box-shadow:0 0 6px rgba(42,82,152,0.3);}
+.mitem.ok-mark{background:rgba(45,198,83,0.1);border-color:rgba(45,198,83,0.3);}
+.mitem.ng-mark{background:rgba(230,57,70,0.1);border-color:rgba(230,57,70,0.3);}
+.rmk{font-size:11px;display:block;margin-top:2px;}
+.rmk.ok{color:#1a7a3c;font-weight:700;}
+.rmk.ng{color:#c0392b;font-weight:700;}
+
+.cam-wrap{background:#1a1a2e;border:1px solid #ccdcee;border-radius:12px;overflow:hidden;margin-bottom:10px;}
+#videoEl{width:100%;max-height:250px;object-fit:cover;display:block;background:#000;}
+#canvasEl{display:none;}
+#captImg{width:100%;max-height:350px;object-fit:contain;display:none;background:#000;}
+.cam-ctrl{display:flex;gap:8px;padding:10px;background:rgba(0,0,0,0.4);}
+
+/* 画像アップロードゾーン */
+.img-upload-zone{border:2px dashed #b0c8e0;border-radius:10px;padding:22px 16px;text-align:center;cursor:pointer;transition:.2s;background:#f5f9ff;margin-bottom:10px;}
+.img-upload-zone:hover,.img-upload-zone.drag-over{border-color:var(--sky);background:#eaf5ff;}
+.img-upload-zone .icon{font-size:32px;margin-bottom:8px;}
+.img-upload-zone p{font-size:13px;color:var(--text2);}
+.img-upload-zone small{font-size:11px;color:#8da0b3;}
+
+/* テスト選択ボタン */
+.test-sel-btn{flex:1;padding:8px 4px;border:1.5px solid #ccdcee;border-radius:8px;background:#fff;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;transition:.2s;text-align:center;}
+.test-sel-btn.active{border-color:var(--gold);color:var(--gold);background:#fff8f0;}
+.test-sel-btn.saved{border-color:var(--green);color:var(--green);}
+.test-sel-btn.active.saved{background:#f0faf4;border-color:var(--green);color:var(--green);}
+
+/* 保存済みキー一覧 */
+.saved-key-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #e8eef5;font-size:12px;}
+.saved-key-row:last-child{border-bottom:none;}
+.saved-key-label{font-weight:700;color:var(--gold);width:48px;flex-shrink:0;}
+.saved-key-val{flex:1;font-family:monospace;color:var(--text2);font-size:11px;letter-spacing:1px;word-break:break-all;}
+.saved-key-val.set{color:var(--text);}
+.saved-key-use{background:var(--navy-mid);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;}
+.mode-btn{flex:1;padding:9px;border:1.5px solid #ccdcee;border-radius:8px;background:#fff;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;transition:.2s;text-align:center;}
+.mode-btn.active{border-color:var(--navy-mid);color:var(--navy-mid);background:#eef3fc;}
+.mode-section{display:none;}
+.mode-section.active{display:block;}
+
+.btn{border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center;transition:.18s;}
+.btn-primary{background:var(--navy-mid);color:#fff;}
+.btn-primary:hover{background:#1a3a5c;transform:translateY(-1px);box-shadow:0 4px 12px rgba(42,82,152,0.3);}
+.btn-success{background:var(--green);color:#fff;}
+.btn-success:hover{background:#25a244;transform:translateY(-1px);}
+.btn-outline{background:#fff;border:1.5px solid #ccdcee;color:var(--text2);}
+.btn-outline:hover{border-color:var(--sky);color:var(--sky);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-gold:hover{background:#d9710f;transform:translateY(-1px);box-shadow:0 4px 12px rgba(244,129,31,0.3);}
+.btn-full{width:100%;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+
+.score-box{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#eaf5ff,#f0f8ff);border:1.5px solid #90cce0;border-radius:10px;padding:12px 16px;margin-bottom:12px;}
+.sbig{font-size:36px;font-weight:900;color:var(--navy-mid);line-height:1;}
+.sdet{font-size:12px;color:var(--text2);text-align:right;}
+.sdet strong{color:var(--text);}
+
+.stats-g{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.stat-b{background:#fff;border:1px solid #d0dce8;border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+.sv{font-size:24px;font-weight:900;color:var(--navy-mid);}
+.sl{font-size:11px;color:var(--text2);margin-top:2px;}
+.sli{display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid #e8eef5;gap:10px;font-size:13px;}
+.sli:last-child{border-bottom:none;}
+.rank-b{width:24px;height:24px;border-radius:50%;background:#e8eef5;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text2);flex-shrink:0;}
+.rank-b.r1{background:#FFD700;color:#000;}
+.rank-b.r2{background:#C0C0C0;color:#000;}
+.rank-b.r3{background:#CD7F32;color:#000;}
+.sn{flex:1;font-weight:600;min-width:0;color:var(--text);}
+.sn .sub{font-size:10px;color:var(--text2);margin-left:4px;}
+.ss{font-size:15px;font-weight:900;color:var(--navy-mid);}
+.sc{font-size:11px;color:var(--text2);}
+.sdel{background:none;border:none;color:#ccdcee;font-size:16px;cursor:pointer;padding:4px 6px;}
+.sdel:hover{color:var(--accent);}
+
+.qa-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.qn2{width:26px;color:var(--gray);font-weight:700;flex-shrink:0;}
+.qbar{flex:1;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;}
+.qfill{height:100%;border-radius:4px;transition:width .5s;}
+.qpct{width:36px;text-align:right;font-weight:700;}
+
+.scan-vis{width:100%;background:#f0f4f8;border:1px solid #ccdcee;border-radius:8px;overflow:hidden;margin-bottom:10px;}
+.scan-vis canvas{width:100%;display:block;}
+
+/* グループフィルターボタン */
+.grp-filter-btn{padding:5px 10px;border:1.5px solid #ccdcee;border-radius:16px;background:#fff;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;transition:.15s;white-space:nowrap;}
+.grp-filter-btn:hover{border-color:var(--navy-mid);color:var(--navy-mid);}
+.grp-filter-btn.active{background:var(--navy-mid);border-color:var(--navy-mid);color:#fff;}
+
+/* 受験者ピッカー */
+.picker-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #eef2f7;cursor:pointer;transition:.15s;font-size:13px;}
+.picker-item:last-child{border-bottom:none;}
+.picker-item:hover,.picker-item.selected{background:#eef3fc;}
+.picker-avatar{width:32px;height:32px;border-radius:50%;background:#dde8f5;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--navy-mid);flex-shrink:0;}
+.picker-info{flex:1;min-width:0;}
+.picker-name{font-weight:700;color:var(--text);}
+.picker-sub{font-size:11px;color:var(--text2);}
+.picker-grp{font-size:11px;padding:2px 8px;border-radius:10px;background:#e8eef5;color:var(--navy-mid);font-weight:700;flex-shrink:0;}
+.picker-done{font-size:11px;color:var(--green);font-weight:700;flex-shrink:0;}
+.picker-empty{padding:16px;text-align:center;color:var(--text2);font-size:13px;}
+
+/* グループクロス表 */
+.cross-table{width:100%;border-collapse:collapse;font-size:12px;}
+.cross-table th{background:#e8eef5;color:var(--navy-mid);padding:7px 6px;text-align:center;font-weight:700;border:1px solid #ccdcee;}
+.cross-table td{padding:7px 6px;text-align:center;border:1px solid #e0e8f0;font-size:12px;color:var(--text);}
+.cross-table tr:nth-child(even) td{background:#f8fafc;}
+.cross-table .td-name{text-align:left;font-weight:700;color:var(--gold);}
+.cross-table .td-total{font-weight:900;color:var(--sky);}
+.td-hi{color:var(--green);font-weight:700;}
+.td-lo{color:var(--accent);font-weight:700;}
+
+/* 総合ランキング */
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:8px;padding:10px 0 4px;}
+.podium-col{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.podium-crown{font-size:18px;line-height:1;}
+.podium-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.podium-avatar.p1{background:rgba(255,215,0,0.2);border:2px solid #FFD700;color:#CC8800;}
+.podium-avatar.p2{background:rgba(192,192,192,0.15);border:2px solid #C0C0C0;color:#888;}
+.podium-avatar.p3{background:rgba(205,127,50,0.15);border:2px solid #CD7F32;color:#A0522D;}
+.podium-name{font-size:11px;font-weight:700;text-align:center;max-width:64px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.podium-score{font-size:15px;font-weight:900;color:var(--sky);}
+.podium-sub{font-size:10px;color:var(--gray);}
+.podium-block{border-radius:6px 6px 0 0;width:64px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+.podium-block.p1{height:48px;background:rgba(255,215,0,0.15);border-top:3px solid #FFD700;color:#CC8800;}
+.podium-block.p2{height:34px;background:rgba(192,192,192,0.1);border-top:3px solid #C0C0C0;color:#888;}
+.podium-block.p3{height:24px;background:rgba(205,127,50,0.1);border-top:3px solid #CD7F32;color:#A0522D;}
+
+.total-row{display:flex;align-items:center;padding:9px 10px;border-bottom:1px solid #e8eef5;gap:8px;font-size:12px;}
+.total-row:last-child{border-bottom:none;}
+.total-row:nth-child(even){background:#f8fafc;}
+.tr-rank{width:22px;text-align:center;font-weight:700;color:var(--text2);flex-shrink:0;}
+.tr-name{flex:1;font-weight:600;min-width:0;color:var(--text);}
+.tr-grp{font-size:10px;color:var(--text2);}
+.tr-pills{display:flex;gap:3px;flex-wrap:wrap;}
+.tr-pill{font-size:10px;padding:2px 5px;border-radius:4px;background:#e8eef5;font-weight:600;color:var(--text2);}
+.tr-pill.hi{background:#d4efdf;color:#1a7a3c;}
+.tr-total{font-size:16px;font-weight:900;color:var(--navy-mid);min-width:38px;text-align:right;}
+.tr-avg{font-size:10px;color:var(--text2);text-align:right;}
+.tr-medal{font-size:16px;flex-shrink:0;}
+
+.grp-total-row{display:flex;align-items:center;padding:8px 10px;border-bottom:1px solid #e8eef5;gap:8px;font-size:12px;}
+.grp-total-row:last-child{border-bottom:none;}
+.gtr-rank{width:22px;text-align:center;font-weight:700;color:var(--text2);}
+.gtr-name{font-weight:700;color:var(--gold);width:48px;}
+.gtr-bar-wrap{flex:1;height:8px;background:#e8eef5;border-radius:4px;overflow:hidden;}
+.gtr-bar{height:100%;background:var(--gold);border-radius:4px;transition:width .5s;}
+.gtr-score{font-size:13px;font-weight:900;color:var(--navy-mid);min-width:36px;text-align:right;}
+.gtr-avg{font-size:10px;color:var(--text2);text-align:right;min-width:48px;}
+.grp-member-section{margin-bottom:12px;}
+.grp-member-header{font-size:12px;font-weight:700;color:var(--gold);padding:6px 0;border-bottom:1px solid #e8eef5;margin-bottom:6px;}
+.grp-member-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px solid #f0f4f8;}
+.grp-member-row:last-child{border-bottom:none;}
+.gm-name{flex:1;font-weight:600;color:var(--text);}
+.gm-scores{display:flex;gap:4px;}
+.gm-score-pill{background:#e8eef5;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;color:var(--text2);}
+.gm-score-pill.best{background:#d4efdf;color:#1a7a3c;}
+.gm-total{font-size:13px;font-weight:900;color:var(--navy-mid);min-width:32px;text-align:right;}
+
+.overlay{position:fixed;inset:0;background:rgba(10,30,60,0.88);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.overlay.show{display:flex;}
+.spinner{width:48px;height:48px;border:4px solid rgba(42,82,152,0.2);border-top-color:var(--navy-mid);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a3a5c;border:1px solid rgba(255,255,255,0.2);color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:999;transition:transform .3s;white-space:nowrap;box-shadow:0 8px 24px rgba(26,58,92,0.4);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+.empty{text-align:center;padding:36px 16px;color:var(--text2);font-size:13px;}
+.empty .ei{font-size:40px;margin-bottom:10px;}
+
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;margin-right:6px;}
+.sdot.ok{background:var(--green);animation:pg 2s infinite;}
+
+@keyframes pg{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+.cam-tip{background:#fff8f0;border:1px solid #f4c08a;border-radius:8px;padding:10px 12px;font-size:11px;color:#b06010;margin-bottom:10px;line-height:1.7;}
+
+select option{background:#fff;color:var(--text);}
+.col-divider{width:1px;background:#d0dce8;margin:0 4px;}
+
+/* 2列のメタ情報 */
+.col-label{font-size:10px;color:var(--text2);font-weight:700;text-align:center;padding:4px;letter-spacing:1px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="data:image/png;base64,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" class="logo-img" alt="TECOM">
+  <div class="hdr-text">
+    <h1>マークシート採点システム</h1>
+    <p>帝京大学 合宿用確認テスト専用 / 20問 / 1問1点・複数選択は完全一致で1点</p>
+  </div>
+  <div class="hdr-badge">受験者 <span id="headerCount">0</span> 名</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('setup',this)"><span class="ti">⚙️</span>設定</button>
+  <button class="tab" onclick="switchTab('scan',this)"><span class="ti">📷</span>読取</button>
+  <button class="tab" onclick="switchTab('manual',this)"><span class="ti">✏️</span>手入力</button>
+  <button class="tab" onclick="switchTab('results',this)"><span class="ti">📊</span>結果</button>
+  <button class="tab" onclick="switchTab('stats',this)"><span class="ti">📈</span>統計</button>
+</div>
+
+<!-- ===== SETUP ===== -->
+<div id="tab-setup" class="panel active">
+
+  <!-- テスト切替 -->
+  <div class="card">
+    <div class="ctitle">🗂️ テスト選択</div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;">
+      <button class="test-sel-btn active" id="tsel0" onclick="switchTest(0)">第1回</button>
+      <button class="test-sel-btn" id="tsel1" onclick="switchTest(1)">第2回</button>
+      <button class="test-sel-btn" id="tsel2" onclick="switchTest(2)">第3回</button>
+    </div>
+    <div style="font-size:12px;color:var(--gray);">
+      各テストの正解を個別に保存できます。採点時は使用するテストを選択してください。
+    </div>
+  </div>
+
+  <!-- 正解入力カード（テストごとに共通UI） -->
+  <div class="card">
+    <div class="ctitle">📁 正解CSVの読み込み</div>
+    <div class="upload-zone" onclick="document.getElementById('csvFile').click()">
+      <div class="icon">📄</div>
+      <p id="csvZoneLabel">第1回の正解CSVを選択</p>
+      <small>形式: e,c,b,bcd,abe,… 1問1行または1問1列。複数選択はアルファベット連結（例: bcd）</small>
+    </div>
+    <input type="file" id="csvFile" accept=".csv,.txt" onchange="loadCSV(this)">
+    <div id="csvStatus" style="margin-top:8px;font-size:12px;color:var(--gray);"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">✏️ 正解を直接入力（20問）</div>
+    <div class="ans-grid" id="ansGrid"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn btn-outline" style="flex:1" onclick="clearAnswers()">クリア</button>
+      <button class="btn btn-primary" style="flex:1" onclick="confirmAnswers()">💾 保存</button>
+    </div>
+  </div>
+
+  <!-- 3回分の正解キー一覧 -->
+  <div class="card">
+    <div class="ctitle">📋 保存済み正解キー</div>
+    <div id="allKeysDisplay"></div>
+  </div>
+
+  <!-- 受験者リスト登録 -->
+  <div class="card">
+    <div class="ctitle">👥 受験者リストの登録</div>
+    <div style="background:#eef3fc;border:1.5px solid var(--navy-mid);border-radius:10px;padding:12px;margin-bottom:8px;">
+      <div style="font-size:12px;font-weight:700;color:var(--navy-mid);margin-bottom:4px;">✅ 30名登録済み（FY26帝京大学春合宿）</div>
+      <div style="font-size:11px;color:var(--text2);">Gr.1〜5 各6名 / 受験番号・氏名設定済み</div>
+    </div>
+    <div class="upload-zone" onclick="document.getElementById('studentCsvFile').click()">
+      <div class="icon">📋</div>
+      <p>別のCSVで上書きする場合はタップ</p>
+      <small>形式: 受験番号,氏名,グループ または 受験番号,氏名,ふりがな,グループ</small>
+    </div>
+    <input type="file" id="studentCsvFile" accept=".csv,.txt" onchange="loadStudentCSV(this)">
+    <div id="studentCsvStatus" style="margin-top:8px;font-size:12px;color:var(--gray);"></div>
+    <div id="studentListPreview" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- ===== SCAN ===== -->
+<div id="tab-scan" class="panel">
+
+  <div class="card">
+    <div class="ctitle">👤 受験者・テスト選択</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button class="test-sel-btn active" id="stsel0" onclick="switchTest(0)">第1回</button>
+      <button class="test-sel-btn" id="stsel1" onclick="switchTest(1)">第2回</button>
+      <button class="test-sel-btn" id="stsel2" onclick="switchTest(2)">第3回</button>
+    </div>
+    <div id="scanTestStatus" style="font-size:11px;color:var(--text2);margin-bottom:10px;"></div>
+
+    <!-- 受験者選択UI（リスト登録済みの場合） -->
+    <div id="studentPickerWrap" style="display:none;margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;">受験者を選択</div>
+      <div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;">
+        <button class="grp-filter-btn active" id="sgf_all" onclick="setScanGrpFilter('all')">全員</button>
+        <button class="grp-filter-btn" id="sgf_1" onclick="setScanGrpFilter('1')">Gr.1</button>
+        <button class="grp-filter-btn" id="sgf_2" onclick="setScanGrpFilter('2')">Gr.2</button>
+        <button class="grp-filter-btn" id="sgf_3" onclick="setScanGrpFilter('3')">Gr.3</button>
+        <button class="grp-filter-btn" id="sgf_4" onclick="setScanGrpFilter('4')">Gr.4</button>
+        <button class="grp-filter-btn" id="sgf_5" onclick="setScanGrpFilter('5')">Gr.5</button>
+      </div>
+      <div style="position:relative;">
+        <input type="text" id="studentSearchInput" placeholder="名前・受験番号で絞り込み..."
+          oninput="filterStudentPicker(this.value)"
+          style="width:100%;padding:10px 12px;border:1.5px solid #ccdcee;border-radius:8px;font-size:14px;background:#fff;color:var(--text);">
+      </div>
+      <div id="studentPickerList" style="margin-top:6px;max-height:200px;overflow-y:auto;border:1px solid #d0dce8;border-radius:8px;background:#fff;"></div>
+      <div id="selectedStudentBadge" style="display:none;margin-top:8px;padding:8px 12px;background:#eef3fc;border:1.5px solid var(--navy-mid);border-radius:8px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;font-weight:700;color:var(--navy-mid);flex:1;" id="selectedStudentName">—</span>
+        <button onclick="clearSelectedStudent()" style="background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;">✕</button>
+      </div>
+    </div>
+
+    <!-- 手入力フォーム（リスト未登録 or リストにない場合） -->
+    <div id="manualStudentInput">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;" id="manualInputLabel">受験者情報を入力</div>
+      <div class="sform">
+        <input type="text" id="scanId" placeholder="受験番号" inputmode="numeric" style="max-width:110px;flex:none;">
+        <input type="text" id="scanName" placeholder="氏名（必須）">
+        <select id="scanGroup">
+          <option value="">Gr.—</option>
+          <option value="1">Gr.1</option>
+          <option value="2">Gr.2</option>
+          <option value="3">Gr.3</option>
+          <option value="4">Gr.4</option>
+          <option value="5">Gr.5</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- モード切替 -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="modeImgBtn" onclick="setMode('img')">🖼️ 画像ファイル<br><small>PC・スマホ共通</small></button>
+    <button class="mode-btn" id="modeCamBtn" onclick="setMode('cam')">📷 カメラ撮影<br><small>スマホ向け</small></button>
+  </div>
+
+  <!-- 画像ファイルモード -->
+  <div class="mode-section active" id="modeImg">
+    <div class="img-upload-zone" id="imgDropZone"
+         onclick="document.getElementById('imgFileInput').click()"
+         ondragover="event.preventDefault();this.classList.add('drag-over')"
+         ondragleave="this.classList.remove('drag-over')"
+         ondrop="handleImgDrop(event)">
+      <div class="icon">🖼️</div>
+      <p>画像をタップ／ドラッグ&ドロップ</p>
+      <small>JPG・PNG・HEIC対応 ／ スキャン画像・スマホ撮影どちらでもOK</small>
+    </div>
+    <input type="file" id="imgFileInput" accept="image/*" onchange="handleImgFile(this)">
+  </div>
+
+  <!-- カメラモード -->
+  <div class="mode-section" id="modeCam">
+    <div class="cam-tip" style="margin-bottom:8px;">
+      💡 平らな場所に置き、A4全体が写るよう撮影してください
+    </div>
+    <div class="cam-wrap">
+      <video id="videoEl" autoplay playsinline muted></video>
+      <canvas id="canvasEl"></canvas>
+      <img id="captImg" alt="撮影画像">
+      <div class="cam-ctrl">
+        <button class="btn btn-outline" id="startBtn" onclick="startCamera()" style="flex:1">📷 起動</button>
+        <button class="btn btn-primary" id="captBtn" onclick="capturePhoto()" disabled style="flex:1">🔘 撮影</button>
+        <button class="btn btn-outline" id="retakeBtn" onclick="retakePhoto()" style="display:none;flex:1">🔄 撮直し</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="scanResult" style="display:none;">
+    <div class="card">
+      <div class="ctitle">📝 読取結果（修正可）</div>
+      <div class="scan-vis"><canvas id="visCanvas"></canvas></div>
+
+      <div style="display:flex;gap:0;">
+        <div style="flex:1;">
+          <div class="col-label">Q1〜Q10</div>
+          <div class="mgrid-col" id="scanMarksL"></div>
+        </div>
+        <div class="col-divider"></div>
+        <div style="flex:1;">
+          <div class="col-label">Q11〜Q20</div>
+          <div class="mgrid-col" id="scanMarksR"></div>
+        </div>
+      </div>
+
+      <div class="score-box" id="scanScoreBox" style="display:none;margin-top:10px;">
+        <div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:3px;">得点</div>
+          <div class="sbig" id="scanScore">—</div>
+        </div>
+        <div class="sdet">正解: <strong id="scanCor">—</strong> 問<br>正答率: <strong id="scanRate">—</strong></div>
+      </div>
+      <button class="btn btn-success btn-full" onclick="registerScan()" style="margin-top:10px;">✅ この採点で登録</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MANUAL ===== -->
+<div id="tab-manual" class="panel">
+  <div class="card">
+    <div class="ctitle">👤 受験者情報</div>
+
+    <!-- テスト選択 -->
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button class="test-sel-btn active" id="mtsel0" onclick="switchTestMan(0)">第1回</button>
+      <button class="test-sel-btn" id="mtsel1" onclick="switchTestMan(1)">第2回</button>
+      <button class="test-sel-btn" id="mtsel2" onclick="switchTestMan(2)">第3回</button>
+    </div>
+    <div id="manTestStatus" style="font-size:11px;color:var(--text2);margin-bottom:10px;"></div>
+
+    <!-- 受験者選択UI（リスト登録済みの場合） -->
+    <div id="manStudentPickerWrap" style="display:none;margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;">受験者を選択</div>
+      <div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;">
+        <button class="grp-filter-btn active" id="mgf_all" onclick="setManGrpFilter('all')">全員</button>
+        <button class="grp-filter-btn" id="mgf_1" onclick="setManGrpFilter('1')">Gr.1</button>
+        <button class="grp-filter-btn" id="mgf_2" onclick="setManGrpFilter('2')">Gr.2</button>
+        <button class="grp-filter-btn" id="mgf_3" onclick="setManGrpFilter('3')">Gr.3</button>
+        <button class="grp-filter-btn" id="mgf_4" onclick="setManGrpFilter('4')">Gr.4</button>
+        <button class="grp-filter-btn" id="mgf_5" onclick="setManGrpFilter('5')">Gr.5</button>
+      </div>
+      <div style="position:relative;">
+        <input type="text" id="manStudentSearchInput" placeholder="名前・受験番号で絞り込み..."
+          oninput="filterStudentPicker2(this.value)"
+          style="width:100%;padding:10px 12px;border:1.5px solid #ccdcee;border-radius:8px;font-size:14px;background:#fff;color:var(--text);">
+      </div>
+      <div id="manStudentPickerList" style="margin-top:6px;max-height:200px;overflow-y:auto;border:1px solid #d0dce8;border-radius:8px;background:#fff;"></div>
+      <div id="manSelectedBadge" style="display:none;margin-top:8px;padding:8px 12px;background:#eef3fc;border:1.5px solid var(--navy-mid);border-radius:8px;align-items:center;gap:8px;">
+        <span style="font-size:13px;font-weight:700;color:var(--navy-mid);flex:1;" id="manSelectedName">—</span>
+        <button onclick="clearManSelectedStudent()" style="background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;">✕</button>
+      </div>
+    </div>
+
+    <div id="manManualInput">
+      <div class="sform">
+        <input type="text" id="manId" placeholder="受験番号" inputmode="numeric" style="max-width:110px;flex:none;">
+        <input type="text" id="manName" placeholder="氏名（必須）">
+        <select id="manGroup">
+          <option value="">Gr.—</option>
+          <option value="1">Gr.1</option>
+          <option value="2">Gr.2</option>
+          <option value="3">Gr.3</option>
+          <option value="4">Gr.4</option>
+          <option value="5">Gr.5</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">✏️ 解答入力</div>
+    <div style="display:flex;gap:0;">
+      <div style="flex:1;">
+        <div class="col-label">Q1〜Q10</div>
+        <div class="mgrid-col" id="manMarksL"></div>
+      </div>
+      <div class="col-divider"></div>
+      <div style="flex:1;">
+        <div class="col-label">Q11〜Q20</div>
+        <div class="mgrid-col" id="manMarksR"></div>
+      </div>
+    </div>
+    <div class="score-box" style="margin-top:10px;">
+      <div>
+        <div style="font-size:11px;color:var(--gray);margin-bottom:3px;">得点</div>
+        <div class="sbig" id="manScore">—</div>
+      </div>
+      <div class="sdet">正解: <strong id="manCor">—</strong> 問<br>正答率: <strong id="manRate">—</strong></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-outline" style="flex:1" onclick="clearManual()">クリア</button>
+      <button class="btn btn-success" style="flex:2" onclick="registerManual()">✅ 登録</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESULTS ===== -->
+<div id="tab-results" class="panel">
+  <div id="resEmpty" class="empty"><div class="ei">📋</div>まだ受験者が登録されていません</div>
+  <div id="resContent" style="display:none;">
+
+    <!-- 個人 / グループ / 総合 切替 -->
+    <div class="mode-toggle" style="margin-bottom:12px;">
+      <button class="mode-btn active" id="viewIndBtn" onclick="setResView('ind')">👤 個人</button>
+      <button class="mode-btn" id="viewGrpBtn" onclick="setResView('grp')">👥 グループ</button>
+      <button class="mode-btn" id="viewTotalBtn" onclick="setResView('total')">🏅 総合</button>
+    </div>
+
+    <!-- ===== 個人ビュー ===== -->
+    <div id="viewInd">
+      <!-- テストフィルター -->
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button class="test-sel-btn active" id="rsel_all" onclick="setResFilter('all')">全テスト</button>
+        <button class="test-sel-btn" id="rsel_0" onclick="setResFilter(0)">第1回</button>
+        <button class="test-sel-btn" id="rsel_1" onclick="setResFilter(1)">第2回</button>
+        <button class="test-sel-btn" id="rsel_2" onclick="setResFilter(2)">第3回</button>
+      </div>
+
+      <div class="stats-g">
+        <div class="stat-b"><div class="sv" id="avgSc">—</div><div class="sl">平均点</div></div>
+        <div class="stat-b"><div class="sv" id="maxSc">—</div><div class="sl">最高点</div></div>
+        <div class="stat-b"><div class="sv" id="minSc">—</div><div class="sl">最低点</div></div>
+        <div class="stat-b"><div class="sv" id="passSc">—</div><div class="sl">60%以上</div></div>
+      </div>
+      <div class="card">
+        <div class="ctitle">🏆 個人ランキング</div>
+        <div id="rankList"></div>
+      </div>
+    </div>
+
+    <!-- ===== グループビュー ===== -->
+    <div id="viewGrp" style="display:none;">
+      <div class="card">
+        <div class="ctitle">👥 グループ×テスト クロス集計</div>
+        <div id="grpCrossTable"></div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <div class="ctitle">📊 グループ別 平均点推移</div>
+        <div id="grpTrendChart"></div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <div class="ctitle">👤 グループ別 メンバー一覧</div>
+        <div id="grpMemberList"></div>
+      </div>
+    </div>
+
+    <!-- ===== 総合ビュー ===== -->
+    <div id="viewTotal" style="display:none;">
+
+      <!-- 総合サマリー -->
+      <div class="stats-g" id="totalStats"></div>
+
+      <!-- 表彰台 Top3 -->
+      <div id="totalPodium" style="margin-bottom:12px;"></div>
+
+      <!-- 総合ランキング表 -->
+      <div class="card">
+        <div class="ctitle">🏅 総合ランキング（合計点順）</div>
+        <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">同姓同名は同一人物として集計。受験回数・各回スコアを表示します。</div>
+        <div id="totalRankList"></div>
+      </div>
+
+      <!-- グループ別総合 -->
+      <div class="card" style="margin-top:12px;">
+        <div class="ctitle">👥 グループ別 総合順位</div>
+        <div id="totalGrpRank"></div>
+      </div>
+    </div>
+
+    <button class="btn btn-gold btn-full" onclick="exportExcel()" style="margin-bottom:14px;margin-top:4px;">📊 Excelで成績表を出力（全シート）</button>
+  </div>
+</div>
+
+<!-- ===== STATS ===== -->
+<div id="tab-stats" class="panel">
+  <div id="statEmpty" class="empty"><div class="ei">📈</div>データがありません</div>
+  <div id="statContent" style="display:none;">
+
+    <!-- テストフィルター -->
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <button class="test-sel-btn active" id="ssel_0" onclick="setStatFilter(0)">第1回</button>
+      <button class="test-sel-btn" id="ssel_1" onclick="setStatFilter(1)">第2回</button>
+      <button class="test-sel-btn" id="ssel_2" onclick="setStatFilter(2)">第3回</button>
+    </div>
+
+    <!-- 単元別正答率 -->
+    <div class="card">
+      <div class="ctitle">🏷️ 単元別 正答率</div>
+      <div id="unitStats"></div>
+    </div>
+
+    <!-- 問題別正答率 -->
+    <div class="card" style="margin-top:10px;">
+      <div class="ctitle">📊 問題別 正答率</div>
+      <div id="qaList"></div>
+    </div>
+
+    <div class="card" style="margin-top:10px;">
+      <div class="ctitle">📉 得点分布</div>
+      <div id="distChart"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="loadOverlay">
+  <div class="spinner"></div>
+  <div style="font-size:15px;font-weight:700;">解析中...</div>
+  <div style="font-size:12px;color:var(--gray);">マーク位置を検出しています</div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ======= CONFIG =======
+const NUM_Q = 20;
+const CHOICES = ['a','b','c','d','e'];
+const PTS = 1;
+const MAX_PTS = NUM_Q * PTS; // 20点
+const TEST_NAMES = ['第1回', '第2回', '第3回'];
+
+// 単元定義（テストごとにQ番号→単元名）
+const UNIT_MAP = [
+  // 第1回（1日目）
+  { 1:'循環器',2:'循環器',3:'循環器',4:'循環器',5:'循環器',
+    6:'循環器',7:'循環器',8:'循環器',9:'循環器',10:'循環器',
+    11:'循環器',12:'循環器',13:'循環器',14:'循環器',15:'循環器',
+    16:'呼吸器',17:'呼吸器',18:'呼吸器',19:'呼吸器',20:'呼吸器' },
+  // 第2回（2日目）
+  { 1:'呼吸器',2:'呼吸器',3:'呼吸器',4:'呼吸器',
+    5:'感染症',6:'感染症',7:'感染症',8:'感染症',9:'感染症',10:'感染症',11:'感染症',12:'感染症',
+    13:'消化器',14:'消化器',15:'消化器',16:'消化器',17:'消化器',18:'消化器',19:'消化器',20:'消化器' },
+  // 第3回（3日目）
+  { 1:'消化器',2:'消化器',3:'消化器',4:'消化器',5:'消化器',
+    6:'内分泌',7:'内分泌',8:'内分泌',9:'内分泌',10:'内分泌',
+    11:'内分泌',12:'内分泌',13:'内分泌',14:'内分泌',15:'内分泌',
+    16:'腎臓',17:'腎臓',18:'腎臓',19:'腎臓',20:'腎臓' }
+];
+const UNIT_COLORS = { '循環器':'#e63946', '呼吸器':'#0099cc', '感染症':'#2dc653', '消化器':'#f4811f', '内分泌':'#9b59b6', '腎臓':'#1a7a8a' };
+
+// 正解キー（1日目・2日目はPDFから設定済み）
+const PRESET_KEYS = [
+  ['e','c','b','bcd','abe','a','bce','e','abe','ce','d','ab','c','ad','e','ade','e','a','e','abc'],
+  ['abe','b','b','a','acd','c','ace','abc','e','d','c','ce','cde','abc','ac','c','abd','abe','d','a'],
+  ['cd','bc','b','abe','cde','c','e','b','abc','b','bc','cde','cde','bde','d','d','b','d','ae','b']
+];
+
+// マークシート座標
+const MARK_X_L = [95, 153, 235, 316, 398];
+const MARK_X_R = [481, 564, 647, 730, 812];
+const MARK_Y_L = [683, 753, 821, 893, 962, 1030, 1097, 1165, 1234, 1302];
+const MARK_Y_R = [683, 753, 821, 893, 962, 1030, 1097, 1165, 1234, 1302];
+const MARK_R = 24;
+const REF_W = 1075;
+const REF_H = 1518;
+
+// ======= STATE =======
+let allAnswerKeys = [
+  [...PRESET_KEYS[0]],
+  [...PRESET_KEYS[1]],
+  [...PRESET_KEYS[2]]
+]; // 3回分（文字列: 'e', 'bcd' など）
+let currentTest = 0;
+let answerKey = allAnswerKeys[0];
+let students = [];
+let manAnswers = new Array(NUM_Q).fill([]); // 複数選択: 選択済みの文字配列
+let scanAnswers = new Array(NUM_Q).fill([]);
+let camStream = null;
+let statFilter = 0; // 統計タブのテストフィルター
+let studentRoster = [
+  {id:"18M101034",name:"湯浅 秀教",group:"1"},
+  {id:"19M101004",name:"加藤 弘一",group:"1"},
+  {id:"19M101022",name:"小林 美貴",group:"1"},
+  {id:"19M101135",name:"平岡 彩香",group:"1"},
+  {id:"20M101066",name:"松崎 薫",group:"1"},
+  {id:"20M101090",name:"渡邉 敬太",group:"1"},
+  {id:"20M101099",name:"山本 柊輔",group:"2"},
+  {id:"20M101158",name:"國谷 好恭",group:"2"},
+  {id:"20M101186",name:"石田 涼祐",group:"2"},
+  {id:"20M101206",name:"土岡 翔吾",group:"2"},
+  {id:"20M101223",name:"荒井 雅士",group:"2"},
+  {id:"21M101002",name:"今村 健人",group:"2"},
+  {id:"21M101006",name:"上原 さつき",group:"3"},
+  {id:"21M101009",name:"青山 友美",group:"3"},
+  {id:"21M101013",name:"梅原 環",group:"3"},
+  {id:"21M101027",name:"洞口 裕次郎",group:"3"},
+  {id:"21M101054",name:"竹井 優文",group:"3"},
+  {id:"21M101065",name:"荒井 泰知",group:"3"},
+  {id:"21M101086",name:"中尾 匡博",group:"4"},
+  {id:"21M101091",name:"横田 有輝",group:"4"},
+  {id:"21M101093",name:"岩田 薫燈",group:"4"},
+  {id:"21M101097",name:"稲澤 慶大",group:"4"},
+  {id:"21M101109",name:"横山 大暉",group:"4"},
+  {id:"21M101113",name:"新井 伶那",group:"4"},
+  {id:"21M101116",name:"高木 実里",group:"5"},
+  {id:"21M101147",name:"三村 璃奈",group:"5"},
+  {id:"21M101148",name:"阿部 颯太郎",group:"5"},
+  {id:"21M101159",name:"山内 俊平",group:"5"},
+  {id:"21M101198",name:"宮永 英奈",group:"5"},
+  {id:"21M101213",name:"松村 優樹",group:"5"}
+]; // 事前登録受験者リスト (FY26帝京大学春合宿)
+let selectedRosterStudent = null; // スキャンタブで選択中の受験者
+let manSelectedRosterStudent = null; // 手入力タブで選択中の受験者
+let scanGrpFilter = 'all'; // スキャンタブのグループフィルター
+let manGrpFilter = 'all';  // 手入力タブのグループフィルター
+
+// ======= INIT =======
+window.addEventListener('DOMContentLoaded', () => {
+  loadStorage();
+  answerKey = allAnswerKeys[currentTest];
+  manAnswers = Array.from({length:NUM_Q}, ()=>[]);
+  scanAnswers = Array.from({length:NUM_Q}, ()=>[]);
+  buildAnsGrid();
+  buildMarkCols('man');
+  buildMarkCols('scan');
+  updateAllKeysDisplay();
+  updateTestSelButtons();
+  updateScanTestStatus();
+  renderStudentPickers();
+  renderStudentListPreview();
+  updateManTestSelButtons();
+  updateManTestStatus();
+});
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='results') renderResults();
+  if(name==='stats') renderStats();
+  if(name!=='scan'&&camStream) stopCam();
+}
+
+// ======= TEST SWITCHING =======
+function switchTest(idx) {
+  currentTest = idx;
+  answerKey = allAnswerKeys[idx];
+  buildAnsGrid();
+  updateAllKeysDisplay();
+  updateTestSelButtons();
+  updateScanTestStatus();
+  document.getElementById('csvZoneLabel').textContent = `${TEST_NAMES[idx]}の正解CSVを選択`;
+  document.getElementById('csvStatus').textContent = '';
+  showToast(`${TEST_NAMES[idx]}の正解キーを表示中`);
+}
+
+function switchTestMan(idx) {
+  // 手入力タブ専用のテスト切替（スキャンタブと共有）
+  switchTest(idx);
+  // 手入力タブのボタン状態も更新
+  updateManTestSelButtons();
+  updateManTestStatus();
+}
+
+function updateManTestSelButtons() {
+  for(let i=0;i<3;i++){
+    const btn = document.getElementById('mtsel'+i);
+    if(!btn) continue;
+    const isSaved = allAnswerKeys[i].length===NUM_Q && allAnswerKeys[i].every(a=>a);
+    btn.className = 'test-sel-btn' + (i===currentTest?' active':'') + (isSaved?' saved':'');
+    btn.textContent = TEST_NAMES[i] + (isSaved?' ✓':'');
+  }
+}
+
+function updateManTestStatus() {
+  const el = document.getElementById('manTestStatus');
+  if(!el) return;
+  const ok = answerKey.length===NUM_Q && answerKey.every(a=>a);
+  el.innerHTML = ok
+    ? `<span style="color:var(--green)">✅ ${TEST_NAMES[currentTest]}の正解キー設定済</span>`
+    : `<span style="color:var(--accent)">⚠️ ${TEST_NAMES[currentTest]}の正解キーが未設定です。</span>`;
+}
+
+function updateTestSelButtons() {
+  for(let i=0;i<3;i++){
+    const btn = document.getElementById('tsel'+i);
+    if(!btn) continue;
+    const isSaved = allAnswerKeys[i].length===NUM_Q && allAnswerKeys[i].every(a=>a);
+    btn.className = 'test-sel-btn' + (i===currentTest?' active':'') + (isSaved?' saved':'');
+    btn.textContent = TEST_NAMES[i] + (isSaved?' ✓':'');
+  }
+  for(let i=0;i<3;i++){
+    const btn = document.getElementById('stsel'+i);
+    if(!btn) continue;
+    const isSaved = allAnswerKeys[i].length===NUM_Q && allAnswerKeys[i].every(a=>a);
+    btn.className = 'test-sel-btn' + (i===currentTest?' active':'') + (isSaved?' saved':'');
+    btn.textContent = TEST_NAMES[i] + (isSaved?' ✓':'');
+  }
+  updateManTestSelButtons();
+}
+
+function updateScanTestStatus() {
+  const el = document.getElementById('scanTestStatus');
+  if(!el) return;
+  const ok = answerKey.length===NUM_Q && answerKey.every(a=>a);
+  el.innerHTML = ok
+    ? `<span style="color:var(--green)">✅ ${TEST_NAMES[currentTest]}の正解キー設定済 — ${answerKey.join(' ')}</span>`
+    : `<span style="color:var(--accent)">⚠️ ${TEST_NAMES[currentTest]}の正解キーが未設定です。</span>`;
+}
+
+function updateAllKeysDisplay() {
+  const el = document.getElementById('allKeysDisplay');
+  if(!el) return;
+  el.innerHTML = allAnswerKeys.map((ak, i) => {
+    const ok = ak.length===NUM_Q && ak.every(a=>a);
+    return `<div class="saved-key-row">
+      <div class="saved-key-label">${TEST_NAMES[i]}</div>
+      <div class="saved-key-val ${ok?'set':''}">
+        ${ok ? ak.join(' ') : '未設定'}
+      </div>
+      ${i !== currentTest ? `<button class="saved-key-use" onclick="switchTest(${i})">切替</button>` : '<span style="font-size:11px;color:var(--gold);font-weight:700;">編集中</span>'}
+    </div>`;
+  }).join('');
+}
+
+// ======= ANSWER GRID (複数選択対応テキスト入力) =======
+function buildAnsGrid() {
+  const g = document.getElementById('ansGrid');
+  g.innerHTML = '';
+  for(let i=0;i<NUM_Q;i++){
+    const val = answerKey[i] || '';
+    const isMulti = val.length > 1;
+    const d = document.createElement('div');
+    d.className='ans-item';
+    const unit = UNIT_MAP[currentTest]?.[i+1] || '';
+    const unitColor = UNIT_COLORS[unit] || 'var(--gray)';
+    d.innerHTML=`<div class="qn" style="display:flex;align-items:center;justify-content:center;gap:3px;">
+        Q${i+1}${unit?`<span style="font-size:9px;background:${unitColor}22;color:${unitColor};border-radius:3px;padding:0 3px;">${unit.slice(0,2)}</span>`:''}
+      </div>
+      <input class="ak-inp ${isMulti?'multi':val?'single':'empty'}" id="ak_${i}"
+        type="text" maxlength="5" value="${val}" placeholder="—"
+        oninput="onAkInput(${i},this)">`;
+    g.appendChild(d);
+  }
+  updateAllKeysDisplay();
+}
+
+function onAkInput(idx, input) {
+  const raw = input.value.toLowerCase().replace(/[^abcde]/g,'');
+  const sorted = [...new Set(raw.split(''))].sort().join('');
+  input.value = sorted;
+  answerKey[idx] = sorted;
+  const isMulti = sorted.length > 1;
+  input.className = `ak-inp ${isMulti?'multi':sorted?'single':'empty'}`;
+  updateAllKeysDisplay();
+}
+
+function clearAnswers(){
+  allAnswerKeys[currentTest] = new Array(NUM_Q).fill('');
+  answerKey = allAnswerKeys[currentTest];
+  buildAnsGrid(); updateTestSelButtons(); updateScanTestStatus(); saveStorage();
+}
+
+function confirmAnswers(){
+  const filled = answerKey.filter(a=>a).length;
+  if(filled<NUM_Q){showToast(`⚠️ ${NUM_Q-filled}問未設定です`);return;}
+  saveStorage(); updateTestSelButtons(); updateScanTestStatus();
+  showToast(`✅ ${TEST_NAMES[currentTest]}の正解キーを保存しました`);
+  updateManScore(); updateScanScore();
+}
+
+// ======= CSV (複数選択対応) =======
+function loadCSV(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const tokens = e.target.result.trim().split(/[\r\n,]+/).map(s=>s.trim().toLowerCase()).filter(s=>/^[abcde]+$/.test(s));
+    if(tokens.length>=NUM_Q){
+      const vals = tokens.slice(0,NUM_Q).map(t=>[...new Set(t.split(''))].sort().join(''));
+      allAnswerKeys[currentTest]=vals;
+      answerKey=allAnswerKeys[currentTest];
+      buildAnsGrid();
+      updateAllKeysDisplay();updateTestSelButtons();updateScanTestStatus();saveStorage();
+      document.getElementById('csvStatus').innerHTML=`<span style="color:var(--green)">✅ ${file.name} → ${TEST_NAMES[currentTest]}に読込完了</span>`;
+      showToast(`✅ ${TEST_NAMES[currentTest]}にCSVを読み込みました`);
+    } else {
+      document.getElementById('csvStatus').innerHTML=`<span style="color:var(--accent)">❌ 有効回答 ${tokens.length}問（${NUM_Q}問必要）</span>`;
+    }
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+// ======= 採点ロジック（完全一致で1点）=======
+function normalizeAnswer(ans){
+  if(Array.isArray(ans)) return [...new Set(ans)].sort().join('');
+  return (ans||'').split('').filter(c=>CHOICES.includes(c)).sort().join('');
+}
+
+function isCorrect(studentAns, keyStr){
+  return normalizeAnswer(studentAns) === (keyStr||'');
+}
+
+function calcScore(answers){
+  const ak = answerKey;
+  if(!ak.every(a=>a)) return{correct:0,score:0,valid:false};
+  const correct = answers.filter((a,i)=>isCorrect(a, ak[i])).length;
+  return{correct, score:correct*PTS, valid:true};
+}
+
+// ======= 2カラム マークグリッド（複数選択チェックボックス式）=======
+function buildMarkCols(mode){
+  const answers = mode==='man'?manAnswers:scanAnswers;
+  buildColGrid(mode+'MarksL', answers, mode, 0, 10);
+  buildColGrid(mode+'MarksR', answers, mode, 10, 20);
+}
+
+function buildColGrid(cid, answers, mode, start, end){
+  const c=document.getElementById(cid);if(!c)return;
+  c.innerHTML='';
+  const ak = answerKey;
+  for(let i=start;i<end;i++){
+    const d=document.createElement('div');
+    d.className='mitem-multi';d.id=`${mode}_item_${i}`;
+    const selArr = Array.isArray(answers[i]) ? answers[i] : (answers[i]?[answers[i]]:[]);
+    const isMultiQ = ak[i] && ak[i].length > 1;
+    const btns=CHOICES.map(ch=>{
+      const isSel = selArr.includes(ch);
+      return `<button class="cbtn${isSel?' sel':''}" onclick="toggleChoice('${mode}',${i},'${ch}')">${ch}</button>`;
+    }).join('');
+    const unit = UNIT_MAP[currentTest]?.[i+1] || '';
+    const unitColor = UNIT_COLORS[unit] || 'var(--gray)';
+    d.innerHTML=`<div class="ql" style="display:flex;align-items:center;justify-content:center;gap:2px;flex-wrap:wrap;">
+        Q${i+1}${unit?`<span style="font-size:8px;background:${unitColor}22;color:${unitColor};border-radius:2px;padding:0 2px;">${unit.slice(0,2)}</span>`:''}
+        ${isMultiQ?`<span style="font-size:8px;color:var(--gold);">(${ak[i].length}択)</span>`:''}
+      </div>
+      <div class="cbtn-row-multi">${btns}</div>
+      <span class="rmk" id="${mode}_rmk_${i}"></span>`;
+    c.appendChild(d);
+  }
+}
+
+function toggleChoice(mode, qi, ch){
+  const arr = mode==='man'?manAnswers:scanAnswers;
+  if(!Array.isArray(arr[qi])) arr[qi]=[];
+  const idx = arr[qi].indexOf(ch);
+  if(idx>=0) arr[qi].splice(idx,1);
+  else arr[qi].push(ch);
+  const item=document.getElementById(`${mode}_item_${qi}`);
+  item.querySelectorAll('.cbtn').forEach(b=>b.classList.toggle('sel', arr[qi].includes(b.textContent)));
+  if(mode==='man') updateManScore(); else updateScanScore();
+}
+
+function applyScoreDisplay(mode, answers, scoreEl, corEl, rateEl){
+  const{correct,score,valid}=calcScore(answers);
+  document.getElementById(scoreEl).textContent=valid?score:'—';
+  document.getElementById(corEl).textContent=valid?correct:'—';
+  document.getElementById(rateEl).textContent=valid?Math.round(correct/NUM_Q*100)+'%':'—';
+  if(valid){
+    for(let i=0;i<NUM_Q;i++){
+      const r=document.getElementById(`${mode}_rmk_${i}`);
+      const item=document.getElementById(`${mode}_item_${i}`);
+      if(!r)continue;
+      const selArr=Array.isArray(answers[i])?answers[i]:(answers[i]?[answers[i]]:[]);
+      if(!selArr.length){r.textContent='';item.className='mitem-multi';continue;}
+      const ok=isCorrect(answers[i], answerKey[i]);
+      r.textContent=ok?'○':'✕'; r.className='rmk '+(ok?'ok':'ng');
+      item.className='mitem-multi '+(ok?'ok-mark':'ng-mark');
+    }
+  }
+}
+
+function updateManScore(){applyScoreDisplay('man',manAnswers,'manScore','manCor','manRate');}
+function updateScanScore(){
+  const{valid}=calcScore(scanAnswers);
+  document.getElementById('scanScoreBox').style.display=valid?'flex':'none';
+  if(valid) applyScoreDisplay('scan',scanAnswers,'scanScore','scanCor','scanRate');
+}
+
+
+// ======= 受験者リスト管理 =======
+function loadStudentCSV(input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.trim().split(/\r?\n/).filter(l=>l.trim());
+    const roster = [];
+    lines.forEach(line => {
+      const parts = line.split(',').map(s=>s.trim().replace(/　/g,' ').trim());
+      if(parts.length >= 4) {
+        // 受験番号,氏名,ふりがな,グループ（4列）
+        const [id, name, , grp] = parts;
+        if(name && !/氏名|受験番号/.test(name)) roster.push({id:id||'', name, group:grp||''});
+      } else if(parts.length === 3) {
+        // 受験番号,氏名,グループ（3列）
+        const [id, name, grp] = parts;
+        if(name && !/氏名|受験番号/.test(name)) roster.push({id:id||'', name, group:grp||''});
+      } else if(parts.length === 2) {
+        // 氏名,グループ（2列）
+        const [name, grp] = parts;
+        if(name) roster.push({id:'', name, group:grp||''});
+      } else if(parts.length === 1 && parts[0]) {
+        roster.push({id:'', name:parts[0], group:''});
+      }
+    });
+    if(roster.length) {
+      studentRoster = roster;
+      saveStorage();
+      renderStudentPickers();
+      renderStudentListPreview();
+      document.getElementById('studentCsvStatus').innerHTML =
+        '<span style="color:var(--green)">&#x2705; '+roster.length+'名を登録しました</span>';
+      showToast('受験者'+roster.length+'名を登録しました');
+    } else {
+      document.getElementById('studentCsvStatus').innerHTML =
+        '<span style="color:var(--accent)">&#x274C; 読み込めませんでした。形式を確認してください</span>';
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function renderStudentListPreview() {
+  const el = document.getElementById('studentListPreview');
+  if(!el || !studentRoster.length) { if(el) el.innerHTML=''; return; }
+  const header =
+    '<div style="display:flex;gap:8px;padding:4px 0 6px;font-size:11px;font-weight:700;color:var(--text2);border-bottom:2px solid #d0dce8;margin-bottom:4px;">' +
+      '<span style="min-width:90px;">受験番号</span>' +
+      '<span style="flex:1;">氏名</span>' +
+      '<span style="min-width:40px;text-align:center;">Gr.</span>' +
+    '</div>';
+  const rows = studentRoster.slice(0,5).map(s =>
+    '<div style="display:flex;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px solid #eef2f7;align-items:center;">' +
+      '<span style="color:var(--text2);min-width:90px;font-family:monospace;font-size:11px;">'+(s.id||'—')+'</span>' +
+      '<span style="flex:1;font-weight:600;color:var(--text);">'+s.name+'</span>' +
+      '<span style="min-width:40px;text-align:center;">'+(s.group?'<span style="background:#e8eef5;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;color:var(--navy-mid);">'+s.group+'</span>':'')+'</span>' +
+    '</div>'
+  ).join('');
+  const more = studentRoster.length > 5 ?
+    '<div style="font-size:11px;color:var(--text2);padding:6px 0 2px;">…他'+(studentRoster.length-5)+'名</div>' : '';
+  el.innerHTML =
+    '<div style="border:1px solid #d0dce8;border-radius:8px;padding:8px 12px;background:#f8fafc;">' +
+      header + rows + more +
+    '</div>';
+}
+
+function renderStudentPickers() {
+  const hasRoster = studentRoster.length > 0;
+  const scanWrap  = document.getElementById('studentPickerWrap');
+  const scanMan   = document.getElementById('manualStudentInput');
+  const manWrap   = document.getElementById('manStudentPickerWrap');
+  const manMan    = document.getElementById('manManualInput');
+  if(scanWrap) scanWrap.style.display  = hasRoster ? 'block' : 'none';
+  if(scanMan)  scanMan.style.display   = hasRoster ? 'none'  : 'block';
+  if(manWrap)  manWrap.style.display   = hasRoster ? 'block' : 'none';
+  if(manMan)   manMan.style.display    = hasRoster ? 'none'  : 'block';
+  if(hasRoster) {
+    filterStudentPicker('');
+    filterStudentPicker2('');
+  }
+}
+
+function renderPickerList(containerId, roster, query) {
+  const el = document.getElementById(containerId); if(!el) return;
+  el.style.display = 'block';
+  const q = query.trim().toLowerCase();
+  const filtered = q ? roster.filter(s =>
+    s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q)
+  ) : roster;
+  if(!filtered.length) {
+    el.innerHTML = '<div class="picker-empty">該当する受験者が見つかりません</div>';
+    return;
+  }
+  const doneNames = new Set(students.filter(s=>s.testIdx===currentTest).map(s=>s.name+'||'+(s.id||'')));
+  el.innerHTML = filtered.map((s, fi) => {
+    const key = s.name+'||'+(s.id||'');
+    const isDone = doneNames.has(key);
+    const initials = s.name.slice(-1);
+    // インデックスでrosterを参照 → 名前のスペース等で引数が壊れるのを防ぐ
+    const rIdx = studentRoster.indexOf(s);
+    return '<div class="picker-item'+(isDone?' selected':'')+'" onclick="selectRosterByIndex(\''+containerId+'\','+rIdx+')">' +
+      '<div class="picker-avatar">'+initials+'</div>' +
+      '<div class="picker-info">' +
+        '<div class="picker-name">'+s.name+'</div>' +
+        '<div class="picker-sub">'+(s.id?'受験番号: '+s.id:'受験番号なし')+'</div>' +
+      '</div>' +
+      (s.group ? '<div class="picker-grp">Gr.'+s.group+'</div>' : '') +
+      (isDone  ? '<div class="picker-done">&#x2705;採点済</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function filterStudentPicker(query) {
+  const roster = scanGrpFilter === 'all'
+    ? studentRoster
+    : studentRoster.filter(s => s.group === scanGrpFilter);
+  renderPickerList('studentPickerList', roster, query);
+}
+function filterStudentPicker2(query) {
+  const roster = manGrpFilter === 'all'
+    ? studentRoster
+    : studentRoster.filter(s => s.group === manGrpFilter);
+  renderPickerList('manStudentPickerList', roster, query);
+}
+
+function setScanGrpFilter(grp) {
+  scanGrpFilter = grp;
+  ['all','1','2','3','4','5'].forEach(g => {
+    const b = document.getElementById('sgf_'+g);
+    if(b) b.classList.toggle('active', g === grp);
+  });
+  const q = document.getElementById('studentSearchInput');
+  filterStudentPicker(q ? q.value : '');
+}
+
+function setManGrpFilter(grp) {
+  manGrpFilter = grp;
+  ['all','1','2','3','4','5'].forEach(g => {
+    const b = document.getElementById('mgf_'+g);
+    if(b) b.classList.toggle('active', g === grp);
+  });
+  const q = document.getElementById('manStudentSearchInput');
+  filterStudentPicker2(q ? q.value : '');
+}
+
+
+// インデックス経由で選択（名前スペース問題を回避）
+function selectRosterByIndex(listId, rIdx) {
+  const s = studentRoster[rIdx];
+  if(!s) return;
+  selectRosterStudent(listId, s.id, s.name, s.group);
+}
+
+function selectRosterStudent(listId, id, name, group) {
+  const isScan = listId === 'studentPickerList';
+  if(isScan) {
+    selectedRosterStudent = {id, name, group};
+    document.getElementById('scanId').value    = id;
+    document.getElementById('scanName').value  = name;
+    const g = document.getElementById('scanGroup'); if(g) g.value = group||'';
+    const badge = document.getElementById('selectedStudentBadge');
+    const namEl = document.getElementById('selectedStudentName');
+    if(badge && namEl) {
+      namEl.textContent = name+(id?' ('+id+')':'')+(group?' / Gr.'+group:'');
+      badge.style.display = 'flex';
+    }
+    const listEl = document.getElementById('studentPickerList');
+    if(listEl) listEl.style.display = 'none';
+    const inp = document.getElementById('studentSearchInput'); if(inp) inp.value='';
+  } else {
+    manSelectedRosterStudent = {id, name, group};
+    document.getElementById('manId').value    = id;
+    document.getElementById('manName').value  = name;
+    const g = document.getElementById('manGroup'); if(g) g.value = group||'';
+    const badge = document.getElementById('manSelectedBadge');
+    const namEl = document.getElementById('manSelectedName');
+    if(badge && namEl) {
+      namEl.textContent = name+(id?' ('+id+')':'')+(group?' / Gr.'+group:'');
+      badge.style.display = 'flex';
+    }
+    const listEl = document.getElementById('manStudentPickerList');
+    if(listEl) listEl.style.display = 'none';
+    const inp = document.getElementById('manStudentSearchInput'); if(inp) inp.value='';
+  }
+}
+
+function clearSelectedStudent() {
+  selectedRosterStudent = null;
+  ['scanId','scanName'].forEach(id=>document.getElementById(id).value='');
+  const g=document.getElementById('scanGroup'); if(g) g.value='';
+  const badge=document.getElementById('selectedStudentBadge'); if(badge) badge.style.display='none';
+  const inp=document.getElementById('studentSearchInput'); if(inp) inp.value='';
+  filterStudentPicker('');
+}
+
+function clearManSelectedStudent() {
+  manSelectedRosterStudent = null;
+  ['manId','manName'].forEach(id=>document.getElementById(id).value='');
+  const g=document.getElementById('manGroup'); if(g) g.value='';
+  const badge=document.getElementById('manSelectedBadge'); if(badge) badge.style.display='none';
+  const inp=document.getElementById('manStudentSearchInput'); if(inp) inp.value='';
+  filterStudentPicker2('');
+}
+
+// ======= MODE TOGGLE =======
+function setMode(mode) {
+  document.getElementById('modeImg').classList.toggle('active', mode==='img');
+  document.getElementById('modeCam').classList.toggle('active', mode==='cam');
+  document.getElementById('modeImgBtn').classList.toggle('active', mode==='img');
+  document.getElementById('modeCamBtn').classList.toggle('active', mode==='cam');
+  if (mode !== 'cam' && camStream) stopCam();
+}
+
+// ======= IMAGE FILE UPLOAD =======
+function handleImgDrop(e) {
+  e.preventDefault();
+  document.getElementById('imgDropZone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadImgFile(file);
+  else showToast('⚠️ 画像ファイルを選択してください');
+}
+
+function handleImgFile(input) {
+  const file = input.files[0];
+  if (file) loadImgFile(file);
+  input.value = ''; // 同じファイルを再選択できるようにリセット
+}
+
+function loadImgFile(file) {
+  // ファイルサイズチェック（20MB上限）
+  if (file.size > 20 * 1024 * 1024) {
+    showToast('⚠️ ファイルが大きすぎます（20MB以下にしてください）');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      // Canvasに描画して解析
+      const c = document.getElementById('canvasEl');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      c.getContext('2d').drawImage(img, 0, 0);
+
+      // アップロードゾーンにプレビュー表示
+      const zone = document.getElementById('imgDropZone');
+      zone.innerHTML = `
+        <img src="${e.target.result}" style="max-width:100%;max-height:200px;border-radius:6px;object-fit:contain;">
+        <p style="margin-top:8px;font-size:12px;color:var(--sky);">✅ ${file.name}（${img.naturalWidth}×${img.naturalHeight}px）</p>
+        <p style="font-size:11px;color:var(--gray);">別の画像を選ぶには再タップ</p>`;
+
+      analyzeSheet(c);
+    };
+    img.onerror = () => showToast('⚠️ 画像の読み込みに失敗しました');
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ======= CAMERA =======
+async function startCamera(){
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}});
+    const v=document.getElementById('videoEl');v.srcObject=camStream;v.style.display='block';
+    document.getElementById('captImg').style.display='none';
+    document.getElementById('captBtn').disabled=false;
+    document.getElementById('startBtn').style.display='none';
+    document.getElementById('retakeBtn').style.display='none';
+    document.getElementById('scanResult').style.display='none';
+  }catch(e){showToast('❌ カメラへのアクセスが拒否されました');}
+}
+function stopCam(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}}
+
+function capturePhoto(){
+  const v=document.getElementById('videoEl');
+  const c=document.getElementById('canvasEl');
+  c.width=v.videoWidth;c.height=v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  stopCam();v.style.display='none';
+  const img=document.getElementById('captImg');
+  img.src=c.toDataURL('image/jpeg',0.92);img.style.display='block';
+  document.getElementById('captBtn').disabled=true;
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('retakeBtn').style.display='flex';
+  analyzeSheet(c);
+}
+
+function retakePhoto(){
+  document.getElementById('captImg').style.display='none';
+  document.getElementById('captBtn').disabled=true;
+  document.getElementById('retakeBtn').style.display='none';
+  document.getElementById('startBtn').style.display='flex';
+  document.getElementById('scanResult').style.display='none';
+  scanAnswers=Array.from({length:NUM_Q},()=>[]);
+  buildMarkCols('scan');
+  startCamera();
+}
+
+// ======= MARK DETECTION =======
+function analyzeSheet(canvas){
+  document.getElementById('loadOverlay').classList.add('show');
+  setTimeout(()=>{
+    try{
+      const result=detectMarks(canvas);
+      scanAnswers=result.answers;
+      buildMarkCols('scan');
+      updateScanScore();
+      drawVisOverlay(canvas,result);
+      document.getElementById('scanResult').style.display='block';
+      const missing=scanAnswers.filter(a=>!a).length;
+      showToast(missing>0?`⚠️ ${missing}問未検出。確認してください`:'✅ 読取完了。結果を確認してください');
+    }catch(e){
+      console.error(e);
+      scanAnswers=new Array(NUM_Q).fill('');
+      buildMarkCols('scan');
+      document.getElementById('scanResult').style.display='block';
+      showToast('⚠️ 自動読取失敗。手動で入力してください');
+    }
+    document.getElementById('loadOverlay').classList.remove('show');
+  },400);
+}
+
+function detectMarks(canvas){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const d=ctx.getImageData(0,0,W,H).data;
+  const gray=new Float32Array(W*H);
+  for(let i=0;i<W*H;i++) gray[i]=0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2];
+
+  const sX=W/REF_W, sY=H/REF_H;
+  const r=Math.round(MARK_R*Math.min(sX,sY));
+
+  function sampleFill(cx,cy){
+    let dark=0,total=0;
+    for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){
+      if(dx*dx+dy*dy>r*r)continue;
+      const px=cx+dx,py=cy+dy;
+      if(px<0||px>=W||py<0||py>=H)continue;
+      if(gray[py*W+px]<150)dark++;
+      total++;
+    }
+    return total>0?dark/total:0;
+  }
+
+  const answers=[];
+  const debugInfo=[];
+
+  // Q1〜Q10（左カラム）
+  for(let qi=0;qi<10;qi++){
+    const cy=Math.round(MARK_Y_L[qi]*sY);
+    const fills=MARK_X_L.map(x=>sampleFill(Math.round(x*sX),cy));
+    const maxFill=Math.max(...fills);
+    const chosen=maxFill>0.15?CHOICES[fills.indexOf(maxFill)]:'';
+    answers.push(chosen);
+    debugInfo.push({qi,cy,fills,chosen,maxFill,isRight:false});
+  }
+  // Q11〜Q20（右カラム）
+  for(let qi=0;qi<10;qi++){
+    const cy=Math.round(MARK_Y_R[qi]*sY);
+    const fills=MARK_X_R.map(x=>sampleFill(Math.round(x*sX),cy));
+    const maxFill=Math.max(...fills);
+    const chosen=maxFill>0.15?CHOICES[fills.indexOf(maxFill)]:'';
+    answers.push(chosen);
+    debugInfo.push({qi:qi+10,cy,fills,chosen,maxFill,isRight:true});
+  }
+
+  return{answers,debugInfo,sX,sY};
+}
+
+// ======= VIS OVERLAY =======
+function drawVisOverlay(srcCanvas,result){
+  const vc=document.getElementById('visCanvas');
+  const ctx=vc.getContext('2d');
+  const dW=vc.parentElement.clientWidth;
+  const ratio=srcCanvas.height/srcCanvas.width;
+  vc.width=dW;vc.height=dW*ratio;
+  const dX=dW/srcCanvas.width,dY=vc.height/srcCanvas.height;
+  ctx.drawImage(srcCanvas,0,0,vc.width,vc.height);
+  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(0,0,vc.width,vc.height);
+
+  const{debugInfo,sX,sY}=result;
+  const vr=MARK_R*Math.min(sX,sY)*Math.min(dX,dY);
+
+  debugInfo.forEach(({qi,cy,fills,chosen,isRight})=>{
+    const XS=isRight?MARK_X_R:MARK_X_L;
+    XS.forEach((refX,ci)=>{
+      const vx=refX*sX*dX;
+      const vy=cy*dY;
+      const ch=CHOICES[ci];
+      const isCh=chosen===ch;
+      ctx.beginPath();ctx.arc(vx,vy,vr,0,Math.PI*2);
+      if(isCh){ctx.fillStyle='rgba(72,202,228,0.35)';ctx.fill();ctx.strokeStyle='#48cae4';ctx.lineWidth=2;}
+      else{ctx.strokeStyle=fills[ci]>0.1?'rgba(244,162,97,0.5)':'rgba(255,255,255,0.2)';ctx.lineWidth=1;}
+      ctx.stroke();
+      if(isCh){
+        ctx.fillStyle='#48cae4';ctx.font=`bold ${Math.max(7,vr*0.85)}px sans-serif`;
+        ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ch,vx,vy);
+      }
+    });
+    // 問番号ラベル
+    const lx=(isRight?MARK_X_R[0]:MARK_X_L[0])*sX*dX-22;
+    ctx.fillStyle='rgba(72,202,228,0.9)';ctx.font=`bold 9px sans-serif`;
+    ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText(`Q${qi+1}`,lx,cy*dY);
+  });
+}
+
+// ======= REGISTER =======
+function registerScan(){
+  const name=document.getElementById('scanName').value.trim();
+  const id=document.getElementById('scanId').value.trim();
+  const group=document.getElementById('scanGroup').value;
+  if(!name){showToast('⚠️ 氏名を入力してください');return;}
+  if(!answerKey.every(a=>a)){showToast('⚠️ 先に正解キーを設定してください');return;}
+  const{correct,score}=calcScore(scanAnswers);
+  addStudent({id,name,group,answers:[...scanAnswers],correct,score});
+  document.getElementById('scanName').value='';
+  document.getElementById('scanId').value='';
+  document.getElementById('scanGroup').value='';
+  scanAnswers=new Array(NUM_Q).fill('');
+  buildMarkCols('scan');
+  document.getElementById('scanResult').style.display='none';
+  document.getElementById('captImg').style.display='none';
+  document.getElementById('startBtn').style.display='flex';
+  // 画像アップロードゾーンをリセット
+  document.getElementById('imgDropZone').innerHTML=`
+    <div class="icon">🖼️</div>
+    <p>画像をタップ／ドラッグ&ドロップ</p>
+    <small>JPG・PNG・HEIC対応 ／ スキャン画像・スマホ撮影どちらでもOK</small>`;
+  showToast(`✅ ${name} を登録しました（${score}点）`);
+
+  // ピッカーをリセット・再描画
+  clearSelectedStudent();
+  renderPickerList('studentPickerList', studentRoster, '');
+}
+
+function registerManual(){
+  const name=document.getElementById('manName').value.trim();
+  const id=document.getElementById('manId').value.trim();
+  const group=document.getElementById('manGroup').value;
+  if(!name){showToast('⚠️ 氏名を入力してください');return;}
+  if(!answerKey.every(a=>a)){showToast('⚠️ 先に正解キーを設定してください');return;}
+  const blank=manAnswers.filter(a=>!a).length;
+  if(blank&&!confirm(`${blank}問未入力です。このまま登録しますか？`))return;
+  const{correct,score}=calcScore(manAnswers);
+  addStudent({id,name,group,answers:[...manAnswers],correct,score});
+  clearManual();
+  showToast(`✅ ${name} を登録しました（${score}点）`);
+  clearManSelectedStudent();
+  renderPickerList('manStudentPickerList', studentRoster, '');
+}
+
+function addStudent(s){
+  s.ts=Date.now();
+  s.testIdx=currentTest;
+  s.testName=TEST_NAMES[currentTest];
+  // answers を正規化文字列に変換して保存
+  s.answers = s.answers.map(a=>normalizeAnswer(a));
+  students.push(s);saveStorage();
+  document.getElementById('headerCount').textContent=students.length;
+}
+
+function clearManual(){
+  manAnswers=Array.from({length:NUM_Q},()=>[]);buildMarkCols('man');
+  ['manName','manId'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('manGroup').value='';
+  ['manScore','manCor','manRate'].forEach(id=>document.getElementById(id).textContent='—');
+}
+
+// ======= RESULTS =======
+let resView = 'ind'; // 'ind' | 'grp'
+let resFilter = 'all'; // 'all' | 0 | 1 | 2
+
+function setResView(v) {
+  resView = v;
+  document.getElementById('viewInd').style.display = v==='ind'?'block':'none';
+  document.getElementById('viewGrp').style.display = v==='grp'?'block':'none';
+  document.getElementById('viewTotal').style.display = v==='total'?'block':'none';
+  document.getElementById('viewIndBtn').classList.toggle('active', v==='ind');
+  document.getElementById('viewGrpBtn').classList.toggle('active', v==='grp');
+  document.getElementById('viewTotalBtn').classList.toggle('active', v==='total');
+  renderResults();
+}
+
+function setResFilter(f) {
+  resFilter = f;
+  ['all',0,1,2].forEach(k => {
+    const b = document.getElementById('rsel_'+k);
+    if(b) b.classList.toggle('active', k===f);
+  });
+  renderResults();
+}
+
+function renderResults() {
+  const empty = document.getElementById('resEmpty');
+  const content = document.getElementById('resContent');
+  if(!students.length) { empty.style.display='block'; content.style.display='none'; return; }
+  empty.style.display='none'; content.style.display='block';
+
+  if(resView === 'ind') renderIndividual();
+  else if(resView === 'grp') renderGroup();
+  else renderTotal();
+}
+
+function renderIndividual() {
+  // フィルター適用
+  const filtered = resFilter==='all' ? students : students.filter(s=>s.testIdx===resFilter);
+  if(!filtered.length) {
+    document.getElementById('rankList').innerHTML='<div style="padding:16px;text-align:center;color:var(--gray);font-size:13px;">該当データなし</div>';
+    ['avgSc','maxSc','minSc','passSc'].forEach(id=>document.getElementById(id).textContent='—');
+    return;
+  }
+  const scores = filtered.map(s=>s.score);
+  const avg = scores.reduce((a,b)=>a+b,0)/scores.length;
+  const pass = scores.filter(s=>s>=MAX_PTS*0.6).length;
+  document.getElementById('avgSc').textContent=avg.toFixed(1);
+  document.getElementById('maxSc').textContent=Math.max(...scores);
+  document.getElementById('minSc').textContent=Math.min(...scores);
+  document.getElementById('passSc').textContent=Math.round(pass/filtered.length*100)+'%';
+
+  const sorted = [...filtered].sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name));
+  let rank=1;
+  sorted.forEach((s,i)=>{ if(i>0&&s.score<sorted[i-1].score)rank=i+1; s._rank=rank; });
+
+  document.getElementById('rankList').innerHTML = sorted.map(s=>{
+    const rc=s._rank===1?'r1':s._rank===2?'r2':s._rank===3?'r3':'';
+    const meta=[s.id, s.group?`Gr.${s.group}`:'', s.testName||''].filter(Boolean).join(' / ');
+    const pct=Math.round(s.correct/NUM_Q*100);
+    const pctColor=pct>=80?'var(--green)':pct>=60?'var(--sky)':pct>=40?'var(--gold)':'var(--accent)';
+    return `<div class="sli">
+      <div class="rank-b ${rc}">${s._rank}</div>
+      <div class="sn">${s.name}${meta?`<span class="sub">${meta}</span>`:''}</div>
+      <div style="text-align:right;">
+        <div class="ss">${s.score}<small style="font-size:11px;color:var(--gray)">点</small></div>
+        <div class="sc" style="color:${pctColor}">${pct}%（${s.correct}問）</div>
+      </div>
+      <button class="sdel" onclick="deleteSt(${s.ts})">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+function renderGroup() {
+  const groups = ['1','2','3','4','5'];
+  const usedGroups = groups.filter(g=>students.some(s=>s.group===g));
+  const testIdxs = [0,1,2].filter(i=>students.some(s=>s.testIdx===i));
+
+  // ===== クロス集計表 =====
+  // ヘッダー
+  let th = '<th>グループ</th><th>人数</th>';
+  testIdxs.forEach(i=>{ th+=`<th>${TEST_NAMES[i]}<br>平均</th>`; });
+  th += '<th>合計平均</th><th>60%以上</th>';
+
+  // グループごとのデータ
+  const grpData = usedGroups.map(g=>{
+    const members = students.filter(s=>s.group===g);
+    const perTest = testIdxs.map(ti=>{
+      const ts = members.filter(s=>s.testIdx===ti);
+      if(!ts.length) return null;
+      return {avg: ts.reduce((a,s)=>a+s.score,0)/ts.length, n: ts.length};
+    });
+    const allScores = members.map(s=>s.score);
+    const totalAvg = allScores.length ? allScores.reduce((a,b)=>a+b,0)/allScores.length : null;
+    const passN = allScores.filter(s=>s>=MAX_PTS*0.6).length;
+    return {g, members, perTest, totalAvg, passN};
+  });
+
+  // 各テストの最高・最低グループを特定
+  const testAvgs = testIdxs.map((_,ti)=>grpData.map(d=>d.perTest[ti]?.avg).filter(v=>v!=null));
+  const testMax = testAvgs.map(a=>Math.max(...a));
+  const testMin = testAvgs.map(a=>Math.min(...a));
+
+  let tbody = grpData.map(d=>{
+    let tds = `<td class="td-name">Gr.${d.g}</td><td>${d.members.length}</td>`;
+    d.perTest.forEach((pt, ti)=>{
+      if(pt===null){ tds+='<td style="color:var(--gray)">—</td>'; return; }
+      const v = pt.avg.toFixed(1);
+      const cls = pt.avg===testMax[ti]?'td-hi':pt.avg===testMin[ti]?'td-lo':'';
+      tds+=`<td class="${cls}">${v}</td>`;
+    });
+    tds+=`<td class="td-total">${d.totalAvg!==null?d.totalAvg.toFixed(1):'—'}</td>`;
+    tds+=`<td>${d.passN}名</td>`;
+    return `<tr>${tds}</tr>`;
+  }).join('');
+
+  document.getElementById('grpCrossTable').innerHTML =
+    `<table class="cross-table"><thead><tr>${th}</tr></thead><tbody>${tbody}</tbody></table>
+     <div style="font-size:10px;color:var(--gray);margin-top:6px;">🟢最高 🔴最低</div>`;
+
+  // ===== 平均点推移チャート（棒グラフ） =====
+  const COLORS = ['#48cae4','#f4a261','#2dc653','#e63946','#a8dadc'];
+  const allAvgs = grpData.flatMap(d=>d.perTest.filter(Boolean).map(pt=>pt.avg));
+  const chartMax = allAvgs.length ? Math.max(...allAvgs) : MAX_PTS;
+
+  let trendHtml = '<div style="display:flex;gap:6px;align-items:flex-end;padding:4px 0;">';
+  if(testIdxs.length===0){
+    trendHtml+='<div style="color:var(--gray);font-size:12px;">データなし</div>';
+  } else {
+    grpData.forEach((d,di)=>{
+      const color = COLORS[di%COLORS.length];
+      let bars = d.perTest.map((pt,ti)=>{
+        const h = pt ? Math.round((pt.avg/chartMax)*80) : 4;
+        const val = pt ? pt.avg.toFixed(1) : '—';
+        const tname = TEST_NAMES[testIdxs[ti]].replace('第','').replace('回','R');
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div style="font-size:9px;color:#fff;font-weight:700">${val}</div>
+          <div style="width:20px;height:${h}px;background:${color};border-radius:3px 3px 0 0;min-height:4px;opacity:${pt?1:0.2}"></div>
+          <div style="font-size:9px;color:var(--gray)">${tname}</div>
+        </div>`;
+      }).join('');
+      trendHtml+=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="font-size:11px;font-weight:700;color:${color}">Gr.${d.g}</div>
+        <div style="display:flex;gap:3px;align-items:flex-end;">${bars}</div>
+      </div>`;
+    });
+  }
+  trendHtml += '</div>';
+  document.getElementById('grpTrendChart').innerHTML = trendHtml;
+
+  // ===== グループ別メンバー一覧 =====
+  let memberHtml = '';
+  usedGroups.forEach((g,gi)=>{
+    const members = students.filter(s=>s.group===g);
+    // 同一人物（同名）をまとめる
+    const nameMap = {};
+    members.forEach(s=>{
+      if(!nameMap[s.name]) nameMap[s.name]={name:s.name,id:s.id,tests:{}};
+      nameMap[s.name].tests[s.testIdx]=s.score;
+    });
+    const rows = Object.values(nameMap).sort((a,b)=>{
+      const ta=Object.values(a.tests).reduce((x,y)=>x+y,0);
+      const tb=Object.values(b.tests).reduce((x,y)=>x+y,0);
+      return tb-ta;
+    });
+    const color=COLORS[gi%COLORS.length];
+    let memberRows = rows.map(r=>{
+      const total=Object.values(r.tests).reduce((a,b)=>a+b,0);
+      const maxScore=Math.max(...Object.values(r.tests));
+      const pills=testIdxs.map(ti=>{
+        const sc=r.tests[ti];
+        const isBest = sc===maxScore && Object.keys(r.tests).length>1;
+        return sc!=null?`<div class="gm-score-pill${isBest?' best':''}">${TEST_NAMES[ti].replace('第','').replace('回','回')} ${sc}点</div>`:'';
+      }).join('');
+      return `<div class="grp-member-row">
+        <div class="gm-name">${r.name}${r.id?`<span style="font-size:10px;color:var(--gray);margin-left:4px;">${r.id}</span>`:''}</div>
+        <div class="gm-scores">${pills}</div>
+        <div class="gm-total">${total}<small style="font-size:10px;color:var(--gray)">点</small></div>
+      </div>`;
+    }).join('');
+    memberHtml+=`<div class="grp-member-section">
+      <div class="grp-member-header" style="color:${color}">Gr.${g}（${rows.length}名）</div>
+      ${memberRows}
+    </div>`;
+  });
+  document.getElementById('grpMemberList').innerHTML = memberHtml || '<div style="color:var(--gray);font-size:12px;padding:8px;">グループ未割当のデータのみです</div>';
+}
+
+// ======= TOTAL RANKING =======
+function buildPersonMap() {
+  // 氏名+受験番号で名寄せ
+  const map = {};
+  students.forEach(s => {
+    const key = s.name + '||' + (s.id||'');
+    if (!map[key]) map[key] = { name:s.name, id:s.id||'', group:s.group||'', tests:{} };
+    map[key].tests[s.testIdx] = s.score;
+  });
+  return Object.values(map);
+}
+
+function renderTotal() {
+  const persons = buildPersonMap();
+  const testIdxs = [0,1,2].filter(i => students.some(s => s.testIdx===i));
+  const maxPossible = testIdxs.length * MAX_PTS; // 受験回数 × 満点
+
+  // 各人の合計点を計算
+  persons.forEach(p => {
+    const scores = testIdxs.map(i => p.tests[i]).filter(v => v != null);
+    p.total = scores.reduce((a,b)=>a+b,0);
+    p.count = scores.length;
+    p.avg = p.count ? (p.total / p.count) : 0;
+    p.maxScore = p.count ? Math.max(...scores) : 0;
+    p.scores = testIdxs.map(i => p.tests[i] != null ? p.tests[i] : null);
+  });
+
+  // 合計点でソート（同点は平均点）
+  const sorted = [...persons].sort((a,b) => b.total - a.total || b.avg - a.avg);
+  let rank = 1;
+  sorted.forEach((p,i) => {
+    if (i>0 && p.total < sorted[i-1].total) rank = i+1;
+    p._rank = rank;
+  });
+
+  // ===== サマリー =====
+  const totals = sorted.map(p=>p.total);
+  const allAvg = totals.reduce((a,b)=>a+b,0)/totals.length;
+  document.getElementById('totalStats').innerHTML = `
+    <div class="stat-b"><div class="sv">${sorted.length}</div><div class="sl">総受験者数</div></div>
+    <div class="stat-b"><div class="sv">${testIdxs.length}</div><div class="sl">実施テスト数</div></div>
+    <div class="stat-b"><div class="sv">${allAvg.toFixed(1)}</div><div class="sl">合計点平均</div></div>
+    <div class="stat-b"><div class="sv">${maxPossible}</div><div class="sl">満点</div></div>`;
+
+  // ===== 表彰台 Top3 =====
+  const medals = ['🥇','🥈','🥉'];
+  const podiumOrder = [1,0,2]; // 2位・1位・3位の順で中央が高い
+  const top3 = sorted.slice(0,3);
+  const heights = ['p2','p1','p3'];
+  const COLORS_POD = ['p2','p1','p3'];
+
+  if (sorted.length >= 1) {
+    const podiumHTML = `<div class="podium">` +
+      podiumOrder.map(idx => {
+        const p = top3[idx];
+        if (!p) return '';
+        const cls = ['p2','p1','p3'][idx];
+        const initials = p.name.slice(-1); // 名前の最後の1文字
+        const blockH = idx===0?'p2':idx===1?'p1':'p3';
+        return `<div class="podium-col">
+          <div class="podium-crown">${medals[idx]}</div>
+          <div class="podium-avatar ${cls}">${initials}</div>
+          <div class="podium-name">${p.name}</div>
+          <div class="podium-score">${p.total}<small style="font-size:10px;color:var(--gray)">点</small></div>
+          <div class="podium-sub">${p.count}回受験</div>
+          <div class="podium-block ${cls}">${p._rank}位</div>
+        </div>`;
+      }).join('') + `</div>`;
+    document.getElementById('totalPodium').innerHTML = podiumHTML;
+  }
+
+  // ===== 総合ランキング表 =====
+  const medalIcon = r => r===1?'🥇':r===2?'🥈':r===3?'🥉':'';
+  document.getElementById('totalRankList').innerHTML = sorted.map(p => {
+    const pills = testIdxs.map((ti,i) => {
+      const sc = p.scores[i];
+      if (sc == null) return `<div class="tr-pill" style="opacity:.4">${TEST_NAMES[ti].replace('第','').replace('回','R')} —</div>`;
+      const isBest = sc === p.maxScore && p.count > 1;
+      return `<div class="tr-pill${isBest?' hi':''}">${TEST_NAMES[ti].replace('第','').replace('回','R')} ${sc}</div>`;
+    }).join('');
+    const pctColor = (p.avg/MAX_PTS)>=0.8?'var(--green)':(p.avg/MAX_PTS)>=0.6?'var(--sky)':(p.avg/MAX_PTS)>=0.4?'var(--gold)':'var(--accent)';
+    return `<div class="total-row">
+      <div class="tr-medal">${medalIcon(p._rank)}</div>
+      <div class="tr-rank" style="${p._rank<=3?'color:var(--gold)':''}">${p._rank}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="tr-name">${p.name}${p.group?`<span class="tr-grp"> Gr.${p.group}</span>`:''}</div>
+        <div class="tr-pills" style="margin-top:3px;">${pills}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="tr-total">${p.total}<small style="font-size:10px;color:var(--gray)">点</small></div>
+        <div class="tr-avg" style="color:${pctColor}">avg ${p.avg.toFixed(1)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ===== グループ別総合 =====
+  const groups = ['1','2','3','4','5'];
+  const usedGrps = groups.filter(g => persons.some(p=>p.group===g));
+  const grpData = usedGrps.map(g => {
+    const mems = persons.filter(p=>p.group===g);
+    const grpTotal = mems.reduce((a,p)=>a+p.total,0);
+    const grpAvg = mems.length ? grpTotal/mems.length : 0;
+    return { g, mems, grpTotal, grpAvg };
+  }).sort((a,b) => b.grpAvg - a.grpAvg);
+
+  let grpRank = 1;
+  grpData.forEach((d,i) => {
+    if (i>0 && d.grpAvg < grpData[i-1].grpAvg) grpRank = i+1;
+    d._rank = grpRank;
+  });
+
+  const maxGrpAvg = grpData.length ? Math.max(...grpData.map(d=>d.grpAvg)) : 1;
+  document.getElementById('totalGrpRank').innerHTML = grpData.length
+    ? grpData.map(d => `<div class="grp-total-row">
+        <div class="gtr-rank">${d._rank}</div>
+        <div class="gtr-name">Gr.${d.g}</div>
+        <div class="gtr-bar-wrap"><div class="gtr-bar" style="width:${Math.round(d.grpAvg/maxGrpAvg*100)}%"></div></div>
+        <div class="gtr-avg">avg ${d.grpAvg.toFixed(1)}点</div>
+        <div class="gtr-score">${d.grpTotal}<small style="font-size:10px;color:var(--gray)">計</small></div>
+      </div>`).join('')
+    : '<div style="padding:8px;color:var(--gray);font-size:12px;">グループ未設定</div>';
+}
+
+function deleteSt(ts){
+  if(!confirm('この受験者を削除しますか？'))return;
+  students=students.filter(s=>s.ts!==ts);saveStorage();
+  document.getElementById('headerCount').textContent=students.length;renderResults();
+}
+
+// ======= STATS =======
+
+function setStatFilter(idx) {
+  statFilter = idx;
+  for(let i=0;i<3;i++){
+    const b=document.getElementById('ssel_'+i);
+    if(b) b.classList.toggle('active', i===idx);
+  }
+  renderStats();
+}
+
+function renderStats(){
+  const empty=document.getElementById('statEmpty'),content=document.getElementById('statContent');
+  if(!students.length){empty.style.display='block';content.style.display='none';return;}
+  empty.style.display='none';content.style.display='block';
+
+  // フィルター対象のテスト受験者と正解キー
+  const ak = allAnswerKeys[statFilter];
+  const targetSts = students.filter(s=>s.testIdx===statFilter);
+
+  // テストフィルターボタンの✓更新
+  for(let i=0;i<3;i++){
+    const b=document.getElementById('ssel_'+i);
+    if(!b) continue;
+    const hasSt = students.some(s=>s.testIdx===i);
+    b.className='test-sel-btn'+(i===statFilter?' active':'');
+    b.textContent = TEST_NAMES[i]+(hasSt?' ✓':'');
+  }
+
+  // ===== 単元別正答率 =====
+  const unitEl = document.getElementById('unitStats');
+  const unitMap = UNIT_MAP[statFilter] || {};
+  const unitNames = [...new Set(Object.values(unitMap))];
+
+  if(!unitNames.length || !targetSts.length || !ak.every(a=>a)){
+    unitEl.innerHTML = '<div style="color:var(--gray);font-size:12px;padding:4px 0;">この回の単元データがありません</div>';
+  } else {
+    unitEl.innerHTML = unitNames.map(uname => {
+      const color = UNIT_COLORS[uname] || 'var(--gray)';
+      // この単元のQ番号リスト
+      const qNums = Object.entries(unitMap).filter(([,u])=>u===uname).map(([q])=>parseInt(q));
+      const total = qNums.length * targetSts.length;
+      const correct = targetSts.reduce((sum,s)=>
+        sum + qNums.filter(qi=>isCorrect(s.answers[qi-1], ak[qi-1])).length, 0);
+      const pct = total ? Math.round(correct/total*100) : 0;
+      const pctColor = pct>=70?'var(--green)':pct>=40?'var(--gold)':'var(--accent)';
+      return `<div style="margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+          <span style="font-size:11px;font-weight:700;background:${color}22;color:${color};border-radius:4px;padding:1px 7px;">${uname}</span>
+          <span style="font-size:11px;color:var(--gray);">Q${Math.min(...qNums)}〜Q${Math.max(...qNums)}（${qNums.length}問）</span>
+          <span style="margin-left:auto;font-size:13px;font-weight:700;color:${pctColor}">${pct}%</span>
+        </div>
+        <div style="height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width .5s;"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ===== 問題別正答率 =====
+  const qaList=document.getElementById('qaList');qaList.innerHTML='';
+  for(let i=0;i<NUM_Q;i++){
+    const unit = unitMap[i+1] || '';
+    const unitColor = UNIT_COLORS[unit] || 'var(--gray)';
+    let cor=0, denom=targetSts.length;
+    if(targetSts.length && ak[i]){
+      cor = targetSts.filter(s=>isCorrect(s.answers[i], ak[i])).length;
+    }
+    const pct = denom ? Math.round(cor/denom*100) : 0;
+    const color = pct>=70?'var(--green)':pct>=40?'var(--gold)':'var(--accent)';
+    // 正解表示
+    const keyStr = ak[i] ? `(${ak[i]})` : '';
+    const isMultiQ = ak[i] && ak[i].length > 1;
+    const row=document.createElement('div');row.className='qa-item';
+    row.innerHTML=`<div class="qn2" style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+        <span>Q${i+1}</span>
+        ${unit?`<span style="font-size:8px;background:${unitColor}22;color:${unitColor};border-radius:2px;padding:0 2px;">${unit.slice(0,2)}</span>`:''}
+      </div>
+      <div style="font-size:9px;color:var(--gold);min-width:28px;text-align:center;">${keyStr}${isMultiQ?'*':''}</div>
+      <div class="qbar"><div class="qfill" style="width:${denom?pct:0}%;background:${denom?color:'var(--gray)'}"></div></div>
+      <div class="qpct" style="color:${denom?color:'var(--gray)'}">${denom?pct+'%':'—'}</div>`;
+    qaList.appendChild(row);
+  }
+
+  // ===== 得点分布 =====
+  const allScores = students.map(s=>s.score);
+  const bands=[{l:'0-3',min:0,max:4},{l:'4-7',min:4,max:8},{l:'8-11',min:8,max:12},{l:'12-15',min:12,max:16},{l:'16-19',min:16,max:20},{l:'20',min:20,max:21}];
+  const maxC=Math.max(...bands.map(b=>allScores.filter(s=>s>=b.min&&s<b.max).length),1);
+  document.getElementById('distChart').innerHTML=bands.map(b=>{
+    const c=allScores.filter(s=>s>=b.min&&s<b.max).length;
+    const h=Math.round(c/maxC*80);
+    return`<div style="display:inline-flex;flex-direction:column;align-items:center;gap:4px;width:15%;vertical-align:bottom;margin-right:1%">
+      <div style="font-size:11px;color:var(--text);font-weight:700">${c}</div>
+      <div style="width:100%;height:${h}px;background:var(--navy-mid);border-radius:4px 4px 0 0;min-height:${c?4:0}px"></div>
+      <div style="font-size:10px;color:var(--gray)">${b.l}</div>
+    </div>`;
+  }).join('');
+}
+
+// ======= EXCEL EXPORT =======
+function hdr(ws,cells,color='1D3557'){
+  cells.forEach(addr=>{if(ws[addr])ws[addr].s={font:{bold:true,color:{rgb:'FFFFFF'},sz:10},fill:{fgColor:{rgb:color}},alignment:{horizontal:'center',vertical:'center'}};});
+}
+function cellS(ws,addr,extra={}){
+  if(!ws[addr])return;
+  ws[addr].s={font:{sz:10},...extra};
+}
+
+function exportExcel(){
+  if(!students.length){showToast('⚠️ 受験者が登録されていません');return;}
+  const wb=XLSX.utils.book_new();
+  const groups=['1','2','3','4','5'];
+  const testIdxs=[0,1,2].filter(i=>students.some(s=>s.testIdx===i));
+
+  // ========== シート1: 個人成績一覧（全テスト縦並び）==========
+  const qHdr=Array.from({length:NUM_Q},(_,i)=>`Q${i+1}`);
+  const h1=['順位','受験番号','氏名','グループ','テスト','合計点','正解数','正答率(%)',...qHdr];
+  const sorted=[...students].sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name));
+  const scores1=sorted.map(s=>s.score);
+  const avg1=scores1.reduce((a,b)=>a+b,0)/scores1.length;
+  let rank=1;
+  sorted.forEach((s,i)=>{if(i>0&&s.score<sorted[i-1].score)rank=i+1;s._rank=rank;});
+  const rows1=[h1];
+  sorted.forEach(s=>{
+    const ak=allAnswerKeys[s.testIdx??0];
+    const qCols=s.answers.map((a,i)=>!a?'未':isCorrect(a,ak[i])?'○':'✕');
+    rows1.push([s._rank,s.id||'',s.name,s.group?`Gr.${s.group}`:'',s.testName||'',s.score,s.correct,Math.round(s.correct/NUM_Q*100),...qCols]);
+  });
+  rows1.push([]);
+  rows1.push(['【全体統計】','','平均点',avg1.toFixed(1),'','','']);
+  rows1.push(['','','最高点',Math.max(...scores1),'','','']);
+  rows1.push(['','','最低点',Math.min(...scores1),'','','']);
+  rows1.push(['','','標準偏差',stddev(scores1).toFixed(1),'','','']);
+  const ws1=XLSX.utils.aoa_to_sheet(rows1);
+  ws1['!cols']=[{wch:6},{wch:12},{wch:16},{wch:8},{wch:8},{wch:8},{wch:8},{wch:10},...Array(NUM_Q).fill({wch:5})];
+  const rng1=XLSX.utils.decode_range(ws1['!ref']);
+  for(let R=0;R<=rng1.e.r;R++) for(let C=0;C<=rng1.e.c;C++){
+    const addr=XLSX.utils.encode_cell({r:R,c:C});if(!ws1[addr])continue;
+    if(R===0){ws1[addr].s={font:{bold:true,color:{rgb:'FFFFFF'},sz:10},fill:{fgColor:{rgb:'1D3557'}},alignment:{horizontal:'center'}};}
+    else if(R>=1&&R<=sorted.length){
+      ws1[addr].s={font:{sz:10},fill:{fgColor:{rgb:R%2===0?'EEF4FF':'FFFFFF'}},alignment:{horizontal:C>=8?'center':C<=1||C>=5?'center':'left'}};
+      if(C>=8){const v=ws1[addr].v;if(v==='○')ws1[addr].s.font={color:{rgb:'2DC653'},sz:10,bold:true};else if(v==='✕')ws1[addr].s.font={color:{rgb:'E63946'},sz:10,bold:true};else if(v==='未')ws1[addr].s.font={color:{rgb:'ADB5BD'},sz:9};}
+      if(C===5){const sc=ws1[addr].v;if(sc>=16)ws1[addr].s.font={color:{rgb:'2DC653'},bold:true,sz:10};else if(sc<12)ws1[addr].s.font={color:{rgb:'E63946'},bold:true,sz:10};}
+      if(C===0){const rv=ws1[addr].v;if(rv===1)ws1[addr].s={...ws1[addr].s,font:{color:{rgb:'CC8800'},bold:true,sz:11},fill:{fgColor:{rgb:'FFF8DC'}}};else if(rv===2)ws1[addr].s={...ws1[addr].s,font:{color:{rgb:'888888'},bold:true,sz:10}};else if(rv===3)ws1[addr].s={...ws1[addr].s,font:{color:{rgb:'A0522D'},bold:true,sz:10}};}
+    }
+  }
+  XLSX.utils.book_append_sheet(wb,ws1,'個人成績一覧');
+
+  // ========== シート2: 個人×テスト推移（同名まとめ）==========
+  // ユニークな受験者（名前ベース）
+  const nameMap={};
+  students.forEach(s=>{
+    const key=s.name+(s.id||'');
+    if(!nameMap[key]) nameMap[key]={name:s.name,id:s.id||'',group:s.group||'',tests:{}};
+    nameMap[key].tests[s.testIdx]=s.score;
+  });
+  const persons=Object.values(nameMap);
+  const h2=['氏名','受験番号','グループ',...testIdxs.map(i=>TEST_NAMES[i]),'合計点','平均点','最高点','最低点','伸び'];
+  const rows2=[h2];
+  persons.sort((a,b)=>{
+    const ta=Object.values(a.tests).reduce((x,y)=>x+y,0);
+    const tb=Object.values(b.tests).reduce((x,y)=>x+y,0);
+    return tb-ta;
+  });
+  persons.forEach(p=>{
+    const testScores=testIdxs.map(i=>p.tests[i]??'');
+    const vals=testScores.filter(v=>v!=='');
+    const total=vals.reduce((a,b)=>a+b,0);
+    const avg=vals.length?total/vals.length:0;
+    const mxS=vals.length?Math.max(...vals):'';
+    const mnS=vals.length?Math.min(...vals):'';
+    // 伸び：最初と最後の差
+    const first=testIdxs.find(i=>p.tests[i]!=null);
+    const last=[...testIdxs].reverse().find(i=>p.tests[i]!=null);
+    const nobias=(first!=null&&last!=null&&first!==last)?p.tests[last]-p.tests[first]:'';
+    rows2.push([p.name,p.id,p.group?`Gr.${p.group}`:'', ...testScores, vals.length?total:'', vals.length?avg.toFixed(1):'', mxS, mnS, nobias]);
+  });
+  const ws2=XLSX.utils.aoa_to_sheet(rows2);
+  ws2['!cols']=[{wch:16},{wch:12},{wch:8},...testIdxs.map(()=>({wch:8})),{wch:8},{wch:8},{wch:8},{wch:8},{wch:8}];
+  const rng2=XLSX.utils.decode_range(ws2['!ref']);
+  for(let C=0;C<=rng2.e.c;C++){const addr=XLSX.utils.encode_cell({r:0,c:C});if(ws2[addr])ws2[addr].s={font:{bold:true,color:{rgb:'FFFFFF'},sz:10},fill:{fgColor:{rgb:'1D3557'}},alignment:{horizontal:'center'}};}
+  for(let R=1;R<rows2.length;R++){
+    const nobiasAddr=XLSX.utils.encode_cell({r:R,c:h2.length-1});
+    if(ws2[nobiasAddr]&&ws2[nobiasAddr].v!==''){
+      const v=ws2[nobiasAddr].v;
+      ws2[nobiasAddr].s={font:{color:{rgb:v>0?'2DC653':v<0?'E63946':'888888'},bold:true,sz:10},alignment:{horizontal:'center'}};
+    }
+  }
+  XLSX.utils.book_append_sheet(wb,ws2,'個人推移');
+
+  // ========== シート3: グループ×テスト クロス集計 ==========
+  const usedGrps=groups.filter(g=>students.some(s=>s.group===g));
+  const h3=['グループ','人数',...testIdxs.map(i=>TEST_NAMES[i]+' 平均'),...testIdxs.map(i=>TEST_NAMES[i]+' 最高'),...testIdxs.map(i=>TEST_NAMES[i]+' 最低'),'全体平均','60%以上'];
+  const rows3=[h3];
+  usedGrps.forEach(g=>{
+    const mems=students.filter(s=>s.group===g);
+    const testAvgs=testIdxs.map(ti=>{const ts=mems.filter(s=>s.testIdx===ti);return ts.length?(ts.reduce((a,s)=>a+s.score,0)/ts.length).toFixed(1):'—';});
+    const testMaxes=testIdxs.map(ti=>{const ts=mems.filter(s=>s.testIdx===ti);return ts.length?Math.max(...ts.map(s=>s.score)):'—';});
+    const testMins=testIdxs.map(ti=>{const ts=mems.filter(s=>s.testIdx===ti);return ts.length?Math.min(...ts.map(s=>s.score)):'—';});
+    const allSc=mems.map(s=>s.score);
+    const totAvg=allSc.length?(allSc.reduce((a,b)=>a+b,0)/allSc.length).toFixed(1):'—';
+    const passN=allSc.filter(s=>s>=MAX_PTS*0.6).length;
+    rows3.push([`Gr.${g}`,mems.length,...testAvgs,...testMaxes,...testMins,totAvg,`${passN}名`]);
+  });
+  // 全体行
+  const allAvg2=students.length?(students.reduce((a,s)=>a+s.score,0)/students.length).toFixed(1):'—';
+  const allTestAvgs=testIdxs.map(ti=>{const ts=students.filter(s=>s.testIdx===ti);return ts.length?(ts.reduce((a,s)=>a+s.score,0)/ts.length).toFixed(1):'—';});
+  rows3.push(['【全体】',students.length,...allTestAvgs,...testIdxs.map(()=>''),...testIdxs.map(()=>''),allAvg2,students.filter(s=>s.score>=MAX_PTS*0.6).length+'名']);
+  const ws3=XLSX.utils.aoa_to_sheet(rows3);
+  ws3['!cols']=[{wch:10},{wch:6},...Array(h3.length-2).fill({wch:10})];
+  const rng3=XLSX.utils.decode_range(ws3['!ref']);
+  for(let C=0;C<=rng3.e.c;C++){const addr=XLSX.utils.encode_cell({r:0,c:C});if(ws3[addr])ws3[addr].s={font:{bold:true,color:{rgb:'FFFFFF'},sz:10},fill:{fgColor:{rgb:'0A1628'}},alignment:{horizontal:'center'}};}
+  // 最終行（全体）を強調
+  for(let C=0;C<=rng3.e.c;C++){const addr=XLSX.utils.encode_cell({r:rows3.length-1,c:C});if(ws3[addr])ws3[addr].s={font:{bold:true,sz:10},fill:{fgColor:{rgb:'EEF4FF'}},alignment:{horizontal:'center'}};}
+  XLSX.utils.book_append_sheet(wb,ws3,'グループ集計');
+
+  // ========== シート4: テスト×グループ メンバー別 ==========
+  const rows4=[['グループ','氏名','受験番号',...testIdxs.map(i=>TEST_NAMES[i]),'合計','平均']];
+  usedGrps.forEach(g=>{
+    const mems=Object.values(
+      students.filter(s=>s.group===g).reduce((acc,s)=>{
+        const k=s.name+(s.id||'');
+        if(!acc[k])acc[k]={name:s.name,id:s.id||'',tests:{}};
+        acc[k].tests[s.testIdx]=s.score;return acc;
+      },{})
+    ).sort((a,b)=>Object.values(b.tests).reduce((x,y)=>x+y,0)-Object.values(a.tests).reduce((x,y)=>x+y,0));
+    mems.forEach((m,mi)=>{
+      const sc=testIdxs.map(i=>m.tests[i]??'');
+      const vals=sc.filter(v=>v!=='');
+      const tot=vals.reduce((a,b)=>a+b,0);
+      rows4.push([mi===0?`Gr.${g}`:'',m.name,m.id,...sc,vals.length?tot:'',vals.length?(tot/vals.length).toFixed(1):'']);
+    });
+    rows4.push([]); // グループ間空行
+  });
+  const ws4=XLSX.utils.aoa_to_sheet(rows4);
+  ws4['!cols']=[{wch:10},{wch:16},{wch:12},...testIdxs.map(()=>({wch:8})),{wch:8},{wch:8}];
+  for(let C=0;C<=rows4[0].length-1;C++){const addr=XLSX.utils.encode_cell({r:0,c:C});if(ws4[addr])ws4[addr].s={font:{bold:true,color:{rgb:'FFFFFF'},sz:10},fill:{fgColor:{rgb:'1D3557'}},alignment:{horizontal:'center'}};}
+  XLSX.utils.book_append_sheet(wb,ws4,'グループ別メンバー');
+
+  // ========== シート5: 問題別分析（テストごと）==========
+  testIdxs.forEach(ti=>{
+    const ak=allAnswerKeys[ti];
+    const ts=students.filter(s=>s.testIdx===ti);
+    if(!ts.length||!ak.every(a=>a))return;
+    const qRows=[['問番号','正解','正解者数','誤答者数','正答率(%)','難易度']];
+    for(let i=0;i<NUM_Q;i++){
+      const cor=ts.filter(s=>s.answers[i]===ak[i]).length;
+      const pct=Math.round(cor/ts.length*100);
+      qRows.push([`Q${i+1}`,ak[i],cor,ts.length-cor,pct,pct>=80?'易':pct>=50?'普通':pct>=30?'難':'超難']);
+    }
+    const wsQ=XLSX.utils.aoa_to_sheet(qRows);
+    wsQ['!cols']=[{wch:8},{wch:6},{wch:10},{wch:10},{wch:10},{wch:8}];
+    for(let C=0;C<=5;C++){const a=XLSX.utils.encode_cell({r:0,c:C});if(wsQ[a])wsQ[a].s={font:{bold:true,color:{rgb:'FFFFFF'},sz:10},fill:{fgColor:{rgb:'0A1628'}},alignment:{horizontal:'center'}};}
+    for(let R=1;R<qRows.length;R++){
+      const pa=XLSX.utils.encode_cell({r:R,c:4});if(wsQ[pa]){const p=wsQ[pa].v;const col=p>=80?'2DC653':p>=50?'F4A261':p>=30?'E63946':'8B0000';wsQ[pa].s={font:{color:{rgb:col},bold:true,sz:10},alignment:{horizontal:'center'}};}
+      for(let C=0;C<=3;C++){const a=XLSX.utils.encode_cell({r:R,c:C});if(wsQ[a])wsQ[a].s={alignment:{horizontal:'center'},font:{sz:10}};}
+    }
+    XLSX.utils.book_append_sheet(wb,wsQ,`問題別(${TEST_NAMES[ti]})`);
+  });
+
+  // ========== シート6: 正解キー ==========
+  const kRows=[['問番号',...TEST_NAMES]];
+  for(let i=0;i<NUM_Q;i++)kRows.push([`Q${i+1}`,...allAnswerKeys.map(ak=>ak[i]||'—')]);
+  const ws6=XLSX.utils.aoa_to_sheet(kRows);
+  ws6['!cols']=[{wch:8},...Array(3).fill({wch:8})];
+  for(let C=0;C<=3;C++){const a=XLSX.utils.encode_cell({r:0,c:C});if(ws6[a])ws6[a].s={font:{bold:true,color:{rgb:'FFFFFF'},sz:10},fill:{fgColor:{rgb:'1D3557'}},alignment:{horizontal:'center'}};}
+  XLSX.utils.book_append_sheet(wb,ws6,'正解キー');
+
+  // ========== シート7: 総合ランキング ==========
+  const persons2 = buildPersonMap();
+  persons2.forEach(p => {
+    const scores = testIdxs.map(i => p.tests[i]).filter(v => v!=null);
+    p.total = scores.reduce((a,b)=>a+b,0);
+    p.count = scores.length;
+    p.avg = p.count ? p.total/p.count : 0;
+  });
+  const sortedTotal = [...persons2].sort((a,b)=>b.total-a.total||b.avg-a.avg);
+  let trank=1;
+  sortedTotal.forEach((p,i)=>{if(i>0&&p.total<sortedTotal[i-1].total)trank=i+1;p._rank=trank;});
+  const h7=['総合順位','受験番号','氏名','グループ','受験回数',...testIdxs.map(i=>TEST_NAMES[i]),'合計点','平均点'];
+  const rows7=[h7];
+  sortedTotal.forEach(p=>{
+    rows7.push([p._rank,p.id||'',p.name,p.group?`Gr.${p.group}`:'',p.count,...testIdxs.map(i=>p.tests[i]??''),p.total,p.avg.toFixed(1)]);
+  });
+  const ws7=XLSX.utils.aoa_to_sheet(rows7);
+  ws7['!cols']=[{wch:8},{wch:12},{wch:16},{wch:8},{wch:8},...testIdxs.map(()=>({wch:8})),{wch:8},{wch:8}];
+  const rng7=XLSX.utils.decode_range(ws7['!ref']);
+  for(let R=0;R<=rng7.e.r;R++) for(let C=0;C<=rng7.e.c;C++){
+    const addr=XLSX.utils.encode_cell({r:R,c:C});if(!ws7[addr])continue;
+    if(R===0){ws7[addr].s={font:{bold:true,color:{rgb:'FFFFFF'},sz:10},fill:{fgColor:{rgb:'1D3557'}},alignment:{horizontal:'center'}};}
+    else if(R>=1&&R<=sortedTotal.length){
+      ws7[addr].s={font:{sz:10},fill:{fgColor:{rgb:R%2===0?'FFFDF0':'FFFFFF'}},alignment:{horizontal:'center'}};
+      const rv=ws7[addr].v;
+      if(C===0){
+        if(rv===1)ws7[addr].s={...ws7[addr].s,font:{color:{rgb:'CC8800'},bold:true,sz:12},fill:{fgColor:{rgb:'FFF8DC'}}};
+        else if(rv===2)ws7[addr].s={...ws7[addr].s,font:{color:{rgb:'888888'},bold:true,sz:11}};
+        else if(rv===3)ws7[addr].s={...ws7[addr].s,font:{color:{rgb:'A0522D'},bold:true,sz:11}};
+      }
+      if(C===h7.length-2){const sc=ws7[addr].v;if(sc!=='')ws7[addr].s.font={color:{rgb:sc>=MAX_PTS*testIdxs.length*0.8?'2DC653':sc<MAX_PTS*testIdxs.length*0.5?'E63946':'000000'},bold:true,sz:11};}
+    }
+  }
+  XLSX.utils.book_append_sheet(wb,ws7,'総合ランキング');
+
+  const now=new Date();
+  const ds=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+  XLSX.writeFile(wb,`TECOM合宿テスト成績_${ds}.xlsx`);
+  showToast('📊 Excelを出力しました（7シート）');
+}
+
+function stddev(arr){const avg=arr.reduce((a,b)=>a+b,0)/arr.length;return Math.sqrt(arr.reduce((s,v)=>s+(v-avg)**2,0)/arr.length);}
+
+// ======= STORAGE =======
+function saveStorage(){
+  try{
+    localStorage.setItem('tecom_ak3', JSON.stringify(allAnswerKeys));
+    localStorage.setItem('tecom_test', currentTest);
+    localStorage.setItem('tecom_st2', JSON.stringify(students));
+    // rosterはHTMLに埋め込みのため保存しない
+  }catch(e){}
+}
+function loadStorage(){
+  try{
+    const ak=localStorage.getItem('tecom_ak3');
+    if(ak){
+      const parsed=JSON.parse(ak);
+      if(Array.isArray(parsed)&&parsed.length===3){
+        // 各テスト: 保存済みが空の場合はPRESETを使用
+        allAnswerKeys = parsed.map((saved, i) => {
+          const hasSaved = Array.isArray(saved) && saved.length===NUM_Q && saved.every(a=>a);
+          return hasSaved ? saved : [...PRESET_KEYS[i]];
+        });
+      }
+    }
+    const t=localStorage.getItem('tecom_test');
+    if(t!==null) currentTest=parseInt(t)||0;
+    const st=localStorage.getItem('tecom_st2');
+    if(st){students=JSON.parse(st);document.getElementById('headerCount').textContent=students.length;}
+    // rosterはビルトインデータを常に使用（localStorageの古いデータを無視）
+    localStorage.removeItem('tecom_roster');
+  }catch(e){}
+}
+
+let toastT;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800);}
+</script>
+</body>
+</html>
