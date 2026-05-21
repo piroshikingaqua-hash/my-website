@@ -1,0 +1,4168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANATOMY QUEST — 解剖生理学 冒険RPG</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap');
+
+/* ===== PixelMplus（8bit感の強い日本語ピクセルフォント） ===== */
+@font-face {
+  font-family: 'PixelMplus10';
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/itouhiro/PixelMplus@master/PixelMplus10-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'PixelMplus12';
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/itouhiro/PixelMplus@master/PixelMplus12-Regular.ttf') format('truetype');
+}
+
+/* ===== ファミコン風カラーパレット ===== */
+:root{
+  --bg:#000000;
+  --bg-blue:#0000A8;
+  --bg-panel:#101030;
+  --bg-dark:#181828;
+  --text:#FCFCFC;
+  --text-dim:#A8A8A8;
+  --text-mute:#585858;
+  --yellow:#F8B800;
+  --red:#F83800;
+  --green:#00B800;
+  --cyan:#50E0F8;
+  --pink:#F878F8;
+  --purple:#7838F8;
+  --border:#FCFCFC;
+  --shadow:#000000;
+}
+
+/* ============================================================
+   デイモード（ライトテーマ）
+   ============================================================ */
+body.day {
+  --bg: #E8E0C8;           /* クリーム背景 */
+  --bg-blue: #4060C0;      /* ブルーパネル → 落ち着いたブルー */
+  --bg-panel: #D0C8A8;     /* パネル背景 */
+  --bg-dark: #C8C0A0;      /* ダーク部分 */
+  --text: #181008;         /* テキスト → ほぼ黒 */
+  --text-dim: #504030;     /* 薄いテキスト */
+  --text-mute: #A09080;    /* さらに薄いテキスト */
+  --yellow: #C07000;       /* 黄色 → 濃いめに */
+  --red: #C02000;          /* 赤 → 濃いめに */
+  --green: #007000;        /* 緑 → 濃いめに */
+  --cyan: #0080A8;         /* シアン → 濃いめに */
+  --pink: #A03080;         /* ピンク → 濃いめに */
+  --purple: #5020C0;       /* 紫 → 濃いめに */
+  --border: #302010;       /* ボーダー → 濃い茶色 */
+  --shadow: #B0A888;       /* シャドウ → クリーム寄り */
+}
+
+/* デイモード：ハードコード色のオーバーライド */
+/* 黒背景系 */
+body.day .story-box,
+body.day .scene-text,
+body.day .q-box,
+body.day .ff3-win,
+body.day .expbox,
+body.day .go-msg,
+body.day .clear-story,
+body.day .boss-desc,
+body.day .px-emoji,
+body.day .topbar,
+body.day .status-row { background: #D8D0B0; }
+
+body.day .cbtn { background: #C8C0A0; border-color: var(--border); color: var(--text); box-shadow: inset 1px 1px 0 #F0E8D0, inset -1px -1px 0 #907860; }
+body.day .cbtn:hover:not(:disabled) { background: #B8B090; border-color: var(--yellow); color: var(--yellow); }
+body.day .cbtn.correct { background: #B0D8A0; border-color: var(--green); color: #004000; }
+body.day .cbtn.wrong   { background: #E0B0A8; border-color: var(--red);   color: #600000; }
+
+body.day .bar-w,
+body.day .bar-sm,
+body.day .mon-hp-w { background: #B8B098; }
+
+body.day #s-map  { background: #C0D8E0; }
+body.day #s-story,
+body.day #s-gameover,
+body.day #s-clear { background: #D8D0B8; }
+body.day #s-battle { background: #B0C8D8; }
+
+body.day .chapter-card         { background: #D8D0B0; }
+body.day .chapter-card:hover:not(.locked) { background: #C8C0A0; }
+body.day .chapter-card.locked  { background: #C0B898; }
+body.day .chapter-card.locked .ch-name { color: #909080; }
+body.day .ch-icon-box          { background: #C8C0A0; }
+
+body.day .px-btn.blue  { background: var(--cyan);   color: #F8F8F8; box-shadow: inset 4px 4px 0 0 #40A0C0, inset -4px -4px 0 0 #004060; }
+body.day .px-btn.red   { background: var(--red);    color: #F8F8F8; box-shadow: inset 4px 4px 0 0 #E06040, inset -4px -4px 0 0 #600000; }
+body.day .px-btn.green { background: var(--green);  color: #F8F8F8; box-shadow: inset 4px 4px 0 0 #40A040, inset -4px -4px 0 0 #004000; }
+body.day .px-btn.gray  { background: #908878;       color: #F8F8F8; box-shadow: inset 4px 4px 0 0 #B0A898, inset -4px -4px 0 0 #504840; }
+
+body.day .mon-nm { color: #A03010; text-shadow: 1px 1px 0 #E8D0B8; }
+
+body.day .badge-clear { background: var(--green); color: #F8F8F8; }
+body.day .badge-lock  { background: #888070; color: #D0C8A8; }
+body.day .badge-open  { background: var(--yellow); color: #F8F8F8; }
+
+body.day .review-card         { background: #D8D0B0; }
+body.day .review-card:hover:not(.disabled) { background: #C8C0A0; border-color: var(--pink); }
+body.day .review-card.disabled { border-color: #A09880; }
+body.day .review-card.disabled .review-title,
+body.day .review-card.disabled .review-status,
+body.day .review-card.disabled .review-icon-box svg { color: #A09880; }
+body.day .review-card.disabled .review-icon-box { border-color: #A09880; }
+
+body.day .gender-card:hover { background: #C8C0A0; border-color: var(--yellow); }
+
+body.day .cmd-btn { background: #C8C0A0; border-color: var(--border); color: var(--text); }
+body.day .cmd-btn:hover { background: #B8B090; border-color: var(--yellow); color: var(--yellow); }
+
+body.day .px-panel.danger { background: #E0C0B0; border-color: var(--red); }
+
+body.day .clbl { border-color: var(--text-dim); }
+
+body.day html, body.day body { background: var(--bg); }
+
+/* タイトル画面のデイモード：空色背景＋雲ドット */
+body.day #s-open {
+  background: #87CEEB;
+  background-image:
+    radial-gradient(3px 2px at 20% 30%, #FFFFFF, transparent),
+    radial-gradient(4px 2px at 60% 70%, #FFFFFF, transparent),
+    radial-gradient(3px 2px at 50% 50%, #F0F8FF, transparent),
+    radial-gradient(4px 2px at 80% 10%, #FFFFFF, transparent),
+    radial-gradient(3px 2px at 90% 60%, #F0F8FF, transparent),
+    radial-gradient(4px 2px at 33% 80%, #FFFFFF, transparent),
+    radial-gradient(3px 2px at 15% 65%, #F0F8FF, transparent);
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+
+/* テーマ遷移アニメーション */
+body, body * {
+  transition: background-color .3s ease, color .2s ease, border-color .2s ease;
+}
+/* バー幅・アニメーション系は除外 */
+.bar-fill, .hp-fill, .exp-fill, .mon-hp-bar { transition: width .4s ease !important; }
+
+/* ============================================================
+   テーマトグルボタン
+   ============================================================ */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 2px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 10px;
+  padding: 4px 8px;
+  cursor: pointer;
+  image-rendering: pixelated;
+  letter-spacing: 0.05em;
+  transition: border-color .2s, color .2s;
+}
+.theme-toggle-btn:hover {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+.theme-toggle-btn .theme-icon { font-size: 14px; line-height: 1; }
+}
+
+*{box-sizing:border-box;margin:0;padding:0;image-rendering:pixelated;-webkit-font-smoothing:none;-moz-osx-font-smoothing:grayscale;font-smooth:never;text-rendering:geometricPrecision}
+html,body{font-family:'PixelMplus12','PixelMplus10','DotGothic16','Press Start 2P',monospace;background:var(--bg);color:var(--text);min-height:100vh;letter-spacing:0;-webkit-text-size-adjust:100%;text-rendering:geometricPrecision}
+body{background:
+  repeating-linear-gradient(0deg,#000 0 4px,#0a0a0a 4px 8px);
+  background-attachment:fixed}
+
+.screen{display:none}.screen.on{display:block}
+
+/* ===== 共通：ピクセルパネル ===== */
+.px-panel{
+  background:var(--bg-panel);
+  border:4px solid var(--border);
+  box-shadow:0 0 0 4px var(--bg),8px 8px 0 0 var(--shadow);
+  padding:16px;
+  position:relative;
+}
+.px-panel.dark{background:var(--bg-dark)}
+.px-panel.danger{background:#280000;border-color:var(--red);box-shadow:0 0 0 4px var(--bg),8px 8px 0 0 var(--shadow),inset 0 0 0 0 var(--red)}
+
+/* ===== 共通：ピクセルボタン（凸） ===== */
+.px-btn{
+  font-family:inherit;
+  font-size:14px;
+  font-weight:normal;
+  background:var(--yellow);
+  color:#000;
+  border:4px solid #000;
+  padding:12px 20px;
+  cursor:pointer;
+  box-shadow:
+    inset 4px 4px 0 0 #FFFFFF,
+    inset -4px -4px 0 0 #784000,
+    4px 4px 0 0 var(--shadow);
+  text-transform:none;
+  letter-spacing:1px;
+  transition:none;
+}
+.px-btn:hover{filter:brightness(1.1)}
+.px-btn:active{
+  box-shadow:
+    inset 4px 4px 0 0 #784000,
+    inset -4px -4px 0 0 #FFFFFF,
+    0 0 0 0 var(--shadow);
+  transform:translate(4px,4px);
+}
+.px-btn.blue{background:var(--cyan);color:#000;box-shadow:inset 4px 4px 0 0 #B8F8FC,inset -4px -4px 0 0 #006888,4px 4px 0 0 var(--shadow)}
+.px-btn.red{background:var(--red);color:#FFF;box-shadow:inset 4px 4px 0 0 #F89878,inset -4px -4px 0 0 #881800,4px 4px 0 0 var(--shadow)}
+.px-btn.green{background:var(--green);color:#FFF;box-shadow:inset 4px 4px 0 0 #58D858,inset -4px -4px 0 0 #006800,4px 4px 0 0 var(--shadow)}
+.px-btn.gray{background:#888;color:#000;box-shadow:inset 4px 4px 0 0 #BCBCBC,inset -4px -4px 0 0 #404040,4px 4px 0 0 var(--shadow)}
+.px-btn.small{font-size:11px;padding:6px 10px;border-width:2px;box-shadow:inset 2px 2px 0 0 rgba(255,255,255,.5),inset -2px -2px 0 0 rgba(0,0,0,.4),2px 2px 0 0 var(--shadow)}
+
+/* ===== ピクセル風枠線「点線」 ===== */
+.px-frame-inner{
+  border:2px dashed var(--text-dim);
+  padding:10px;
+}
+
+/* ===== オープニング ===== */
+#s-open{text-align:center;padding:1.5rem 1rem;min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;background:#000080;background-image:
+  radial-gradient(2px 2px at 20% 30%, #FCFCFC, transparent),
+  radial-gradient(2px 2px at 60% 70%, #FCFCFC, transparent),
+  radial-gradient(2px 2px at 50% 50%, #F8F8F8, transparent),
+  radial-gradient(2px 2px at 80% 10%, #FCFCFC, transparent),
+  radial-gradient(2px 2px at 90% 60%, #F8F8F8, transparent),
+  radial-gradient(2px 2px at 33% 80%, #FCFCFC, transparent),
+  radial-gradient(2px 2px at 15% 65%, #F8F8F8, transparent);
+  background-size: 200px 200px;
+  background-repeat: repeat;
+  animation: bgScroll 60s linear infinite;
+}
+@keyframes bgScroll{from{background-position:0 0}to{background-position:200px 200px}}
+#s-open.on{display:flex}
+.open-logo{margin-bottom:16px}
+.open-logo svg{width:96px;height:96px;animation:logoBlink 1.5s steps(2) infinite}
+@keyframes logoBlink{0%,49%{opacity:1}50%,100%{opacity:.85}}
+.open-title{font-family:'PixelMplus10','Press Start 2P','DotGothic16',monospace;font-size:32px;color:var(--yellow);letter-spacing:4px;margin-bottom:8px;text-shadow:4px 4px 0 var(--red),8px 8px 0 #000;line-height:1.2}
+.open-sub{font-size:12px;color:var(--cyan);margin-bottom:20px;letter-spacing:1px}
+.story-box{background:#000;border:4px solid var(--border);box-shadow:0 0 0 4px var(--bg),8px 8px 0 0 var(--shadow);padding:14px;margin-bottom:1.5rem;text-align:left;font-size:13px;line-height:1.9;color:var(--text);max-width:480px}
+.story-box .hi{color:var(--yellow)}
+.story-box .red{color:var(--red)}
+
+.btn-stack{display:flex;flex-direction:column;align-items:center;gap:10px}
+
+.save-info{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:9px;color:var(--text-mute);margin-top:14px;line-height:1.8;text-align:center}
+.save-info .hi{color:var(--cyan)}
+
+/* ===== ワールドマップ ===== */
+#s-map{padding:12px;min-height:100vh;background:#001028}
+.map-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:10px}
+.map-title{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:11px;color:var(--yellow);letter-spacing:1px;margin-bottom:6px;text-shadow:2px 2px 0 #000}
+.map-sub{font-size:11px;color:var(--cyan)}
+
+/* ステータスHUD */
+.hero-status{
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:16px;
+  background:#000;border:4px solid var(--border);box-shadow:0 0 0 4px var(--bg),6px 6px 0 0 var(--shadow);padding:8px;
+}
+.hstat{padding:4px 6px;text-align:left}
+.hstat-lbl{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:8px;color:var(--text-dim);margin-bottom:4px;letter-spacing:1px}
+.hstat-val{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:14px;color:var(--yellow);letter-spacing:1px}
+.bar-sm{height:8px;background:#000;border:2px solid var(--text-dim);margin-top:4px;padding:0;position:relative}
+.bar-fill{height:100%;transition:width .3s steps(8)}
+.exp-clr{background:var(--cyan)}
+.hp-clr{background:var(--red)}
+
+/* チャプターカード */
+.chapters{display:flex;flex-direction:column;gap:14px}
+.chapter-card{
+  background:#000;border:4px solid var(--border);box-shadow:0 0 0 4px var(--bg),6px 6px 0 0 var(--shadow);
+  padding:12px;cursor:pointer;position:relative;
+  transition:none;
+}
+.chapter-card:hover:not(.locked){background:#101040;border-color:var(--yellow)}
+.chapter-card:hover:not(.locked) .ch-name{color:var(--yellow)}
+.chapter-card.locked{opacity:.5;cursor:not-allowed;background:#181818}
+.chapter-card.locked .ch-name{color:#666}
+.chapter-card.cleared{border-color:var(--green)}
+.ch-header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.ch-icon-box{width:44px;height:44px;background:#000;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;padding:4px}
+.ch-icon-box svg{width:32px;height:32px}
+.ch-icon-box .px-emoji-fb{font-size:24px;background:none;border:none;width:auto;height:auto;display:inline}
+/* シーンイラストのSVG */
+.scene-illust svg{width:96px;height:96px;display:inline-block}
+.scene-illust .px-emoji-fb{font-size:64px;display:inline-block;width:96px;height:96px;line-height:96px;text-align:center;background:#000;border:3px solid var(--border)}
+/* モンスターのSVG（ザコ）*/
+.mon-ico svg{width:96px;height:96px;display:block;margin:0 auto;filter:drop-shadow(3px 3px 0 #000)}
+.mon-ico .px-emoji-fb{font-size:48px;display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;background:#000;border:3px solid var(--border);margin:0 auto}
+/* クリア画面のアイコン */
+.clear-ico svg{width:96px;height:96px;display:inline-block}
+.clear-ico .px-emoji-fb{font-size:64px;display:inline-block;width:96px;height:96px;line-height:96px;text-align:center;background:#000;border:3px solid var(--border)}
+.ch-num{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:8px;color:var(--cyan);letter-spacing:1px;margin-bottom:4px}
+.ch-name{font-size:15px;color:var(--text);line-height:1.3}
+.ch-boss{font-size:11px;color:var(--red);margin-top:4px}
+.ch-desc{font-size:11px;color:var(--text-dim);line-height:1.5;margin-top:6px;border-top:2px dashed #333;padding-top:6px}
+.ch-badge{
+  position:absolute;top:-4px;right:-4px;
+  font-family:'PixelMplus10','Press Start 2P',monospace;font-size:8px;
+  padding:6px 8px;border:2px solid #000;letter-spacing:1px;
+}
+.badge-clear{background:var(--green);color:#000}
+.badge-lock{background:#444;color:#888}
+.badge-open{background:var(--yellow);color:#000;animation:badgeBlink 1s steps(2) infinite}
+@keyframes badgeBlink{0%,49%{opacity:1}50%,100%{opacity:.5}}
+
+/* ===== ストーリー演出 ===== */
+#s-story{padding:12px;min-height:100vh;display:none;flex-direction:column;background:#001028}
+#s-story.on{display:flex}
+.story-scene{
+  background:#000;border:4px solid var(--border);box-shadow:0 0 0 4px var(--bg),6px 6px 0 0 var(--shadow);
+  padding:14px;margin-bottom:14px;flex:1;
+}
+.scene-area{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:9px;color:var(--cyan);letter-spacing:1px;margin-bottom:12px;border-bottom:2px dashed #333;padding-bottom:8px}
+.scene-illust{text-align:center;margin:14px 0;animation:scenefloat 1s steps(2) infinite}
+.scene-illust svg, .scene-illust .px-emoji{width:96px;height:96px}
+@keyframes scenefloat{0%,49%{transform:translateY(0)}50%,100%{transform:translateY(-4px)}}
+.scene-name{text-align:center;font-size:14px;color:var(--yellow);margin-bottom:14px;letter-spacing:1px}
+.scene-text{font-size:13px;line-height:1.9;color:var(--text);background:#000;border:2px solid var(--text-dim);padding:12px;position:relative}
+.scene-text::after{content:'▼';position:absolute;bottom:4px;right:8px;color:var(--yellow);font-size:12px;animation:arrowBlink .8s steps(2) infinite}
+@keyframes arrowBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.scene-text .hi{color:var(--yellow)}
+.scene-text .red{color:var(--red)}
+
+/* 絵文字をピクセル風に見せる枠 */
+.px-emoji{display:inline-flex;align-items:center;justify-content:center;background:#000;border:3px solid var(--border);font-size:48px;line-height:1;width:80px;height:80px;image-rendering:pixelated}
+
+/* ===== ボス演出 ===== */
+#s-boss{padding:1rem;min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#280000;background-image:repeating-linear-gradient(45deg,#280000 0 8px,#1a0000 8px 16px)}
+#s-boss.on{display:flex}
+.boss-warning{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:12px;color:var(--red);letter-spacing:2px;margin-bottom:14px;animation:warnBlink .5s steps(2) infinite}
+@keyframes warnBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.boss-ico{margin-bottom:14px;animation:bossshake .15s steps(2) infinite}
+.boss-ico svg{width:160px;height:160px;filter:drop-shadow(4px 4px 0 #000)}
+@keyframes bossshake{0%,49%{transform:translateX(-2px)}50%,100%{transform:translateX(2px)}}
+.boss-name{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:14px;color:var(--red);text-shadow:3px 3px 0 #000;margin-bottom:14px;letter-spacing:1px;line-height:1.4}
+.boss-desc{font-size:12px;color:var(--text);line-height:1.8;background:#000;border:4px solid var(--red);box-shadow:0 0 0 4px var(--bg),6px 6px 0 0 var(--shadow);padding:14px;margin-bottom:24px;text-align:left;max-width:420px}
+.boss-desc .red{color:#FF8888}
+.boss-desc .hi{color:var(--yellow)}
+
+/* ===== バトル ===== */
+/* ===== FF3風バトル画面 ===== */
+#s-battle{padding:0;min-height:100vh;background:#000020;display:none;flex-direction:column}
+#s-battle.on{display:flex}
+.topbar{background:#000;border-bottom:3px solid var(--border);padding:5px 8px;display:flex;justify-content:space-between;align-items:center;font-family:'PixelMplus10','Press Start 2P',monospace;font-size:9px;letter-spacing:1px;flex-shrink:0}
+.area-nm{color:var(--yellow)}
+.qcnt{color:var(--cyan)}
+.status-row{background:#000;border-bottom:3px solid var(--border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;flex-shrink:0}
+.stat-card{padding:4px 6px;border-right:2px solid #333}
+.stat-card:last-child{border-right:none}
+.stat-lbl{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:7px;color:var(--text-dim);margin-bottom:2px;letter-spacing:1px}
+.stat-vl{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:11px;color:var(--yellow);letter-spacing:1px}
+.bar-w{height:5px;background:#000;border:1px solid var(--text-dim);margin-top:2px}
+.bar-f{height:100%;transition:width .3s steps(8)}
+.exp-mini{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:6px;color:var(--text-mute);margin-top:1px;letter-spacing:1px}
+
+/* 戦闘フィールド（横並び） */
+.battle-field{
+  background:linear-gradient(180deg,#000838 0%,#001050 52%,#003008 52%,#001804 100%);
+  height:140px;flex-shrink:0;position:relative;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 20px 8px;overflow:hidden;
+}
+.battle-field::before{content:'';position:absolute;top:0;left:0;right:0;bottom:48%;background:radial-gradient(1px 1px at 15% 25%,#fff,transparent),radial-gradient(1px 1px at 45% 15%,#fff,transparent),radial-gradient(1px 1px at 70% 35%,#fff,transparent),radial-gradient(1px 1px at 88% 12%,#fff,transparent)}
+.battle-field::after{content:'';position:absolute;left:0;right:0;top:52%;height:2px;background:repeating-linear-gradient(90deg,#005000 0 5px,#003800 5px 8px)}
+.battle-hero-wrap{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center}
+.battle-hero-svg{width:56px;height:56px;display:block;image-rendering:pixelated;animation:heroIdle 1s steps(2) infinite}
+.hero-dmg{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-family:'PixelMplus10',monospace;font-size:13px;color:var(--red);text-shadow:2px 2px 0 #000;display:none;white-space:nowrap;pointer-events:none}
+.hero-dmg.on{display:block;animation:dmgFloat .8s steps(6) forwards}
+.battle-mon-wrap{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center}
+.mon-ico{display:block;width:72px;height:72px;image-rendering:pixelated;animation:monIdle .6s steps(2) infinite}
+.mon-ico svg{width:100%;height:100%;filter:drop-shadow(2px 2px 0 #000)}
+.mon-ico .px-emoji-fb{width:64px;height:64px;font-size:40px;display:inline-flex;align-items:center;justify-content:center;background:#000;border:2px solid var(--border)}
+.mon-nm{font-size:9px;color:var(--red);letter-spacing:1px;text-align:center;margin-top:2px}
+.mon-hp-w{height:4px;background:#000;border:1px solid var(--text-dim);width:72px;margin:2px auto 0}
+.mon-hp-f{height:100%;background:var(--red);transition:width .4s steps(6)}
+.mon-dmg{position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-family:'PixelMplus10',monospace;font-size:14px;color:var(--yellow);text-shadow:2px 2px 0 #000;display:none;white-space:nowrap;pointer-events:none}
+.mon-dmg.on{display:block;animation:dmgFloat .8s steps(6) forwards}
+
+/* FF3風ウィンドウ */
+.ff3-win{background:#000830;border:3px solid #FCFCFC;box-shadow:inset 2px 2px 0 rgba(60,80,200,.3),inset -2px -2px 0 rgba(0,0,40,.5);padding:6px 8px;margin:3px 6px;flex-shrink:0}
+.battle-msg-win{min-height:32px}
+#battle-msg{font-size:12px;color:var(--text);line-height:1.6}
+
+/* 問題 */
+.q-box{background:#000830;border:3px solid #FCFCFC;box-shadow:inset 2px 2px 0 rgba(60,80,200,.3),inset -2px -2px 0 rgba(0,0,40,.5);padding:6px 8px;margin:0 6px 3px;flex-shrink:0}
+.q-num{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:8px;color:var(--cyan);letter-spacing:1px;margin-bottom:3px}
+.q-txt{font-size:12px;color:var(--text);line-height:1.5}
+
+/* 選択肢（2列） */
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin:0 6px 3px;flex-shrink:0}
+.cbtn{background:#000830;border:2px solid #FCFCFC;box-shadow:inset 1px 1px 0 rgba(60,80,200,.2);cursor:pointer;font-family:inherit;font-size:11px;color:var(--text);text-align:left;line-height:1.3;padding:6px;display:flex;align-items:flex-start;gap:5px;position:relative;transition:none}
+.cbtn:hover:not(:disabled){background:#001060;border-color:var(--yellow);color:var(--yellow)}
+.cbtn:disabled{cursor:default}
+.cbtn.correct{border-color:var(--green);background:#001408;color:#80FF80}
+.cbtn.wrong{border-color:var(--red);background:#280008;color:#FF8080}
+.clbl{min-width:18px;width:18px;height:18px;border:1px solid var(--text-dim);display:flex;align-items:center;justify-content:center;font-family:'PixelMplus10',monospace;font-size:8px;flex-shrink:0;color:var(--text-dim);background:#000}
+.cbtn.correct .clbl{border-color:var(--green);color:var(--green)}
+.cbtn.wrong .clbl{border-color:var(--red);color:var(--red)}
+
+/* ポップアップ */
+.gain-popup{text-align:center;font-family:'PixelMplus10','Press Start 2P',monospace;font-size:12px;color:var(--yellow);display:none;padding:4px;letter-spacing:1px;text-shadow:2px 2px 0 #000;animation:popup .4s steps(4)}
+@keyframes popup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.lvup-popup{text-align:center;font-family:'PixelMplus10','Press Start 2P',monospace;font-size:12px;color:var(--green);display:none;padding:4px;letter-spacing:1px;text-shadow:2px 2px 0 #000;animation:lvpop .4s steps(4)}
+@keyframes lvpop{0%{opacity:0;transform:scale(.5)}50%{transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
+
+/* 解説 */
+.expbox{background:#000830;border:2px solid var(--cyan);padding:8px;font-size:11px;color:var(--text);line-height:1.6;margin:3px 6px;flex-shrink:0}
+.expbox strong{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:8px;color:var(--cyan);display:block;margin-bottom:4px;letter-spacing:1px}
+.nxtbtn{width:calc(100% - 12px);margin:3px 6px;padding:10px;background:var(--green);color:#000;border:3px solid #000;font-family:inherit;font-size:12px;cursor:pointer;display:none;letter-spacing:1px;box-shadow:inset 2px 2px 0 0 #58D858,inset -2px -2px 0 0 #006800,2px 2px 0 0 var(--shadow)}
+.nxtbtn:active{box-shadow:inset 2px 2px 0 0 #006800,inset -2px -2px 0 0 #58D858;transform:translate(2px,2px)}
+.nxtbtn.on{display:block;animation:btnBlink 1s steps(2) infinite}
+@keyframes btnBlink{0%,79%{filter:brightness(1)}80%,100%{filter:brightness(1.3)}}
+
+/* バトルアニメーション */
+@keyframes dmgFloat{0%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-24px)}}
+@keyframes heroAttack{0%{transform:translateX(0)}35%{transform:translateX(60px)}65%{transform:translateX(60px)}100%{transform:translateX(0)}}
+@keyframes monHitFlash{0%,100%{filter:brightness(1) drop-shadow(2px 2px 0 #000)}30%{filter:brightness(10) saturate(0)}60%{filter:brightness(1)}90%{filter:brightness(8) saturate(0)}}
+@keyframes heroHitFlash{0%,100%{filter:brightness(1)}25%{filter:brightness(0.2) sepia(1)}75%{filter:brightness(0.2) sepia(1)}}
+@keyframes monAttack{0%{transform:translateX(0)}30%{transform:translateX(-50px)}65%{transform:translateX(-50px)}100%{transform:translateX(0)}}
+@keyframes monIdle{0%,49%{transform:translateY(0)}50%,100%{transform:translateY(-3px)}}
+@keyframes heroIdle{0%,49%{transform:translateY(0)}50%,100%{transform:translateY(-2px)}}
+
+/* ===== 追加調整：FF3風の戦闘画面を安定表示 ===== */
+#s-battle::before{
+  content:'';
+  position:fixed;inset:0;
+  pointer-events:none;z-index:999;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);
+  mix-blend-mode:screen;
+}
+.battle-field{
+  max-width:720px;width:100%;margin:0 auto;
+  border-left:3px solid var(--border);border-right:3px solid var(--border);
+}
+.ff3-win,.q-box,.choices,.nxtbtn,.expbox{max-width:720px;width:calc(100% - 12px);margin-left:auto;margin-right:auto}
+.cbtn:focus-visible,.nxtbtn:focus-visible,.px-btn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+@media (min-width:700px){
+  #s-battle{align-items:center;background:radial-gradient(circle at 50% 30%,#000840 0,#000020 42%,#000 100%)}
+  .topbar,.status-row{width:720px}
+  .battle-field{height:210px;padding:0 56px 16px}
+  .battle-hero-svg{width:78px;height:78px}
+  .mon-ico{width:108px;height:108px}
+  .mon-hp-w{width:108px}
+  #battle-msg{font-size:14px}
+  .q-txt{font-size:14px}
+  .cbtn{font-size:13px;padding:9px}
+}
+@media (max-width:420px){
+  .choices{grid-template-columns:1fr}
+  .battle-field{height:128px;padding:0 14px 8px}
+  .battle-hero-svg{width:52px;height:52px}
+  .mon-ico{width:66px;height:66px}
+}
+
+
+/* ===== ゲームオーバー ===== */
+#s-gameover{padding:1.5rem 1rem;min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#100000}
+#s-gameover.on{display:flex}
+.go-ico{margin-bottom:14px}
+.go-ico svg{width:96px;height:96px;animation:goShake .15s steps(2) infinite}
+@keyframes goShake{0%,49%{transform:rotate(-3deg)}50%,100%{transform:rotate(3deg)}}
+.go-title{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:24px;color:var(--red);text-shadow:4px 4px 0 #000;margin-bottom:12px;letter-spacing:3px;animation:goBlink 1s steps(2) infinite}
+@keyframes goBlink{0%,49%{opacity:1}50%,100%{opacity:.6}}
+.go-sub{font-size:13px;color:var(--text-dim);margin-bottom:16px;letter-spacing:1px}
+.go-msg{background:#000;border:4px solid var(--red);box-shadow:0 0 0 4px var(--bg),6px 6px 0 0 var(--shadow);padding:14px;font-size:13px;color:var(--text);line-height:1.8;margin-bottom:24px;max-width:420px;text-align:left}
+.go-msg .hi{color:var(--yellow)}
+
+/* ===== クリア演出 ===== */
+#s-clear{padding:1rem;min-height:100vh;display:none;flex-direction:column;align-items:center;text-align:center;background:#001028;background-image:repeating-linear-gradient(0deg,transparent 0 16px,rgba(248,184,0,.03) 16px 18px)}
+#s-clear.on{display:flex}
+.clear-ico{margin:8px 0}
+.clear-ico svg, .clear-ico .px-emoji{width:96px;height:96px;font-size:64px;animation:clearbounce .5s steps(2) infinite}
+@keyframes clearbounce{0%,49%{transform:translateY(0)}50%,100%{transform:translateY(-6px)}}
+.clear-title{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:14px;color:var(--yellow);margin-bottom:8px;text-shadow:3px 3px 0 #000;letter-spacing:1px;line-height:1.5}
+.clear-ch{font-size:13px;color:var(--green);margin-bottom:16px;letter-spacing:1px}
+.clear-story{background:#000;border:4px solid var(--border);box-shadow:0 0 0 4px var(--bg),6px 6px 0 0 var(--shadow);padding:14px;font-size:13px;color:var(--text);line-height:1.9;text-align:left;margin-bottom:16px;width:100%;max-width:480px}
+.clear-story .hi{color:var(--yellow)}
+.clear-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-bottom:20px;width:100%;max-width:480px;background:#000;border:4px solid var(--border);box-shadow:0 0 0 4px var(--bg),4px 4px 0 0 var(--shadow)}
+.cstat{padding:10px;border-right:2px solid var(--text-dim)}
+.cstat:last-child{border-right:none}
+.cstat-v{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:14px;color:var(--yellow);letter-spacing:1px}
+.cstat-l{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:8px;color:var(--text-dim);margin-top:6px;letter-spacing:1px}
+
+/* ===== セーブトースト ===== */
+.save-toast{
+  position:fixed;top:12px;right:12px;
+  background:var(--green);border:3px solid #000;color:#000;
+  padding:8px 14px;font-family:'PixelMplus10','Press Start 2P',monospace;font-size:9px;letter-spacing:1px;
+  opacity:0;pointer-events:none;transition:opacity .2s steps(4);z-index:1000;
+  box-shadow:3px 3px 0 0 var(--shadow);
+}
+.save-toast.on{opacity:1}
+
+/* ===== ピクセルアイコン用ユーティリティ ===== */
+.px-icon{display:inline-block;vertical-align:middle;width:14px;height:14px}
+.px-icon-lg{width:32px;height:32px}
+.px-icon svg, .px-icon-lg svg{width:100%;height:100%;display:block;image-rendering:pixelated}
+
+
+
+/* ===== 復習ダンジョン ===== */
+.review-card{
+  background:#000;
+  border:4px solid var(--purple);
+  box-shadow:0 0 0 4px var(--bg),6px 6px 0 0 var(--shadow);
+  padding:12px;
+  margin-bottom:14px;
+  position:relative;
+  cursor:pointer;
+  transition:none;
+}
+.review-card:hover:not(.disabled){background:#100020;border-color:var(--pink)}
+.review-card:hover:not(.disabled) .review-title{color:var(--pink)}
+.review-card.disabled{opacity:.4;cursor:not-allowed;border-color:#444}
+.review-card.disabled .review-title{color:#666}
+.review-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.review-icon-box{
+  width:44px;height:44px;
+  background:#000;border:2px solid var(--purple);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;padding:4px;
+}
+.review-icon-box svg{width:32px;height:32px;color:var(--purple)}
+.review-card.disabled .review-icon-box{border-color:#444}
+.review-card.disabled .review-icon-box svg{color:#444}
+.review-title{font-size:15px;color:var(--pink);line-height:1.3;letter-spacing:1px;margin-bottom:2px}
+.review-sub{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:9px;color:var(--cyan);letter-spacing:1px;margin-top:4px}
+.review-status{
+  font-size:12px;color:var(--text);
+  background:#100020;border:2px dashed var(--purple);
+  padding:6px 10px;margin-top:8px;
+  text-align:center;letter-spacing:1px;
+}
+.review-status .num{font-family:'PixelMplus10','Press Start 2P',monospace;color:var(--yellow);font-size:14px;margin:0 4px}
+.review-card.disabled .review-status{border-color:#444;color:#666}
+.review-badge{
+  position:absolute;top:-4px;right:-4px;
+  font-family:'PixelMplus10','Press Start 2P',monospace;font-size:8px;
+  padding:6px 8px;border:2px solid #000;letter-spacing:1px;
+  background:var(--pink);color:#000;
+  animation:badgeBlink 1s steps(2) infinite;
+}
+.review-card.disabled .review-badge{display:none}
+
+
+/* ===== タイプライター効果 ===== */
+.tw-char{display:inline}
+.tw-char.tw-hide{visibility:hidden}
+
+/* ===== オーディオトグルボタン ===== */
+.audio-toggle{
+  position:fixed;top:10px;left:10px;z-index:1000;
+  background:#000;border:3px solid var(--border);color:var(--yellow);
+  padding:6px 10px;font-family:'PixelMplus10','Press Start 2P',monospace;
+  font-size:11px;cursor:pointer;letter-spacing:1px;
+  box-shadow:3px 3px 0 0 var(--shadow);
+}
+.audio-toggle:active{transform:translate(2px,2px);box-shadow:1px 1px 0 0 var(--shadow)}
+.audio-toggle.off{color:var(--text-mute)}
+.audio-toggle .lbl{margin-left:4px}
+
+
+
+/* ===== 人体図ワールドマップ ===== */
+.body-map-wrap{
+  background:#000;
+  border:4px solid var(--border);
+  box-shadow:0 0 0 4px var(--bg),6px 6px 0 0 var(--shadow);
+  padding:16px 12px 12px;
+  margin-bottom:14px;
+  text-align:center;
+}
+.body-map-title{
+  font-family:'PixelMplus10','Press Start 2P',monospace;
+  font-size:10px;color:var(--cyan);
+  letter-spacing:1px;margin-bottom:10px;
+  border-bottom:2px dashed #333;padding-bottom:6px;
+}
+.body-map-svg{
+  width:160px;height:auto;
+  display:inline-block;
+  image-rendering:pixelated;
+}
+.body-map-svg .region{
+  opacity:.18;
+  transition:opacity .4s steps(4);
+}
+.body-map-svg .region.cleared{
+  opacity:1;
+  animation:regionPulse 2s steps(4) infinite;
+}
+@keyframes regionPulse{
+  0%,49%{opacity:1;filter:drop-shadow(0 0 0 currentColor)}
+  50%,100%{opacity:.85;filter:drop-shadow(0 0 3px currentColor)}
+}
+.body-map-legend{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:4px;font-size:9px;color:var(--text-dim);
+  margin-top:10px;text-align:left;
+  font-family:'PixelMplus10','Press Start 2P',monospace;
+  letter-spacing:0;
+}
+.body-map-legend .lg{display:flex;align-items:center;gap:4px}
+.body-map-legend .dot{display:inline-block;width:8px;height:8px;border:1px solid var(--border)}
+.body-map-legend .lg.cleared{color:var(--yellow)}
+.body-map-progress{
+  font-family:'PixelMplus10','Press Start 2P',monospace;
+  font-size:10px;color:var(--text-dim);
+  margin-top:8px;letter-spacing:1px;
+}
+.body-map-progress .num{color:var(--yellow);font-size:13px}
+
+/* ===== 性別選択画面 ===== */
+.gender-select-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,16,0.95);
+  z-index:2000;
+  display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:1rem;text-align:center;
+}
+.gender-select-overlay.on{display:flex}
+.gender-title{
+  font-family:'PixelMplus10','Press Start 2P',monospace;
+  font-size:14px;color:var(--yellow);
+  margin-bottom:8px;letter-spacing:2px;
+  text-shadow:3px 3px 0 #000;line-height:1.4;
+}
+.gender-sub{
+  font-size:13px;color:var(--text);margin-bottom:24px;
+}
+.gender-options{display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap;justify-content:center}
+.gender-card{
+  background:#000;border:4px solid var(--border);
+  box-shadow:0 0 0 4px var(--bg),6px 6px 0 0 var(--shadow);
+  padding:16px;cursor:pointer;
+  width:130px;
+  transition:none;
+}
+.gender-card:hover{border-color:var(--yellow);background:#101040}
+.gender-card:hover .gender-label{color:var(--yellow)}
+.gender-card svg{width:80px;height:80px;display:block;margin:0 auto 8px}
+.gender-label{
+  font-family:'PixelMplus10','Press Start 2P',monospace;
+  font-size:11px;color:var(--text);letter-spacing:1px;
+}
+
+
+/* 性別による髪型切替 */
+.gender-male .body-hair-female{display:none}
+.gender-female .body-hair-male{display:none}
+.gender-female .body-hair-female{display:inline !important}
+
+/* ===== カスタム確認ダイアログ ===== */
+.px-confirm-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,16,0.85);
+  z-index:5000;
+  display:none;align-items:center;justify-content:center;padding:1rem;
+}
+.px-confirm-overlay.on{display:flex}
+.px-confirm-box{
+  background:#000;
+  border:4px solid var(--red);
+  box-shadow:0 0 0 4px var(--bg),8px 8px 0 0 var(--shadow);
+  padding:20px 16px;width:100%;max-width:360px;text-align:center;
+}
+.px-confirm-title{
+  font-family:'PixelMplus10','Press Start 2P',monospace;
+  font-size:14px;color:var(--red);
+  letter-spacing:2px;margin-bottom:12px;
+  text-shadow:2px 2px 0 #000;
+}
+.px-confirm-msg{
+  font-size:13px;color:var(--text);line-height:1.8;
+  margin-bottom:20px;white-space:pre-line;
+}
+.px-confirm-btns{display:flex;gap:12px;justify-content:center}
+
+
+/* ===== 2026追加調整：よりファミコン風の画面仕上げ ===== */
+html{background:#000;}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.045) 0 1px,transparent 1px 4px);
+  mix-blend-mode:screen;opacity:.18;
+}
+#s-battle.on{
+  display:flex !important;
+  max-width:640px;min-height:100vh;margin:0 auto;
+  border-left:4px solid #111;border-right:4px solid #111;
+  box-shadow:0 0 0 4px #000,0 0 32px rgba(0,40,160,.45);
+}
+.topbar,.status-row,.ff3-win,.q-box,.cbtn{
+  text-shadow:2px 2px 0 #000;
+}
+.battle-field{
+  height:176px;
+  background:
+    linear-gradient(180deg,#000018 0%,#000878 48%,#001050 49%,#003008 49%,#002000 100%);
+  border-bottom:3px solid #FCFCFC;
+}
+.battle-field::before{
+  background:
+    radial-gradient(2px 2px at 15% 25%,#fff,transparent),
+    radial-gradient(2px 2px at 36% 14%,#fff,transparent),
+    radial-gradient(2px 2px at 60% 32%,#fff,transparent),
+    radial-gradient(2px 2px at 82% 18%,#fff,transparent),
+    repeating-linear-gradient(90deg,transparent 0 12px,rgba(255,255,255,.05) 12px 13px);
+}
+.battle-hero-svg{width:72px;height:72px;filter:drop-shadow(3px 3px 0 #000)}
+.mon-ico{width:92px;height:92px;filter:drop-shadow(4px 4px 0 #000)}
+.mon-hp-w{width:92px;height:6px;border:2px solid var(--text-dim)}
+.mon-nm{font-size:10px;color:#F87858;text-shadow:2px 2px 0 #000;max-width:180px;white-space:normal;line-height:1.2}
+.ff3-win,.q-box{border-width:4px;background:#000860;box-shadow:0 0 0 2px #000,inset 2px 2px 0 rgba(120,160,255,.25)}
+.cbtn{border-width:3px;background:#000830;min-height:46px;box-shadow:0 0 0 2px #000,inset 2px 2px 0 rgba(120,160,255,.22)}
+.cbtn:hover:not(:disabled)::before{content:'▶';color:var(--yellow);margin-right:2px;line-height:1.3}
+.nxtbtn.on::before{content:'▶ ';}
+.expbox{border-width:3px;background:#000820;box-shadow:0 0 0 2px #000}
+.body-map-wrap{background:linear-gradient(180deg,#000 0%,#000820 100%)}
+.body-map-svg{width:190px;max-width:70%;height:auto;filter:drop-shadow(4px 4px 0 #000)}
+.body-map-svg .region{opacity:.2}
+.body-map-svg .body-outline{fill:#242438;stroke:#FCFCFC;stroke-width:.35px}
+.body-map-svg .face-dot{fill:#FCFCFC}
+@media (max-width:520px){
+  #s-battle.on{border-left:0;border-right:0;max-width:none}
+  .battle-field{height:150px;padding-left:12px;padding-right:12px}
+  .battle-hero-svg{width:60px;height:60px}
+  .mon-ico{width:76px;height:76px}
+  .choices{grid-template-columns:1fr;gap:4px}
+  .cbtn{font-size:12px;min-height:42px}
+  .body-map-svg{width:168px;max-width:76%}
+}
+
+
+/* ===== 完成度アップ：称号・ヒント・連続正解演出 ===== */
+.title-badge-map{
+  display:inline-block;margin-top:6px;padding:4px 8px;
+  background:#000;border:2px solid var(--yellow);color:var(--yellow);
+  font-family:'PixelMplus10','Press Start 2P',monospace;font-size:8px;letter-spacing:1px;
+  box-shadow:2px 2px 0 #000;
+}
+.hintbox{
+  background:#100020;border:3px solid var(--pink);
+  color:#FCFCFC;padding:8px;margin:3px 6px;
+  font-size:11px;line-height:1.6;display:none;
+  box-shadow:0 0 0 2px #000;
+}
+.hintbox strong{
+  font-family:'PixelMplus10','Press Start 2P',monospace;
+  font-size:8px;color:var(--pink);display:block;margin-bottom:4px;letter-spacing:1px;
+}
+.streak-popup{
+  text-align:center;font-family:'PixelMplus10','Press Start 2P',monospace;
+  font-size:12px;color:var(--cyan);display:none;padding:4px;letter-spacing:1px;
+  text-shadow:2px 2px 0 #000;animation:lvpop .4s steps(4);
+}
+.boss-hp-label{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:7px;color:var(--yellow);margin-top:2px;letter-spacing:1px}
+.hintbox,.expbox,.streak-popup{max-width:720px;width:calc(100% - 12px);margin-left:auto;margin-right:auto}
+
+
+
+/* ===== 追加：ファミコンRPG風コマンドバトル・章別背景・宝箱報酬 ===== */
+.battle-command{
+  background:#000830;border:4px solid #FCFCFC;box-shadow:0 0 0 2px #000,inset 2px 2px 0 rgba(120,160,255,.25);
+  margin:3px 6px;padding:6px 8px;display:none;flex-shrink:0;
+}
+.battle-command.on{display:block;}
+.cmd-title{font-family:'PixelMplus10','Press Start 2P',monospace;font-size:8px;color:var(--cyan);letter-spacing:1px;margin-bottom:5px;}
+.cmd-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.cmd-btn{
+  font-family:inherit;font-size:12px;line-height:1.25;text-align:left;color:#FCFCFC;background:#000020;
+  border:2px solid #FCFCFC;padding:6px 8px;cursor:pointer;box-shadow:inset 1px 1px 0 rgba(120,160,255,.2);
+}
+.cmd-btn:hover{color:var(--yellow);border-color:var(--yellow);background:#001060;}
+.cmd-btn:hover::before{content:'▶ ';}
+.q-box.command-hidden,.choices.command-hidden{display:none;}
+.battle-field.bg-heart{background:linear-gradient(180deg,#100000 0%,#300000 48%,#500000 49%,#201000 49%,#100000 100%);}
+.battle-field.bg-lung{background:linear-gradient(180deg,#000820 0%,#003060 48%,#007090 49%,#003848 49%,#001820 100%);}
+.battle-field.bg-brain{background:linear-gradient(180deg,#080020 0%,#201060 48%,#501090 49%,#200830 49%,#080010 100%);}
+.battle-field.bg-kidney{background:linear-gradient(180deg,#001008 0%,#003820 48%,#006030 49%,#182810 49%,#081000 100%);}
+.battle-field.bg-gi{background:linear-gradient(180deg,#180800 0%,#603000 48%,#904800 49%,#402000 49%,#180800 100%);}
+.battle-field.bg-endocrine{background:linear-gradient(180deg,#181000 0%,#403000 48%,#786000 49%,#302010 49%,#100800 100%);}
+.battle-field.bg-blood{background:linear-gradient(180deg,#180008 0%,#500018 48%,#800028 49%,#280010 49%,#100008 100%);}
+.battle-field.bg-immune{background:linear-gradient(180deg,#001018 0%,#103850 48%,#308890 49%,#103030 49%,#000808 100%);}
+.battle-field.bg-senses{background:linear-gradient(180deg,#180018 0%,#401050 48%,#802070 49%,#301020 49%,#100010 100%);}
+.battle-field.bg-final{background:linear-gradient(180deg,#000000 0%,#181018 40%,#503000 50%,#181000 60%,#000000 100%);}
+.battle-field.boss-bg{animation:bossFieldPulse .7s steps(2) infinite;}
+@keyframes bossFieldPulse{0%,49%{filter:brightness(1)}50%,100%{filter:brightness(1.25) saturate(1.2)}}
+.treasure-box{
+  background:#000;border:4px solid var(--yellow);box-shadow:0 0 0 4px #000,6px 6px 0 #000;
+  color:#FCFCFC;padding:12px;margin:12px auto 16px;width:100%;max-width:480px;text-align:left;font-size:13px;line-height:1.7;
+}
+.treasure-title{font-family:'PixelMplus10','Press Start 2P',monospace;color:var(--yellow);font-size:10px;letter-spacing:1px;margin-bottom:6px;}
+.treasure-item{color:var(--cyan);}
+@media (max-width:520px){.cmd-grid{grid-template-columns:1fr}.cmd-btn{font-size:12px}}
+
+
+
+/* ===== スマホ・タブレット最適化 UI ===== */
+:root{--app-max:520px;--tap:48px;}
+html,body{width:100%;overflow-x:hidden;}
+button,.chapter-card,.review-card,.gender-card{touch-action:manipulation;-webkit-tap-highlight-color:rgba(248,184,0,.22);}
+.px-btn,.cmd-btn,.cbtn,.nxtbtn{min-height:var(--tap);}
+.mobile-note{font-size:11px;color:var(--text-dim);line-height:1.6;margin-top:12px;max-width:420px;background:#000;border:2px dashed #333;padding:8px 10px;}
+.map-shell{padding:calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));max-width:var(--app-max);margin:0 auto;}
+#s-open.on,#s-story.on,#s-boss.on,#s-clear.on,#s-gameover.on{min-height:100svh;}
+#s-battle.on{height:100svh;min-height:0;overflow:hidden;max-width:var(--app-max);margin:0 auto;border-left:3px solid var(--border);border-right:3px solid var(--border);box-shadow:0 0 0 4px #000;background:#000020;}
+#s-battle .topbar{min-height:32px;padding-top:calc(5px + env(safe-area-inset-top));}
+#s-battle .status-row{grid-template-columns:1fr 1fr 0.82fr;}
+#s-battle .battle-field{height:clamp(104px,22svh,142px);padding:0 20px 7px;}
+#s-battle .battle-hero-svg{width:clamp(48px,13vw,62px);height:clamp(48px,13vw,62px);}
+#s-battle .mon-ico{width:clamp(64px,16vw,82px);height:clamp(64px,16vw,82px);}
+#battle-msg{font-size:13px;line-height:1.55;}
+.q-box{max-height:18svh;overflow:auto;-webkit-overflow-scrolling:touch;}
+.q-txt{font-size:14px;line-height:1.55;}
+.choices{grid-template-columns:1fr;gap:7px;overflow:auto;-webkit-overflow-scrolling:touch;max-height:33svh;padding-bottom:calc(4px + env(safe-area-inset-bottom));}
+.cbtn{font-size:14px;line-height:1.45;padding:10px 9px;align-items:center;}
+.clbl{min-width:24px;width:24px;height:24px;font-size:10px;}
+.battle-command{margin-bottom:4px;}
+.cmd-grid{grid-template-columns:1fr;gap:7px;}
+.cmd-btn{font-size:14px;padding:11px 10px;text-align:left;}
+.nxtbtn{font-size:14px;padding:12px 10px;margin-bottom:calc(5px + env(safe-area-inset-bottom));}
+.expbox,.hintbox{max-height:20svh;overflow:auto;-webkit-overflow-scrolling:touch;font-size:12px;}
+.hero-status{grid-template-columns:1fr 1fr;gap:4px;padding:6px;}
+.hstat{padding:5px 6px;}
+.body-map-svg{width:min(180px,52vw);}
+.chapters{gap:10px;}
+.chapter-card,.review-card{padding:12px;min-height:88px;}
+.ch-name,.review-title{font-size:16px;}
+.ch-desc,.review-status{font-size:12px;}
+.audio-toggle{top:calc(10px + env(safe-area-inset-top));left:calc(10px + env(safe-area-inset-left));min-height:36px;}
+@media (min-width:700px){
+  :root{--app-max:760px;}
+  .map-shell{max-width:840px;display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);gap:14px;align-items:start;}
+  .map-header,.hero-status{grid-column:1 / -1;}
+  .body-map-wrap{grid-column:1;grid-row:3 / span 3;position:sticky;top:12px;}
+  .review-card,.chapters{grid-column:2;}
+  .choices{grid-template-columns:1fr 1fr;max-height:34svh;}
+  .cmd-grid{grid-template-columns:1fr 1fr;}
+  #s-battle.on{max-width:720px;}
+}
+@media (max-width:380px){
+  .open-title{font-size:26px;}
+  .story-box{font-size:12px;line-height:1.75;}
+  .topbar{font-size:8px;}
+  .stat-vl{font-size:10px;}
+  .q-txt,.cbtn,.cmd-btn{font-size:13px;}
+}
+@media (orientation:landscape) and (max-height:540px){
+  #s-battle .battle-field{height:92px;}
+  .q-box{max-height:17svh;}
+  .choices{max-height:28svh;}
+  .status-row .stat-card{padding:3px 6px;}
+}
+
+</style>
+</head>
+<body>
+
+<!-- ===== ピクセルアート SVG defs ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+
+<!-- 医学の勇者（医学生） 16x16 -->
+<symbol id="px-hero" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges">
+    <!-- 帽子（ナースキャップ風） -->
+    <rect x="5" y="0" width="6" height="1" fill="#FCFCFC"/>
+    <rect x="4" y="1" width="8" height="2" fill="#FCFCFC"/>
+    <rect x="7" y="1" width="2" height="1" fill="#F83800"/>
+    <rect x="6" y="2" width="4" height="1" fill="#F83800"/>
+    <!-- 顔 -->
+    <rect x="5" y="3" width="6" height="3" fill="#FCD8A8"/>
+    <rect x="6" y="4" width="1" height="1" fill="#000"/>
+    <rect x="9" y="4" width="1" height="1" fill="#000"/>
+    <rect x="7" y="5" width="2" height="1" fill="#F83800"/>
+    <!-- 白衣 -->
+    <rect x="4" y="6" width="8" height="1" fill="#FCFCFC"/>
+    <rect x="3" y="7" width="10" height="5" fill="#FCFCFC"/>
+    <rect x="7" y="8" width="2" height="3" fill="#0078F8"/>
+    <!-- 聴診器 -->
+    <rect x="4" y="7" width="1" height="2" fill="#888"/>
+    <rect x="11" y="7" width="1" height="2" fill="#888"/>
+    <rect x="5" y="9" width="1" height="1" fill="#888"/>
+    <rect x="10" y="9" width="1" height="1" fill="#888"/>
+    <!-- 足 -->
+    <rect x="4" y="12" width="3" height="3" fill="#0000A8"/>
+    <rect x="9" y="12" width="3" height="3" fill="#0000A8"/>
+    <rect x="3" y="15" width="4" height="1" fill="#000"/>
+    <rect x="9" y="15" width="4" height="1" fill="#000"/>
+  </g>
+</symbol>
+
+<!-- ハート（HP） 16x16 -->
+<symbol id="px-heart" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="2" y="3" width="4" height="1"/>
+    <rect x="10" y="3" width="4" height="1"/>
+    <rect x="1" y="4" width="6" height="4"/>
+    <rect x="9" y="4" width="6" height="4"/>
+    <rect x="6" y="5" width="4" height="3"/>
+    <rect x="2" y="8" width="12" height="1"/>
+    <rect x="3" y="9" width="10" height="1"/>
+    <rect x="4" y="10" width="8" height="1"/>
+    <rect x="5" y="11" width="6" height="1"/>
+    <rect x="6" y="12" width="4" height="1"/>
+    <rect x="7" y="13" width="2" height="1"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="3" y="4" width="2" height="1"/>
+    <rect x="2" y="5" width="1" height="2"/>
+  </g>
+</symbol>
+
+<!-- 星（制覇） 16x16 -->
+<symbol id="px-star" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="7" y="1" width="2" height="1"/>
+    <rect x="6" y="2" width="4" height="2"/>
+    <rect x="5" y="4" width="6" height="1"/>
+    <rect x="0" y="5" width="16" height="2"/>
+    <rect x="1" y="7" width="14" height="1"/>
+    <rect x="2" y="8" width="12" height="2"/>
+    <rect x="3" y="10" width="3" height="3"/>
+    <rect x="10" y="10" width="3" height="3"/>
+    <rect x="0" y="13" width="3" height="2"/>
+    <rect x="13" y="13" width="3" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCE0A0">
+    <rect x="7" y="3" width="2" height="1"/>
+    <rect x="5" y="6" width="3" height="1"/>
+  </g>
+</symbol>
+
+<!-- 稲妻（EXP） 16x16 -->
+<symbol id="px-bolt" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="9" y="0" width="3" height="2"/>
+    <rect x="7" y="2" width="4" height="2"/>
+    <rect x="5" y="4" width="5" height="2"/>
+    <rect x="3" y="6" width="11" height="2"/>
+    <rect x="6" y="8" width="5" height="2"/>
+    <rect x="4" y="10" width="4" height="2"/>
+    <rect x="2" y="12" width="3" height="2"/>
+    <rect x="0" y="14" width="3" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="9" y="0" width="2" height="1"/>
+    <rect x="7" y="2" width="2" height="1"/>
+  </g>
+</symbol>
+
+<!-- 王冠（ロゴ） 16x16 -->
+<symbol id="px-crown" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="1" y="3" width="2" height="2"/>
+    <rect x="7" y="2" width="2" height="3"/>
+    <rect x="13" y="3" width="2" height="2"/>
+    <rect x="0" y="5" width="16" height="6"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="7" y="6" width="2" height="2"/>
+    <rect x="2" y="6" width="2" height="2"/>
+    <rect x="12" y="6" width="2" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCE0A0">
+    <rect x="0" y="5" width="16" height="1"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="0" y="11" width="16" height="1"/>
+  </g>
+</symbol>
+
+<!-- ロゴ用ハート＋十字 16x16 -->
+<symbol id="px-medic" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="2" y="3" width="4" height="1"/>
+    <rect x="10" y="3" width="4" height="1"/>
+    <rect x="1" y="4" width="14" height="5"/>
+    <rect x="2" y="9" width="12" height="1"/>
+    <rect x="3" y="10" width="10" height="1"/>
+    <rect x="4" y="11" width="8" height="1"/>
+    <rect x="5" y="12" width="6" height="1"/>
+    <rect x="6" y="13" width="4" height="1"/>
+    <rect x="7" y="14" width="2" height="1"/>
+  </g>
+  <!-- 白十字 -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="6" y="5" width="4" height="2"/>
+    <rect x="7" y="4" width="2" height="4"/>
+  </g>
+</symbol>
+
+<!-- どくろ（ゲームオーバー） 16x16 -->
+<symbol id="px-skull" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="3" y="1" width="10" height="1"/>
+    <rect x="2" y="2" width="12" height="6"/>
+    <rect x="3" y="8" width="10" height="1"/>
+    <rect x="4" y="9" width="2" height="2"/>
+    <rect x="7" y="9" width="2" height="2"/>
+    <rect x="10" y="9" width="2" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="4" y="4" width="3" height="3"/>
+    <rect x="9" y="4" width="3" height="3"/>
+    <rect x="7" y="6" width="2" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="5" y="5" width="1" height="1"/>
+    <rect x="10" y="5" width="1" height="1"/>
+  </g>
+</symbol>
+
+<!-- ボス1: 不整脈デーモン（紫） 16x16 -->
+<symbol id="px-boss1" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#7838F8">
+    <!-- 角 -->
+    <rect x="2" y="0" width="2" height="2"/>
+    <rect x="12" y="0" width="2" height="2"/>
+    <rect x="3" y="1" width="2" height="1"/>
+    <rect x="11" y="1" width="2" height="1"/>
+    <!-- 顔 -->
+    <rect x="2" y="2" width="12" height="9"/>
+    <!-- 体 -->
+    <rect x="4" y="11" width="8" height="3"/>
+    <rect x="3" y="14" width="3" height="2"/>
+    <rect x="10" y="14" width="3" height="2"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="4" y="5" width="3" height="2"/>
+    <rect x="9" y="5" width="3" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="5" y="5" width="1" height="1"/>
+    <rect x="10" y="5" width="1" height="1"/>
+  </g>
+  <!-- 口（ギザギザ歯） -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="5" y="8" width="6" height="1"/>
+    <rect x="5" y="9" width="1" height="1"/>
+    <rect x="7" y="9" width="1" height="1"/>
+    <rect x="9" y="9" width="1" height="1"/>
+  </g>
+  <!-- 心電図ライン -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="0" y="12" width="3" height="1"/>
+    <rect x="3" y="11" width="1" height="3"/>
+    <rect x="13" y="11" width="1" height="3"/>
+    <rect x="13" y="12" width="3" height="1"/>
+  </g>
+</symbol>
+
+<!-- ボス2: 低酸素スライム王（青） 16x16 -->
+<symbol id="px-boss2" viewBox="0 0 16 16">
+  <!-- 王冠 -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="3" y="0" width="2" height="2"/>
+    <rect x="7" y="0" width="2" height="2"/>
+    <rect x="11" y="0" width="2" height="2"/>
+    <rect x="3" y="2" width="10" height="1"/>
+  </g>
+  <!-- スライム本体 -->
+  <g shape-rendering="crispEdges" fill="#0078F8">
+    <rect x="5" y="3" width="6" height="1"/>
+    <rect x="3" y="4" width="10" height="1"/>
+    <rect x="2" y="5" width="12" height="2"/>
+    <rect x="1" y="7" width="14" height="6"/>
+    <rect x="2" y="13" width="12" height="1"/>
+  </g>
+  <!-- ハイライト -->
+  <g shape-rendering="crispEdges" fill="#50E0F8">
+    <rect x="3" y="5" width="2" height="2"/>
+    <rect x="2" y="7" width="1" height="3"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="5" y="8" width="2" height="3"/>
+    <rect x="9" y="8" width="2" height="3"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="5" y="9" width="2" height="2"/>
+    <rect x="9" y="9" width="2" height="2"/>
+  </g>
+</symbol>
+
+<!-- ボス3: 混線デーモン（赤＋電撃） 16x16 -->
+<symbol id="px-boss3" viewBox="0 0 16 16">
+  <!-- 電撃の角 -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="1" y="0" width="2" height="3"/>
+    <rect x="3" y="2" width="1" height="1"/>
+    <rect x="13" y="0" width="2" height="3"/>
+    <rect x="12" y="2" width="1" height="1"/>
+  </g>
+  <!-- 体 -->
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="2" y="3" width="12" height="9"/>
+    <rect x="3" y="12" width="10" height="3"/>
+    <rect x="4" y="15" width="3" height="1"/>
+    <rect x="9" y="15" width="3" height="1"/>
+  </g>
+  <!-- 目（怒り） -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="3" y="5" width="3" height="2"/>
+    <rect x="10" y="5" width="3" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="4" y="5" width="2" height="1"/>
+    <rect x="10" y="5" width="2" height="1"/>
+  </g>
+  <!-- 口 -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="4" y="9" width="8" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="5" y="9" width="1" height="1"/>
+    <rect x="7" y="9" width="1" height="1"/>
+    <rect x="9" y="9" width="1" height="1"/>
+    <rect x="6" y="10" width="1" height="1"/>
+    <rect x="8" y="10" width="1" height="1"/>
+    <rect x="10" y="10" width="1" height="1"/>
+  </g>
+</symbol>
+
+<!-- ボス4: 高K⁺デーモン（緑のドクロ） 16x16 -->
+<symbol id="px-boss4" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#00B800">
+    <!-- 頭蓋 -->
+    <rect x="3" y="1" width="10" height="1"/>
+    <rect x="2" y="2" width="12" height="7"/>
+    <!-- 顎 -->
+    <rect x="3" y="9" width="10" height="1"/>
+    <rect x="4" y="10" width="2" height="2"/>
+    <rect x="7" y="10" width="2" height="2"/>
+    <rect x="10" y="10" width="2" height="2"/>
+    <!-- 体下部 -->
+    <rect x="3" y="12" width="10" height="3"/>
+    <rect x="4" y="15" width="3" height="1"/>
+    <rect x="9" y="15" width="3" height="1"/>
+  </g>
+  <!-- 目（暗い穴） -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="4" y="4" width="3" height="3"/>
+    <rect x="9" y="4" width="3" height="3"/>
+    <rect x="7" y="6" width="2" height="2"/>
+  </g>
+  <!-- 黄色く光る目 -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="5" y="5" width="1" height="1"/>
+    <rect x="10" y="5" width="1" height="1"/>
+  </g>
+  <!-- K⁺マーク -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="6" y="13" width="1" height="1"/>
+    <rect x="9" y="13" width="1" height="1"/>
+    <rect x="7" y="14" width="2" height="1"/>
+  </g>
+</symbol>
+
+<!-- ボス5: 病魔大王モルバス（最終） 24x24 -->
+<symbol id="px-boss5" viewBox="0 0 24 24">
+  <!-- 王冠 -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="6" y="0" width="2" height="3"/>
+    <rect x="11" y="0" width="2" height="3"/>
+    <rect x="16" y="0" width="2" height="3"/>
+    <rect x="5" y="3" width="14" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="11" y="3" width="2" height="2"/>
+  </g>
+  <!-- 体（暗い影） -->
+  <g shape-rendering="crispEdges" fill="#181818">
+    <rect x="3" y="5" width="18" height="14"/>
+    <rect x="2" y="7" width="20" height="10"/>
+    <!-- 触手・腕 -->
+    <rect x="0" y="10" width="3" height="6"/>
+    <rect x="21" y="10" width="3" height="6"/>
+    <rect x="2" y="19" width="5" height="4"/>
+    <rect x="17" y="19" width="5" height="4"/>
+  </g>
+  <!-- 紫オーラ -->
+  <g shape-rendering="crispEdges" fill="#7838F8">
+    <rect x="4" y="6" width="2" height="2"/>
+    <rect x="18" y="6" width="2" height="2"/>
+    <rect x="3" y="17" width="4" height="2"/>
+    <rect x="17" y="17" width="4" height="2"/>
+  </g>
+  <!-- 目（赤く光る） -->
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="5" y="9" width="4" height="3"/>
+    <rect x="15" y="9" width="4" height="3"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="6" y="10" width="2" height="1"/>
+    <rect x="16" y="10" width="2" height="1"/>
+  </g>
+  <!-- 口（巨大な牙） -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="7" y="13" width="10" height="3"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="8" y="13" width="1" height="2"/>
+    <rect x="10" y="13" width="1" height="3"/>
+    <rect x="13" y="13" width="1" height="3"/>
+    <rect x="15" y="13" width="1" height="2"/>
+  </g>
+</symbol>
+
+<!-- ザコモンスター: 房室ブロック虫 16x16 -->
+<symbol id="px-mob1" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#F878F8">
+    <rect x="3" y="4" width="10" height="6"/>
+    <rect x="2" y="5" width="12" height="4"/>
+    <rect x="4" y="3" width="8" height="1"/>
+    <rect x="4" y="10" width="8" height="1"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="4" y="6" width="2" height="2"/>
+    <rect x="10" y="6" width="2" height="2"/>
+  </g>
+  <!-- 触角 -->
+  <g shape-rendering="crispEdges" fill="#F878F8">
+    <rect x="3" y="1" width="1" height="3"/>
+    <rect x="12" y="1" width="1" height="3"/>
+    <rect x="2" y="0" width="2" height="1"/>
+    <rect x="12" y="0" width="2" height="1"/>
+  </g>
+  <!-- 足 -->
+  <g shape-rendering="crispEdges" fill="#F878F8">
+    <rect x="2" y="11" width="2" height="2"/>
+    <rect x="6" y="11" width="2" height="2"/>
+    <rect x="10" y="11" width="2" height="2"/>
+    <rect x="12" y="11" width="2" height="2"/>
+  </g>
+</symbol>
+
+<!-- ザコ汎用スライム 16x16 -->
+<symbol id="px-mob-slime" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#00B800">
+    <rect x="6" y="3" width="4" height="1"/>
+    <rect x="4" y="4" width="8" height="1"/>
+    <rect x="3" y="5" width="10" height="2"/>
+    <rect x="2" y="7" width="12" height="6"/>
+    <rect x="3" y="13" width="10" height="1"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#58D858">
+    <rect x="4" y="6" width="2" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="5" y="9" width="2" height="2"/>
+    <rect x="9" y="9" width="2" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="5" y="9" width="1" height="1"/>
+    <rect x="9" y="9" width="1" height="1"/>
+  </g>
+</symbol>
+
+<!-- リトライ用矢印アイコン 16x16 -->
+<symbol id="px-retry" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="3" y="3" width="10" height="2"/>
+    <rect x="3" y="5" width="2" height="6"/>
+    <rect x="11" y="5" width="2" height="6"/>
+    <rect x="3" y="11" width="10" height="2"/>
+    <rect x="9" y="1" width="2" height="2"/>
+    <rect x="9" y="13" width="2" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="11" y="0" width="3" height="2"/>
+    <rect x="13" y="2" width="2" height="2"/>
+    <rect x="11" y="4" width="3" height="2"/>
+  </g>
+</symbol>
+
+<!-- マップアイコン 16x16 -->
+<symbol id="px-map" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="1" y="2" width="14" height="11"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#00B800">
+    <rect x="2" y="3" width="4" height="3"/>
+    <rect x="10" y="3" width="4" height="3"/>
+    <rect x="3" y="9" width="3" height="3"/>
+    <rect x="9" y="9" width="4" height="3"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#0078F8">
+    <rect x="6" y="6" width="4" height="3"/>
+    <rect x="2" y="6" width="4" height="1"/>
+    <rect x="10" y="6" width="4" height="1"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="7" y="7" width="2" height="2"/>
+  </g>
+</symbol>
+
+<!-- 剣アイコン 16x16 -->
+<symbol id="px-sword" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="11" y="1" width="3" height="3"/>
+    <rect x="9" y="3" width="3" height="3"/>
+    <rect x="7" y="5" width="3" height="3"/>
+    <rect x="5" y="7" width="3" height="3"/>
+    <rect x="3" y="9" width="3" height="3"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="2" y="11" width="5" height="2"/>
+    <rect x="3" y="13" width="3" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#888">
+    <rect x="11" y="1" width="1" height="1"/>
+    <rect x="9" y="3" width="1" height="1"/>
+  </g>
+</symbol>
+
+<!-- ゴミ箱（リセット） 16x16 -->
+<symbol id="px-trash" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="5" y="1" width="6" height="1"/>
+    <rect x="2" y="2" width="12" height="2"/>
+    <rect x="3" y="4" width="10" height="11"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="5" y="6" width="1" height="7"/>
+    <rect x="7" y="6" width="2" height="7"/>
+    <rect x="10" y="6" width="1" height="7"/>
+  </g>
+</symbol>
+
+<!-- ===== 追加スプライト：シーン人物 ===== -->
+
+<!-- 心臓城 16x16 -->
+<symbol id="px-castle-heart" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#888">
+    <!-- 城本体 -->
+    <rect x="2" y="6" width="12" height="9"/>
+    <!-- 中央の塔 -->
+    <rect x="6" y="3" width="4" height="3"/>
+    <!-- 左右の塔 -->
+    <rect x="1" y="5" width="3" height="2"/>
+    <rect x="12" y="5" width="3" height="2"/>
+  </g>
+  <!-- 城の屋根（旗） -->
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="7" y="1" width="1" height="2"/>
+    <rect x="8" y="0" width="2" height="2"/>
+  </g>
+  <!-- 窓 -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="7" y="9" width="2" height="2"/>
+    <rect x="4" y="11" width="1" height="2"/>
+    <rect x="11" y="11" width="1" height="2"/>
+  </g>
+  <!-- 中央のハート -->
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="7" y="13" width="1" height="1"/>
+    <rect x="8" y="13" width="1" height="1"/>
+  </g>
+  <!-- 城壁の縁 -->
+  <g shape-rendering="crispEdges" fill="#444">
+    <rect x="2" y="6" width="1" height="1"/>
+    <rect x="4" y="6" width="1" height="1"/>
+    <rect x="6" y="6" width="1" height="1"/>
+    <rect x="9" y="6" width="1" height="1"/>
+    <rect x="11" y="6" width="1" height="1"/>
+    <rect x="13" y="6" width="1" height="1"/>
+    <rect x="2" y="15" width="12" height="1"/>
+  </g>
+</symbol>
+
+<!-- 老医師ガレン 16x16 -->
+<symbol id="px-doctor" viewBox="0 0 16 16">
+  <!-- 帽子 -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="4" y="1" width="8" height="2"/>
+    <rect x="3" y="3" width="10" height="1"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="7" y="1" width="2" height="1"/>
+    <rect x="6" y="2" width="4" height="1"/>
+  </g>
+  <!-- 顔 -->
+  <g shape-rendering="crispEdges" fill="#FCD8A8">
+    <rect x="4" y="4" width="8" height="4"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="5" y="5" width="2" height="1"/>
+    <rect x="9" y="5" width="2" height="1"/>
+  </g>
+  <!-- 白ひげ -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="4" y="7" width="8" height="3"/>
+    <rect x="5" y="10" width="6" height="1"/>
+    <rect x="7" y="8" width="2" height="1" />
+  </g>
+  <!-- 白衣 -->
+  <g shape-rendering="crispEdges" fill="#E0E0E0">
+    <rect x="3" y="11" width="10" height="4"/>
+    <rect x="2" y="12" width="12" height="3"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#0078F8">
+    <rect x="7" y="12" width="2" height="2"/>
+  </g>
+  <!-- 杖 -->
+  <g shape-rendering="crispEdges" fill="#784000">
+    <rect x="0" y="6" width="1" height="10"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="0" y="5" width="2" height="2"/>
+  </g>
+</symbol>
+
+<!-- 霧の迷宮 16x16 -->
+<symbol id="px-mist" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="#A8A8A8">
+    <!-- 上の霧 -->
+    <rect x="2" y="2" width="6" height="2"/>
+    <rect x="9" y="3" width="5" height="2"/>
+    <rect x="1" y="3" width="2" height="2"/>
+    <!-- 中段 -->
+    <rect x="0" y="6" width="9" height="2"/>
+    <rect x="10" y="6" width="6" height="2"/>
+    <!-- 下の霧 -->
+    <rect x="3" y="9" width="11" height="2"/>
+    <rect x="0" y="10" width="3" height="2"/>
+    <rect x="2" y="13" width="7" height="2"/>
+    <rect x="10" y="12" width="6" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="3" y="2" width="3" height="1"/>
+    <rect x="10" y="3" width="3" height="1"/>
+    <rect x="1" y="6" width="4" height="1"/>
+    <rect x="11" y="6" width="3" height="1"/>
+    <rect x="4" y="9" width="5" height="1"/>
+    <rect x="3" y="13" width="4" height="1"/>
+  </g>
+</symbol>
+
+<!-- 精霊ニュームア 16x16 -->
+<symbol id="px-fairy" viewBox="0 0 16 16">
+  <!-- 羽根（左右） -->
+  <g shape-rendering="crispEdges" fill="#50E0F8">
+    <rect x="0" y="5" width="3" height="5"/>
+    <rect x="13" y="5" width="3" height="5"/>
+    <rect x="1" y="4" width="2" height="1"/>
+    <rect x="13" y="4" width="2" height="1"/>
+    <rect x="1" y="10" width="2" height="1"/>
+    <rect x="13" y="10" width="2" height="1"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#B8F8FC">
+    <rect x="1" y="6" width="1" height="3"/>
+    <rect x="14" y="6" width="1" height="3"/>
+  </g>
+  <!-- 髪（緑） -->
+  <g shape-rendering="crispEdges" fill="#00B800">
+    <rect x="5" y="1" width="6" height="3"/>
+    <rect x="4" y="2" width="8" height="2"/>
+    <rect x="3" y="4" width="2" height="3"/>
+    <rect x="11" y="4" width="2" height="3"/>
+  </g>
+  <!-- 顔 -->
+  <g shape-rendering="crispEdges" fill="#FCD8A8">
+    <rect x="5" y="4" width="6" height="4"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="6" y="5" width="1" height="1"/>
+    <rect x="9" y="5" width="1" height="1"/>
+  </g>
+  <!-- 口 -->
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="7" y="7" width="2" height="1"/>
+  </g>
+  <!-- ドレス -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="4" y="8" width="8" height="6"/>
+    <rect x="3" y="14" width="10" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#00B800">
+    <rect x="7" y="9" width="2" height="2"/>
+  </g>
+</symbol>
+
+<!-- 神経回路の塔 16x16 -->
+<symbol id="px-tower" viewBox="0 0 16 16">
+  <!-- 塔本体 -->
+  <g shape-rendering="crispEdges" fill="#7838F8">
+    <rect x="6" y="2" width="4" height="13"/>
+    <rect x="5" y="4" width="6" height="11"/>
+    <rect x="4" y="14" width="8" height="2"/>
+  </g>
+  <!-- 塔の先端 -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="7" y="0" width="2" height="2"/>
+  </g>
+  <!-- 窓（神経の光） -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="7" y="5" width="2" height="2"/>
+    <rect x="7" y="9" width="2" height="2"/>
+    <rect x="7" y="12" width="2" height="2"/>
+  </g>
+  <!-- 神経シナプス（電撃ライン） -->
+  <g shape-rendering="crispEdges" fill="#50E0F8">
+    <rect x="2" y="6" width="2" height="1"/>
+    <rect x="3" y="7" width="2" height="1"/>
+    <rect x="11" y="6" width="2" height="1"/>
+    <rect x="12" y="7" width="2" height="1"/>
+    <rect x="1" y="10" width="3" height="1"/>
+    <rect x="12" y="10" width="3" height="1"/>
+  </g>
+</symbol>
+
+<!-- 守衛ロボ 16x16 -->
+<symbol id="px-robot" viewBox="0 0 16 16">
+  <!-- アンテナ -->
+  <g shape-rendering="crispEdges" fill="#888">
+    <rect x="7" y="0" width="2" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="7" y="0" width="2" height="1"/>
+  </g>
+  <!-- 頭 -->
+  <g shape-rendering="crispEdges" fill="#A8A8A8">
+    <rect x="3" y="2" width="10" height="6"/>
+  </g>
+  <!-- 目（光る） -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="4" y="4" width="3" height="2"/>
+    <rect x="9" y="4" width="3" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#50E0F8">
+    <rect x="5" y="4" width="1" height="1"/>
+    <rect x="10" y="4" width="1" height="1"/>
+  </g>
+  <!-- 口（スリット） -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="5" y="7" width="6" height="1"/>
+  </g>
+  <!-- 体 -->
+  <g shape-rendering="crispEdges" fill="#888">
+    <rect x="4" y="9" width="8" height="4"/>
+  </g>
+  <!-- ボタン -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="7" y="10" width="2" height="2"/>
+  </g>
+  <!-- 腕 -->
+  <g shape-rendering="crispEdges" fill="#A8A8A8">
+    <rect x="2" y="9" width="2" height="3"/>
+    <rect x="12" y="9" width="2" height="3"/>
+  </g>
+  <!-- 足 -->
+  <g shape-rendering="crispEdges" fill="#888">
+    <rect x="4" y="13" width="3" height="3"/>
+    <rect x="9" y="13" width="3" height="3"/>
+  </g>
+</symbol>
+
+<!-- 腎臓湖 16x16 -->
+<symbol id="px-lake" viewBox="0 0 16 16">
+  <!-- 山 -->
+  <g shape-rendering="crispEdges" fill="#888">
+    <rect x="2" y="3" width="2" height="2"/>
+    <rect x="1" y="5" width="4" height="3"/>
+    <rect x="0" y="8" width="6" height="2"/>
+    <rect x="11" y="2" width="2" height="2"/>
+    <rect x="10" y="4" width="4" height="3"/>
+    <rect x="9" y="7" width="6" height="3"/>
+  </g>
+  <!-- 山頂の雪 -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="2" y="3" width="2" height="1"/>
+    <rect x="11" y="2" width="2" height="1"/>
+    <rect x="1" y="5" width="3" height="1"/>
+    <rect x="10" y="4" width="3" height="1"/>
+  </g>
+  <!-- 湖 -->
+  <g shape-rendering="crispEdges" fill="#0078F8">
+    <rect x="0" y="10" width="16" height="6"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#50E0F8">
+    <rect x="2" y="11" width="3" height="1"/>
+    <rect x="8" y="11" width="4" height="1"/>
+    <rect x="1" y="13" width="2" height="1"/>
+    <rect x="6" y="14" width="3" height="1"/>
+    <rect x="12" y="13" width="3" height="1"/>
+  </g>
+</symbol>
+
+<!-- 賢者アルドス 16x16 -->
+<symbol id="px-wizard" viewBox="0 0 16 16">
+  <!-- とんがり帽子 -->
+  <g shape-rendering="crispEdges" fill="#0000A8">
+    <rect x="7" y="0" width="2" height="1"/>
+    <rect x="6" y="1" width="4" height="1"/>
+    <rect x="5" y="2" width="6" height="1"/>
+    <rect x="4" y="3" width="8" height="2"/>
+  </g>
+  <!-- 帽子の星 -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="7" y="3" width="2" height="1"/>
+  </g>
+  <!-- 顔 -->
+  <g shape-rendering="crispEdges" fill="#FCD8A8">
+    <rect x="5" y="5" width="6" height="3"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="6" y="6" width="1" height="1"/>
+    <rect x="9" y="6" width="1" height="1"/>
+  </g>
+  <!-- ひげ -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="5" y="8" width="6" height="2"/>
+    <rect x="6" y="10" width="4" height="1"/>
+  </g>
+  <!-- ローブ -->
+  <g shape-rendering="crispEdges" fill="#0000A8">
+    <rect x="3" y="11" width="10" height="5"/>
+    <rect x="2" y="12" width="12" height="3"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="7" y="13" width="2" height="2"/>
+  </g>
+  <!-- 杖 -->
+  <g shape-rendering="crispEdges" fill="#784000">
+    <rect x="14" y="6" width="1" height="9"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#50E0F8">
+    <rect x="13" y="4" width="3" height="2"/>
+    <rect x="14" y="3" width="1" height="1"/>
+    <rect x="14" y="6" width="1" height="1"/>
+  </g>
+</symbol>
+
+<!-- 魔王城 16x16 -->
+<symbol id="px-dark-castle" viewBox="0 0 16 16">
+  <!-- 山 -->
+  <g shape-rendering="crispEdges" fill="#181828">
+    <rect x="0" y="11" width="16" height="5"/>
+    <rect x="1" y="9" width="14" height="2"/>
+    <rect x="3" y="7" width="10" height="2"/>
+  </g>
+  <!-- 城 -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="6" y="3" width="4" height="6"/>
+    <rect x="4" y="5" width="2" height="4"/>
+    <rect x="10" y="5" width="2" height="4"/>
+  </g>
+  <!-- 城の旗（赤） -->
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="7" y="0" width="1" height="3"/>
+    <rect x="8" y="0" width="2" height="2"/>
+  </g>
+  <!-- 窓（赤く光る） -->
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="7" y="5" width="2" height="2"/>
+    <rect x="4" y="6" width="1" height="2"/>
+    <rect x="11" y="6" width="1" height="2"/>
+  </g>
+  <!-- 紫オーラ -->
+  <g shape-rendering="crispEdges" fill="#7838F8">
+    <rect x="2" y="11" width="1" height="2"/>
+    <rect x="13" y="11" width="1" height="2"/>
+    <rect x="0" y="13" width="2" height="1"/>
+    <rect x="14" y="13" width="2" height="1"/>
+  </g>
+</symbol>
+
+<!-- ===== ザコモンスタータイプ ===== -->
+
+<!-- ウィルス/虫タイプ 16x16（汎用） -->
+<symbol id="px-mob-virus" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="3" y="4" width="10" height="6"/>
+    <rect x="2" y="5" width="12" height="4"/>
+    <rect x="4" y="3" width="8" height="1"/>
+    <rect x="4" y="10" width="8" height="1"/>
+  </g>
+  <!-- トゲ -->
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="3" y="1" width="1" height="3"/>
+    <rect x="12" y="1" width="1" height="3"/>
+    <rect x="2" y="0" width="2" height="1"/>
+    <rect x="12" y="0" width="2" height="1"/>
+    <rect x="2" y="11" width="2" height="2"/>
+    <rect x="6" y="11" width="2" height="2"/>
+    <rect x="10" y="11" width="2" height="2"/>
+    <rect x="12" y="11" width="2" height="2"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="4" y="6" width="2" height="2"/>
+    <rect x="10" y="6" width="2" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="4" y="6" width="1" height="1"/>
+    <rect x="10" y="6" width="1" height="1"/>
+  </g>
+</symbol>
+
+<!-- スライムタイプ 16x16（汎用） -->
+<symbol id="px-mob-slime2" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="6" y="3" width="4" height="1"/>
+    <rect x="4" y="4" width="8" height="1"/>
+    <rect x="3" y="5" width="10" height="2"/>
+    <rect x="2" y="7" width="12" height="6"/>
+    <rect x="3" y="13" width="10" height="1"/>
+  </g>
+  <!-- ハイライト -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC" opacity="0.4">
+    <rect x="4" y="6" width="2" height="2"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="5" y="9" width="2" height="2"/>
+    <rect x="9" y="9" width="2" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="5" y="9" width="1" height="1"/>
+    <rect x="9" y="9" width="1" height="1"/>
+  </g>
+</symbol>
+
+<!-- ゴーストタイプ 16x16 -->
+<symbol id="px-mob-ghost" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="5" y="2" width="6" height="1"/>
+    <rect x="4" y="3" width="8" height="1"/>
+    <rect x="3" y="4" width="10" height="9"/>
+    <!-- 波打つ底 -->
+    <rect x="3" y="13" width="2" height="2"/>
+    <rect x="6" y="13" width="1" height="2"/>
+    <rect x="9" y="13" width="1" height="2"/>
+    <rect x="11" y="13" width="2" height="2"/>
+    <rect x="3" y="15" width="3" height="1"/>
+    <rect x="7" y="15" width="2" height="1"/>
+    <rect x="10" y="15" width="3" height="1"/>
+  </g>
+  <!-- 目（黒い穴） -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="5" y="6" width="2" height="3"/>
+    <rect x="9" y="6" width="2" height="3"/>
+  </g>
+  <!-- 口 -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="6" y="10" width="4" height="2"/>
+  </g>
+</symbol>
+
+<!-- ゴーレムタイプ（岩） 16x16 -->
+<symbol id="px-mob-golem" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="2" y="2" width="12" height="2"/>
+    <rect x="1" y="4" width="14" height="9"/>
+    <rect x="2" y="13" width="3" height="3"/>
+    <rect x="11" y="13" width="3" height="3"/>
+  </g>
+  <!-- 影付け -->
+  <g shape-rendering="crispEdges" fill="#000" opacity="0.3">
+    <rect x="11" y="4" width="4" height="9"/>
+    <rect x="11" y="13" width="3" height="3"/>
+  </g>
+  <!-- ヒビ -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="5" y="5" width="1" height="1"/>
+    <rect x="6" y="6" width="1" height="2"/>
+    <rect x="4" y="7" width="2" height="1"/>
+    <rect x="9" y="11" width="2" height="1"/>
+    <rect x="11" y="10" width="1" height="2"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="3" y="7" width="2" height="2"/>
+    <rect x="11" y="7" width="2" height="2"/>
+  </g>
+</symbol>
+
+<!-- 電撃バグ 16x16 -->
+<symbol id="px-mob-bug-bolt" viewBox="0 0 16 16">
+  <!-- 体（丸） -->
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="5" y="5" width="6" height="6"/>
+    <rect x="4" y="6" width="8" height="4"/>
+    <rect x="6" y="4" width="4" height="1"/>
+    <rect x="6" y="11" width="4" height="1"/>
+  </g>
+  <!-- 電撃 -->
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="0" y="2" width="2" height="2"/>
+    <rect x="2" y="0" width="1" height="3"/>
+    <rect x="14" y="2" width="2" height="2"/>
+    <rect x="13" y="0" width="1" height="3"/>
+    <rect x="0" y="12" width="2" height="2"/>
+    <rect x="2" y="13" width="1" height="3"/>
+    <rect x="14" y="12" width="2" height="2"/>
+    <rect x="13" y="13" width="1" height="3"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="6" y="7" width="1" height="2"/>
+    <rect x="9" y="7" width="1" height="2"/>
+  </g>
+</symbol>
+
+<!-- 雲モンスター 16x16 -->
+<symbol id="px-mob-cloud" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="4" y="4" width="3" height="2"/>
+    <rect x="9" y="3" width="4" height="3"/>
+    <rect x="2" y="6" width="13" height="5"/>
+    <rect x="3" y="11" width="11" height="1"/>
+    <rect x="5" y="12" width="8" height="1"/>
+  </g>
+  <!-- 影 -->
+  <g shape-rendering="crispEdges" fill="#000" opacity="0.2">
+    <rect x="2" y="10" width="13" height="1"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="5" y="8" width="2" height="2"/>
+    <rect x="10" y="8" width="2" height="2"/>
+  </g>
+  <!-- 口 -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="7" y="10" width="3" height="1"/>
+  </g>
+</symbol>
+
+<!-- 薬瓶モンスター 16x16 -->
+<symbol id="px-mob-potion" viewBox="0 0 16 16">
+  <!-- フタ -->
+  <g shape-rendering="crispEdges" fill="#888">
+    <rect x="6" y="1" width="4" height="2"/>
+    <rect x="5" y="3" width="6" height="1"/>
+  </g>
+  <!-- ガラス瓶 -->
+  <g shape-rendering="crispEdges" fill="#A8A8A8" opacity="0.5">
+    <rect x="4" y="4" width="8" height="11"/>
+    <rect x="3" y="6" width="10" height="8"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="4" y="4" width="8" height="2"/>
+    <rect x="3" y="6" width="10" height="1"/>
+  </g>
+  <!-- 中の液体 -->
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="4" y="9" width="8" height="6"/>
+    <rect x="3" y="10" width="10" height="4"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="5" y="11" width="2" height="2"/>
+    <rect x="9" y="11" width="2" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="5" y="11" width="1" height="1"/>
+    <rect x="9" y="11" width="1" height="1"/>
+  </g>
+</symbol>
+
+<!-- 眼モンスター 16x16 -->
+<symbol id="px-mob-eye" viewBox="0 0 16 16">
+  <!-- 眼球（白目） -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="4" y="3" width="8" height="1"/>
+    <rect x="2" y="4" width="12" height="2"/>
+    <rect x="1" y="6" width="14" height="4"/>
+    <rect x="2" y="10" width="12" height="2"/>
+    <rect x="4" y="12" width="8" height="1"/>
+  </g>
+  <!-- 虹彩 -->
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="5" y="5" width="6" height="6"/>
+    <rect x="4" y="6" width="8" height="4"/>
+  </g>
+  <!-- 瞳 -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="6" y="6" width="4" height="4"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="6" y="6" width="2" height="2"/>
+  </g>
+  <!-- 血管 -->
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="2" y="7" width="2" height="1"/>
+    <rect x="12" y="8" width="2" height="1"/>
+  </g>
+</symbol>
+
+<!-- ドラゴン（闇竜） 16x16 -->
+<symbol id="px-mob-dragon" viewBox="0 0 16 16">
+  <!-- 翼 -->
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="0" y="4" width="3" height="6"/>
+    <rect x="13" y="4" width="3" height="6"/>
+    <rect x="3" y="6" width="2" height="4"/>
+    <rect x="11" y="6" width="2" height="4"/>
+  </g>
+  <!-- 体 -->
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="4" y="3" width="8" height="9"/>
+    <rect x="5" y="2" width="6" height="11"/>
+    <rect x="6" y="13" width="4" height="2"/>
+  </g>
+  <!-- 角 -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="4" y="0" width="1" height="3"/>
+    <rect x="11" y="0" width="1" height="3"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="6" y="5" width="2" height="2"/>
+    <rect x="9" y="5" width="2" height="2"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#F8B800">
+    <rect x="6" y="5" width="1" height="1"/>
+    <rect x="9" y="5" width="1" height="1"/>
+  </g>
+  <!-- 牙 -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="6" y="9" width="1" height="2"/>
+    <rect x="9" y="9" width="1" height="2"/>
+  </g>
+  <!-- 足 -->
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <rect x="3" y="14" width="3" height="2"/>
+    <rect x="10" y="14" width="3" height="2"/>
+  </g>
+</symbol>
+
+<!-- 風/スプライト 16x16 -->
+<symbol id="px-mob-wind" viewBox="0 0 16 16">
+  <g shape-rendering="crispEdges" fill="currentColor">
+    <!-- 渦巻く風 -->
+    <rect x="4" y="3" width="8" height="2"/>
+    <rect x="2" y="5" width="12" height="2"/>
+    <rect x="1" y="7" width="9" height="2"/>
+    <rect x="2" y="9" width="12" height="2"/>
+    <rect x="4" y="11" width="8" height="2"/>
+  </g>
+  <!-- 顔（中央に幽霊風） -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="6" y="6" width="4" height="4"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="6" y="7" width="1" height="1"/>
+    <rect x="9" y="7" width="1" height="1"/>
+    <rect x="7" y="9" width="2" height="1"/>
+  </g>
+</symbol>
+
+
+<!-- ===== 人体図マップ用 SVG defs ===== -->
+
+<!-- 人体図ベース（共通シルエット）- 章別領域を含む -->
+<symbol id="px-body-map" viewBox="-2 -4 44 70">
+  <!-- ベースシルエット -->
+  <g shape-rendering="crispEdges" fill="#2a2a3a">
+    <!-- 首 -->
+    <rect x="18" y="9" width="4" height="2"/>
+    <!-- 肩 -->
+    <rect x="11" y="11" width="18" height="2"/>
+    <!-- 胴体上部（胸） -->
+    <rect x="12" y="13" width="16" height="6"/>
+    <!-- 胴体中部（腹） -->
+    <rect x="13" y="19" width="14" height="9"/>
+    <!-- 腰 -->
+    <rect x="14" y="28" width="12" height="6"/>
+    <!-- 太腿 -->
+    <rect x="14" y="34" width="5" height="14"/>
+    <rect x="21" y="34" width="5" height="14"/>
+    <!-- 脛 -->
+    <rect x="14" y="48" width="5" height="13"/>
+    <rect x="21" y="48" width="5" height="13"/>
+    <!-- 足 -->
+    <rect x="13" y="61" width="6" height="3"/>
+    <rect x="21" y="61" width="6" height="3"/>
+    <!-- 上腕 -->
+    <rect x="9" y="13" width="3" height="13"/>
+    <rect x="28" y="13" width="3" height="13"/>
+    <!-- 前腕 -->
+    <rect x="10" y="26" width="3" height="9"/>
+    <rect x="27" y="26" width="3" height="9"/>
+  </g>
+
+  <!-- ===== 章別領域（クリアでハイライト） ===== -->
+  
+  <!-- 第3章 脳（紫） -->
+  <g class="region region-brain" data-chapter="brain">
+    <rect x="16" y="0" width="8" height="6" fill="#3a3a4a"/>
+    <rect x="17" y="1" width="6" height="4" fill="currentColor"/>
+  </g>
+  
+  <!-- 第9章 顔・五感（ピンク） -->
+  <g class="region region-senses" data-chapter="senses">
+    <rect x="16" y="5" width="8" height="4" fill="#3a3a4a"/>
+    <!-- 目 -->
+    <rect x="17" y="6" width="2" height="1" fill="currentColor"/>
+    <rect x="21" y="6" width="2" height="1" fill="currentColor"/>
+    <!-- 口 -->
+    <rect x="19" y="8" width="2" height="1" fill="currentColor"/>
+  </g>
+  
+  <!-- 第6章 内分泌（黄） - 首の甲状腺 -->
+  <g class="region region-endocrine" data-chapter="endocrine">
+    <rect x="18" y="10" width="4" height="1" fill="currentColor"/>
+  </g>
+  
+  <!-- 第2章 肺（水色） -->
+  <g class="region region-lung" data-chapter="lung">
+    <rect x="13" y="13" width="5" height="6" fill="currentColor"/>
+    <rect x="22" y="13" width="5" height="6" fill="currentColor"/>
+  </g>
+  
+  <!-- 第1章 心臓（赤） - 中央上部 -->
+  <g class="region region-heart" data-chapter="heart">
+    <rect x="18" y="14" width="4" height="4" fill="currentColor"/>
+  </g>
+  
+  <!-- 第5章 消化器（オレンジ） - 腹部中央 -->
+  <g class="region region-gi" data-chapter="gi">
+    <rect x="15" y="19" width="10" height="6" fill="currentColor"/>
+  </g>
+  
+  <!-- 第8章 免疫（薄シアン） - 左上腹部の脾臓 -->
+  <g class="region region-immune" data-chapter="immune">
+    <rect x="13" y="20" width="3" height="3" fill="currentColor"/>
+  </g>
+  
+  <!-- 第4章 腎臓（緑） - 腰の両脇 -->
+  <g class="region region-kidney" data-chapter="kidney">
+    <rect x="13" y="25" width="3" height="4" fill="currentColor"/>
+    <rect x="24" y="25" width="3" height="4" fill="currentColor"/>
+  </g>
+  
+  <!-- 第7章 血液（深紅）- 大腿骨（骨髄）-->
+  <g class="region region-blood" data-chapter="blood">
+    <rect x="15" y="38" width="3" height="8" fill="currentColor"/>
+    <rect x="22" y="38" width="3" height="8" fill="currentColor"/>
+  </g>
+  
+  <!-- 終章 王冠（金）- 頭上 -->
+  <g class="region region-final" data-chapter="final">
+    <rect x="16" y="-4" width="2" height="3" fill="currentColor"/>
+    <rect x="19" y="-4" width="2" height="3" fill="currentColor"/>
+    <rect x="22" y="-4" width="2" height="3" fill="currentColor"/>
+    <rect x="15" y="-1" width="10" height="2" fill="currentColor"/>
+  </g>
+
+  <!-- 髪（性別で切り替え用、デフォルトは非表示） -->
+  <g id="body-hair-male" class="body-hair body-hair-male" shape-rendering="crispEdges">
+    <rect x="16" y="0" width="8" height="2" fill="#000"/>
+    <rect x="15" y="1" width="1" height="3" fill="#000"/>
+    <rect x="24" y="1" width="1" height="3" fill="#000"/>
+  </g>
+  <g id="body-hair-female" class="body-hair body-hair-female" shape-rendering="crispEdges" style="display:none">
+    <rect x="16" y="0" width="8" height="2" fill="#502820"/>
+    <rect x="14" y="1" width="2" height="9" fill="#502820"/>
+    <rect x="24" y="1" width="2" height="9" fill="#502820"/>
+    <rect x="13" y="3" width="1" height="6" fill="#502820"/>
+    <rect x="26" y="3" width="1" height="6" fill="#502820"/>
+  </g>
+</symbol>
+
+<!-- 勇者キャラ（女性版） 16x16 -->
+<symbol id="px-hero-female" viewBox="0 0 16 16">
+  <!-- 帽子（ナースキャップ風） -->
+  <g shape-rendering="crispEdges">
+    <rect x="5" y="0" width="6" height="1" fill="#FCFCFC"/>
+    <rect x="4" y="1" width="8" height="2" fill="#FCFCFC"/>
+    <rect x="7" y="1" width="2" height="1" fill="#F83800"/>
+    <rect x="6" y="2" width="4" height="1" fill="#F83800"/>
+  </g>
+  <!-- 長髪（横にこぼれる） -->
+  <g shape-rendering="crispEdges" fill="#502820">
+    <rect x="3" y="3" width="2" height="6"/>
+    <rect x="11" y="3" width="2" height="6"/>
+  </g>
+  <!-- 顔 -->
+  <g shape-rendering="crispEdges" fill="#FCD8A8">
+    <rect x="5" y="3" width="6" height="3"/>
+  </g>
+  <!-- 目 -->
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="6" y="4" width="1" height="1"/>
+    <rect x="9" y="4" width="1" height="1"/>
+  </g>
+  <!-- 唇 -->
+  <g shape-rendering="crispEdges" fill="#F83800">
+    <rect x="7" y="5" width="2" height="1"/>
+  </g>
+  <!-- 白衣 -->
+  <g shape-rendering="crispEdges" fill="#FCFCFC">
+    <rect x="4" y="6" width="8" height="1"/>
+    <rect x="3" y="7" width="10" height="5"/>
+    <rect x="7" y="8" width="2" height="3" fill="#F878F8"/>
+  </g>
+  <!-- 聴診器 -->
+  <g shape-rendering="crispEdges" fill="#888">
+    <rect x="4" y="7" width="1" height="2"/>
+    <rect x="11" y="7" width="1" height="2"/>
+    <rect x="5" y="9" width="1" height="1"/>
+    <rect x="10" y="9" width="1" height="1"/>
+  </g>
+  <!-- 足 -->
+  <g shape-rendering="crispEdges" fill="#0000A8">
+    <rect x="4" y="12" width="3" height="3"/>
+    <rect x="9" y="12" width="3" height="3"/>
+  </g>
+  <g shape-rendering="crispEdges" fill="#000">
+    <rect x="3" y="15" width="4" height="1"/>
+    <rect x="9" y="15" width="4" height="1"/>
+  </g>
+</symbol>
+
+</defs>
+</svg>
+
+
+<div class="save-toast" id="save-toast">SAVED!</div>
+
+<!-- カスタム確認ダイアログ -->
+<div class="px-confirm-overlay" id="px-confirm-overlay">
+  <div class="px-confirm-box">
+    <div class="px-confirm-title" id="px-confirm-title">CONFIRM</div>
+    <div class="px-confirm-msg" id="px-confirm-msg"></div>
+    <div class="px-confirm-btns">
+      <button class="px-btn red" id="px-confirm-ok" type="button">▶ はい</button>
+      <button class="px-btn gray" onclick="closeConfirm()" type="button">✕ いいえ</button>
+    </div>
+  </div>
+</div>
+
+<!-- 性別選択オーバーレイ -->
+<div class="gender-select-overlay" id="gender-select">
+  <div class="gender-title">どちらの<br>勇者を選びますか？</div>
+  <div class="gender-sub">あなたの 医学の勇者の姿を 選んでください</div>
+  <div class="gender-options">
+    <div class="gender-card" onclick="selectGender('male')">
+      <svg viewBox="0 0 16 16"><use href="#px-hero"/></svg>
+      <div class="gender-label">♂ 男性医学生</div>
+    </div>
+    <div class="gender-card" onclick="selectGender('female')">
+      <svg viewBox="0 0 16 16"><use href="#px-hero-female"/></svg>
+      <div class="gender-label">♀ 女性医学生</div>
+    </div>
+  </div>
+</div>
+<button class="audio-toggle" id="audio-toggle" onclick="toggleAudio()" type="button">♪<span class="lbl">ON</span></button>
+
+<!-- ===== オープニング ===== -->
+<div class="screen" id="s-open">
+  <div class="open-logo"><svg><use href="#px-medic"/></svg></div>
+  <div class="open-title">ANATOMY<br>QUEST</div>
+  <div class="open-sub">- 解剖生理学 冒険RPG -</div>
+  <div class="story-box">
+    <span class="hi">【序章】闇に覆われた人体王国</span><br><br>
+    かつて平和だった「<span class="hi">人体王国</span>」に、突如として謎の病魔が現れた。<br>
+    王国を守る<span class="hi">五大系統の守護神</span>たちが次々と封印され、人々は苦しみの中にいる。<br><br>
+    あなたは「<span class="hi">医学の勇者</span>」として選ばれし者。<br>
+    解剖生理学の知識を武器に、各地を旅し、守護神を解放せよ——
+  </div>
+  <div class="btn-stack">
+    <button class="px-btn green" id="continue-btn" onclick="continueGame()" style="display:none">▶ つづきから</button>
+    <button class="px-btn blue" id="daily-btn" onclick="startQuick3()" style="display:none">▶ 今日の3問</button>
+    <button class="px-btn" id="playbtn" onclick="initAudio();showGenderSelect()">▶ あたらしい ぼうけんへ</button>
+    <button class="px-btn gray small" id="mapquick-btn" onclick="continueGame()" style="display:none">ワールドマップ</button>
+    <button class="px-btn gray small" id="newgame-btn" onclick="newGame()" style="display:none">さいしょから はじめる</button>
+  </div>
+  <div class="mobile-note">スマホでは縦画面がおすすめです。ボタンは大きめに調整しています。</div>
+  <div style="margin-top:12px;">
+    <button class="theme-toggle-btn" id="title-theme-btn" onclick="toggleTheme()">
+      <span class="theme-icon" id="title-theme-icon">☀️</span>
+      <span id="title-theme-label">デイモード</span>
+    </button>
+  </div>
+  <div class="save-info" id="save-info" style="display:none"></div>
+</div>
+
+<!-- ===== ワールドマップ ===== -->
+<div class="screen" id="s-map">
+  <div class="map-shell">
+    <div class="map-header">
+      <div>
+        <div class="map-title"><span class="px-icon"><svg><use href="#px-map"/></svg></span> WORLD MAP</div>
+        <div class="map-sub">▶ 人体王国 ワールドマップ</div><div class="title-badge-map" id="map-title-badge">TITLE: 見習い医学生</div>
+      </div>
+      <button class="px-btn red small" onclick="resetGame()"><span class="px-icon" style="width:10px;height:10px"><svg><use href="#px-trash"/></svg></span> リセット</button>
+      <button class="theme-toggle-btn" id="map-theme-btn" onclick="toggleTheme()" style="margin-left:6px;">
+        <span class="theme-icon" id="map-theme-icon">☀️</span>
+        <span id="map-theme-label">デイ</span>
+      </button>
+    </div>
+    <div class="hero-status">
+      <div class="hstat"><div class="hstat-lbl"><span class="px-icon"><svg><use href="#px-bolt"/></svg></span> LV</div><div class="hstat-val" id="map-lv">1</div><div class="bar-sm"><div class="bar-fill exp-clr" id="map-expbar" style="width:0%"></div></div></div>
+      <div class="hstat"><div class="hstat-lbl"><span class="px-icon"><svg><use href="#px-heart"/></svg></span> HP</div><div class="hstat-val" id="map-hp">100</div><div class="bar-sm"><div class="bar-fill hp-clr" id="map-hpbar" style="width:100%"></div></div></div>
+      <div class="hstat"><div class="hstat-lbl"><span class="px-icon"><svg><use href="#px-sword"/></svg></span> ATK</div><div class="hstat-val" id="map-atk">20</div></div>
+      <div class="hstat"><div class="hstat-lbl"><span class="px-icon"><svg><use href="#px-star"/></svg></span> CLEAR</div><div class="hstat-val" id="map-cleared">0/5</div></div>
+    </div>
+
+    <!-- 人体図ワールドマップ -->
+    <div class="body-map-wrap">
+      <div class="body-map-title">▶ 人体王国 全体図</div>
+      <svg class="body-map-svg" id="body-map-svg" viewBox="0 0 48 56" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <!-- 4等身寄りの人体王国マップ：頭 12px × 約4.5頭身 -->
+        <g class="body-outline">
+          <!-- 頭 -->
+          <rect x="17" y="2" width="14" height="12"/>
+          <rect x="19" y="0" width="10" height="2"/>
+          <!-- 首・胴 -->
+          <rect x="21" y="14" width="6" height="3"/>
+          <rect x="13" y="17" width="22" height="4"/>
+          <rect x="15" y="21" width="18" height="15"/>
+          <rect x="17" y="36" width="14" height="5"/>
+          <!-- 腕 -->
+          <rect x="9" y="20" width="5" height="15"/>
+          <rect x="34" y="20" width="5" height="15"/>
+          <rect x="8" y="35" width="5" height="5"/>
+          <rect x="35" y="35" width="5" height="5"/>
+          <!-- 脚 -->
+          <rect x="17" y="41" width="6" height="11"/>
+          <rect x="25" y="41" width="6" height="11"/>
+          <rect x="15" y="52" width="8" height="3"/>
+          <rect x="25" y="52" width="8" height="3"/>
+        </g>
+        <!-- 髪型（性別で切替） -->
+        <g class="body-hair-male">
+          <rect x="18" y="1" width="12" height="3" fill="#000"/>
+          <rect x="17" y="3" width="2" height="4" fill="#000"/>
+          <rect x="29" y="3" width="2" height="4" fill="#000"/>
+        </g>
+        <g class="body-hair-female" style="display:none">
+          <rect x="18" y="1" width="12" height="3" fill="#502820"/>
+          <rect x="15" y="3" width="3" height="12" fill="#502820"/>
+          <rect x="30" y="3" width="3" height="12" fill="#502820"/>
+          <rect x="16" y="13" width="3" height="3" fill="#502820"/>
+          <rect x="29" y="13" width="3" height="3" fill="#502820"/>
+        </g>
+        <!-- 第3章 脳 -->
+        <g class="region region-brain">
+          <rect x="20" y="3" width="8" height="4" fill="currentColor"/>
+        </g>
+        <!-- 第9章 顔・五感 -->
+        <g class="region region-senses">
+          <rect x="20" y="8" width="2" height="1" fill="currentColor"/>
+          <rect x="26" y="8" width="2" height="1" fill="currentColor"/>
+          <rect x="23" y="12" width="2" height="1" fill="currentColor"/>
+        </g>
+        <g class="face-dot">
+          <rect x="20" y="8" width="1" height="1"/>
+          <rect x="27" y="8" width="1" height="1"/>
+        </g>
+        <!-- 第6章 内分泌 -->
+        <g class="region region-endocrine"><rect x="21" y="15" width="6" height="2" fill="currentColor"/></g>
+        <!-- 第2章 肺 -->
+        <g class="region region-lung">
+          <rect x="16" y="21" width="6" height="8" fill="currentColor"/>
+          <rect x="26" y="21" width="6" height="8" fill="currentColor"/>
+        </g>
+        <!-- 第1章 心臓 -->
+        <g class="region region-heart"><rect x="22" y="23" width="5" height="5" fill="currentColor"/></g>
+        <!-- 第5章 消化器 -->
+        <g class="region region-gi"><rect x="19" y="30" width="10" height="6" fill="currentColor"/></g>
+        <!-- 第8章 免疫 -->
+        <g class="region region-immune"><rect x="16" y="30" width="3" height="4" fill="currentColor"/></g>
+        <!-- 第4章 腎臓 -->
+        <g class="region region-kidney">
+          <rect x="17" y="35" width="4" height="4" fill="currentColor"/>
+          <rect x="27" y="35" width="4" height="4" fill="currentColor"/>
+        </g>
+        <!-- 第7章 血液 -->
+        <g class="region region-blood">
+          <rect x="18" y="43" width="4" height="8" fill="currentColor"/>
+          <rect x="26" y="43" width="4" height="8" fill="currentColor"/>
+        </g>
+        <!-- 終章 王冠 -->
+        <g class="region region-final">
+          <rect x="18" y="-1" width="3" height="3" fill="currentColor"/>
+          <rect x="23" y="-2" width="3" height="4" fill="currentColor"/>
+          <rect x="28" y="-1" width="3" height="3" fill="currentColor"/>
+          <rect x="17" y="2" width="15" height="2" fill="currentColor"/>
+        </g>
+      </svg>
+      <div class="body-map-progress">解放した 守護神 : <span class="num" id="body-progress">0</span>/<span id="body-total">10</span></div>
+    </div>
+
+    <!-- 復習ダンジョン -->
+    <div class="review-card disabled" id="review-card" onclick="startReview()">
+      <div class="review-badge" id="review-badge">NEW</div>
+      <div class="review-header">
+        <span class="review-icon-box"><svg viewBox="0 0 16 16"><use href="#px-tower"/></svg></span>
+        <div>
+          <div class="review-title">しゅうれんの とう</div>
+          <div class="review-sub">- REVIEW DUNGEON -</div>
+        </div>
+      </div>
+      <div class="review-status">
+        まちがえた もんだい : <span class="num" id="review-count">0</span>もん
+      </div>
+    </div>
+
+    <div class="chapters" id="chapters"></div>
+  </div>
+</div>
+
+<!-- ===== ストーリー演出 ===== -->
+<div class="screen" id="s-story">
+  <div style="padding:1rem;flex:1;display:flex;flex-direction:column">
+    <div class="story-scene">
+      <div class="scene-area" id="sc-area"></div>
+      <div class="scene-illust" id="sc-illust"></div>
+      <div class="scene-name" id="sc-name"></div>
+      <div class="scene-text" id="sc-text"></div>
+    </div>
+    <button class="px-btn" id="sc-btn" onclick="nextScene()">▶ つぎへ</button>
+  </div>
+</div>
+
+<!-- ===== ボス演出 ===== -->
+<div class="screen" id="s-boss">
+  <div class="boss-warning">!! BOSS BATTLE !!</div>
+  <div class="boss-ico" id="boss-ico"></div>
+  <div class="boss-name" id="boss-name"></div>
+  <div class="boss-desc" id="boss-desc"></div>
+  <button class="px-btn red" onclick="startBattle()"><span class="px-icon"><svg><use href="#px-sword"/></svg></span> たたかう！</button>
+</div>
+
+<!-- ===== バトル ===== -->
+<div class="screen" id="s-battle">
+  <!-- トップバー -->
+  <div class="topbar">
+    <span class="area-nm" id="area-nm"></span>
+    <span class="qcnt" id="qcnt"></span>
+  </div>
+  <!-- ステータスHUD -->
+  <div class="status-row">
+    <div class="stat-card"><div class="stat-lbl"><span class="px-icon"><svg><use href="#px-bolt"/></svg></span> LV</div><div class="stat-vl" id="lv-val">1</div><div class="bar-w"><div class="bar-f exp-clr" id="exp-bar" style="width:0%"></div></div><div class="exp-mini"><span id="exp-cur">0</span>/<span id="exp-max">100</span> EXP</div></div>
+    <div class="stat-card"><div class="stat-lbl"><span class="px-icon"><svg><use href="#px-heart"/></svg></span> HP</div><div class="stat-vl" id="hp-val">100</div><div class="bar-w"><div class="bar-f hp-clr" id="hp-bar" style="width:100%"></div></div></div>
+    <div class="stat-card"><div class="stat-lbl"><span class="px-icon"><svg><use href="#px-sword"/></svg></span> ATK</div><div class="stat-vl" id="atk-val">20</div></div>
+  </div>
+  <!-- 戦闘フィールド（FF3風横並び） -->
+  <div class="battle-field">
+    <!-- 左：勇者 -->
+    <div class="battle-hero-wrap" id="battle-hero-wrap">
+      <div class="hero-dmg" id="hero-dmg">0</div>
+      <svg class="battle-hero-svg" id="battle-hero-svg" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+        <use href="#px-hero" id="battle-hero-use"/>
+      </svg>
+    </div>
+    <!-- 右：モンスター -->
+    <div class="battle-mon-wrap" id="battle-mon-wrap">
+      <div class="mon-dmg" id="mon-dmg">0</div>
+      <span class="mon-ico" id="mon-ico"></span>
+      <div class="mon-nm" id="mon-nm"></div>
+      <div class="mon-hp-w"><div class="mon-hp-f" id="mon-hp" style="width:100%"></div></div>
+    </div>
+  </div>
+  <!-- FF3風メッセージウィンドウ -->
+  <div class="ff3-win battle-msg-win">
+    <div id="battle-msg">▶ たたかいが はじまった！</div>
+  </div>
+  <!-- コマンドウィンドウ -->
+  <div class="battle-command" id="battle-command">
+    <div class="cmd-title">▶ コマンド</div>
+    <div class="cmd-grid">
+      <button class="cmd-btn" type="button" onclick="chooseCommand('attack')">こうげき</button>
+      <button class="cmd-btn" type="button" onclick="chooseCommand('inspect')">しらべる</button>
+      <button class="cmd-btn" type="button" onclick="chooseCommand('hint')">ヒント</button>
+      <button class="cmd-btn" type="button" onclick="chooseCommand('run')">にげる</button>
+    </div>
+  </div>
+  <!-- 問題ウィンドウ -->
+  <div class="q-box">
+    <div class="q-num" id="q-num"></div>
+    <div class="q-txt" id="q-txt"></div>
+  </div>
+  <!-- 選択肢 -->
+  <div class="choices" id="choices"></div>
+  <!-- ポップアップ -->
+  <div class="gain-popup" id="gain-popup"></div>
+  <div class="lvup-popup" id="lvup-popup"></div>
+  <div class="streak-popup" id="streak-popup"></div>
+  <div class="hintbox ff3-win" id="hintbox"><strong>💡 ヒント</strong><span id="hinttext"></span></div>
+  <!-- 解説 -->
+  <div class="expbox ff3-win" id="expbox" style="display:none"><strong>📖 かいせつ</strong><span id="exptext"></span></div>
+  <button class="nxtbtn" id="nxtbtn" onclick="nextQ()"></button>
+</div>
+
+<!-- ===== ゲームオーバー ===== -->
+<div class="screen" id="s-gameover">
+  <div class="go-ico"><svg><use href="#px-skull"/></svg></div>
+  <div class="go-title">GAME OVER</div>
+  <div class="go-sub" id="go-sub"></div>
+  <div class="go-msg" id="go-msg"></div>
+  <div class="btn-stack">
+    <button class="px-btn red" onclick="retryChapter()"><span class="px-icon"><svg><use href="#px-retry"/></svg></span> もういちど ちょうせん</button>
+    <button class="px-btn gray" onclick="goMap()"><span class="px-icon"><svg><use href="#px-map"/></svg></span> ワールドマップへ もどる</button>
+  </div>
+</div>
+
+<!-- ===== クリア演出 ===== -->
+<div class="screen" id="s-clear">
+  <div class="clear-ico" id="clear-ico"></div>
+  <div class="clear-title" id="clear-title"></div>
+  <div class="clear-ch" id="clear-ch"></div>
+  <div class="clear-story" id="clear-story"></div>
+  <div class="treasure-box" id="treasure-box" style="display:none">
+    <div class="treasure-title">たからばこを あけた！</div>
+    <div id="treasure-text"></div>
+  </div>
+  <div class="clear-stats">
+    <div class="cstat"><div class="cstat-v" id="cs1"></div><div class="cstat-l">最終Lv</div></div>
+    <div class="cstat"><div class="cstat-v" id="cs2"></div><div class="cstat-l">正解数</div></div>
+    <div class="cstat"><div class="cstat-v" id="cs3"></div><div class="cstat-l">残HP</div></div>
+  </div>
+  <button class="px-btn green" onclick="goMap()"><span class="px-icon"><svg><use href="#px-map"/></svg></span> ワールドマップへ もどる</button>
+</div>
+
+<script>
+
+
+/* ===== レベル成長・ダメージ計算ヘルパー ===== */
+function calcDamage(){
+  // 章難易度のベースダメージ - 防御力（atkの半分）
+  var base = currentChapter.diff==='基礎'?20:
+             currentChapter.diff==='標準'?32:
+             currentChapter.diff==='復習'?22:
+             50;  // 応用
+  var defense = Math.floor(hero.atk / 2);
+  return Math.max(5, base - defense);  // 最低5ダメージ
+}
+
+function swapBossQuestion(){
+  if(!currentChapter.questionPool) return false;
+  var pool = currentChapter.questionPool;
+  // 既に出題された問題を除外（questions内の全問題）
+  var usedTexts = questions.map(function(qq){return qq.q;});
+  // 元のboss問題も除外
+  if(currentChapter.bossQuestion) usedTexts.push(currentChapter.bossQuestion.q);
+  var available = pool.filter(function(p){return usedTexts.indexOf(p.q) === -1;});
+  if(available.length === 0) return false;
+  var newQ = available[Math.floor(Math.random() * available.length)];
+  questions[cur] = newQ;
+  return true;
+}
+
+/* ===== タイプライター効果 ===== */
+var twTimer=null;
+var twFinish=null;
+
+function typewriteHTML(elementId, htmlStr, speed, onComplete){
+  speed = speed || 28;
+  var element = document.getElementById(elementId);
+  if(!element) return;
+  
+  // 進行中があれば即終了
+  if(twTimer){clearInterval(twTimer);twTimer=null;}
+  if(twFinish){twFinish=null;}
+  
+  // HTMLをパース → テキスト部分だけ <span class="tw-char tw-hide"> でラップ
+  var temp = document.createElement('div');
+  temp.innerHTML = htmlStr;
+  
+  function wrapNode(node){
+    if(node.nodeType === 3){ // テキストノード
+      var text = node.textContent;
+      if(!text) return;
+      var frag = document.createDocumentFragment();
+      for(var i=0; i<text.length; i++){
+        var span = document.createElement('span');
+        span.className = 'tw-char tw-hide';
+        span.textContent = text[i];
+        frag.appendChild(span);
+      }
+      node.parentNode.replaceChild(frag, node);
+    } else if(node.nodeType === 1){ // 要素ノード
+      // <br>などは触らない、子要素のみ処理
+      var children = Array.prototype.slice.call(node.childNodes);
+      children.forEach(wrapNode);
+    }
+  }
+  wrapNode(temp);
+  
+  element.innerHTML = '';
+  while(temp.firstChild){
+    element.appendChild(temp.firstChild);
+  }
+  
+  var chars = element.querySelectorAll('.tw-char');
+  var i = 0;
+  
+  function showAll(){
+    for(var k=i; k<chars.length; k++){
+      chars[k].classList.remove('tw-hide');
+    }
+    if(twTimer){clearInterval(twTimer);twTimer=null;}
+    twFinish=null;
+    if(onComplete) onComplete();
+  }
+  
+  twFinish = showAll;
+  
+  twTimer = setInterval(function(){
+    if(i >= chars.length){
+      showAll();
+      return;
+    }
+    chars[i].classList.remove('tw-hide');
+    var ch = chars[i].textContent;
+    // 句読点・スペース・改行は無音、それ以外は文字音
+    if(ch !== ' ' && ch !== '\u3000' && ch !== '\n' && ch !== '\r'){
+      playSE('text');
+    }
+    i++;
+  }, speed);
+}
+
+function skipTypewriter(){
+  if(twFinish){
+    twFinish();
+    return true;
+  }
+  return false;
+}
+
+// 画面のどこかをタップで完了させる（ボタン・選択肢以外）
+document.addEventListener('click', function(e){
+  if(!twTimer) return;
+  // ボタンや選択肢クリックは正常動作を優先
+  var t = e.target;
+  while(t && t !== document.body){
+    if(t.tagName === 'BUTTON' || (t.classList && t.classList.contains('cbtn'))) return;
+    t = t.parentNode;
+  }
+  skipTypewriter();
+}, true);
+
+
+/* ===== ファミコン風 Audio エンジン ===== */
+var audioCtx = null;
+var audioMuted = false;
+var bgmTimer = null;
+var bgmCurrent = null;
+var bgmIndex = 0;
+
+function initAudio(){
+  if(!audioCtx){
+    try{
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }catch(e){return;}
+  }
+  if(audioCtx.state === 'suspended'){
+    audioCtx.resume();
+  }
+}
+
+function playTone(freq, dur, type, vol){
+  if(audioMuted || !audioCtx) return;
+  if(!freq || freq <= 0) return;
+  try{
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.type = type || 'square';
+    osc.frequency.value = freq;
+    vol = vol || 0.06;
+    var t = audioCtx.currentTime;
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(vol, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + dur + 0.05);
+  }catch(e){}
+}
+
+function playSequence(notes, baseVol){
+  if(audioMuted || !audioCtx) return;
+  var t = 0;
+  notes.forEach(function(n){
+    var freq = n[0], dur = n[1], type = n[2] || 'square', vol = n[3] || baseVol || 0.07;
+    setTimeout(function(){ playTone(freq, dur*0.9, type, vol); }, t * 1000);
+    t += dur;
+  });
+}
+
+function playSE(name){
+  if(audioMuted) return;
+  initAudio();
+  switch(name){
+    case 'text':    playTone(1200, 0.012, 'square', 0.018); break;
+    case 'select':  playTone(880, 0.05, 'square', 0.06); break;
+    case 'cursor':  playTone(1500, 0.03, 'square', 0.05); break;
+    case 'click':   playTone(2000, 0.012, 'square', 0.04); break;
+    case 'page':    playTone(1500, 0.04, 'square', 0.05); break;
+    case 'correct': playSequence([[659,0.07],[784,0.07],[1047,0.16]]); break;
+    case 'wrong':   playSequence([[262,0.1,'sawtooth'],[196,0.25,'sawtooth']], 0.08); break;
+    case 'damage':  playTone(110, 0.18, 'sawtooth', 0.1); break;
+    case 'levelup': playSequence([[523,0.08],[659,0.08],[784,0.08],[1047,0.18],[1319,0.25]]); break;
+    case 'critical': playSequence([[1047,0.05],[0,0.03],[1568,0.08],[2093,0.18]], 0.08); break;
+    case 'victory': playSequence([[523,0.15],[659,0.15],[784,0.15],[1047,0.25],[1319,0.4]]); break;
+    case 'gameover':playSequence([[392,0.2,'sawtooth'],[349,0.2,'sawtooth'],[330,0.2,'sawtooth'],[262,0.5,'sawtooth']], 0.09); break;
+    case 'bossAppear': playSequence([[110,0.12,'sawtooth'],[98,0.12,'sawtooth'],[82,0.4,'sawtooth']], 0.1); break;
+    case 'save':    playSequence([[1047,0.05],[1319,0.1]]); break;
+  }
+}
+
+/* ===== BGMデータ（ファミコン風シンプルメロディ） ===== */
+var BGM = {
+  field: [
+    [392,0.25],[523,0.25],[659,0.5],[523,0.25],[440,0.25],[523,0.5],
+    [392,0.25],[523,0.25],[659,0.25],[784,0.25],[659,0.5],[523,0.5],
+    [440,0.25],[523,0.25],[659,0.5],[523,0.25],[440,0.25],[392,0.5],
+    [330,0.25],[392,0.25],[440,0.5],[523,0.5],[0,0.5]
+  ],
+  battle: [
+    [220,0.13],[262,0.13],[330,0.13],[392,0.13],
+    [330,0.13],[262,0.13],[220,0.26],
+    [196,0.13],[247,0.13],[294,0.13],[370,0.13],
+    [294,0.13],[247,0.13],[196,0.26],
+    [220,0.13],[330,0.13],[440,0.13],[523,0.13],
+    [440,0.13],[330,0.13],[220,0.26]
+  ],
+  boss: [
+    [110,0.18],[131,0.18],[110,0.36],
+    [165,0.18],[131,0.18],[110,0.36],
+    [82,0.18],[98,0.18],[82,0.36],
+    [123,0.18],[98,0.18],[82,0.36],
+    [110,0.18],[131,0.18],[165,0.18],[196,0.18],
+    [165,0.18],[131,0.18],[110,0.54]
+  ],
+  victory: [
+    [523,0.18],[659,0.18],[784,0.18],[1047,0.36],
+    [784,0.18],[1047,0.6],[0,0.4]
+  ],
+  title: [
+    [523,0.4],[659,0.4],[784,0.4],[1047,0.6],
+    [880,0.3],[784,0.3],[659,0.6],
+    [523,0.4],[659,0.4],[784,0.4],[1047,0.4],[1319,0.6],
+    [0,0.5]
+  ]
+};
+
+function playBGM(name){
+  if(audioMuted) {bgmCurrent = name; return;}
+  initAudio();
+  if(bgmCurrent === name && bgmTimer) return;
+  stopBGM();
+  bgmCurrent = name;
+  if(!BGM[name]) return;
+  var notes = BGM[name];
+  bgmIndex = 0;
+  
+  function step(){
+    if(bgmCurrent !== name) return;
+    if(audioMuted) {bgmTimer = setTimeout(step, 200); return;}
+    var n = notes[bgmIndex];
+    if(n[0] > 0){
+      playTone(n[0], n[1] * 0.85, 'square', 0.035);
+    }
+    bgmIndex = (bgmIndex + 1) % notes.length;
+    bgmTimer = setTimeout(step, n[1] * 1000);
+  }
+  step();
+}
+
+function stopBGM(){
+  if(bgmTimer){clearTimeout(bgmTimer);bgmTimer=null;}
+  bgmCurrent = null;
+}
+
+function toggleAudio(){
+  audioMuted = !audioMuted;
+  var btn = document.getElementById('audio-toggle');
+  if(audioMuted){
+    btn.classList.add('off');
+    btn.innerHTML = '\u266A<span class="lbl">OFF</span>';
+    stopBGM();
+  } else {
+    btn.classList.remove('off');
+    btn.innerHTML = '\u266A<span class="lbl">ON</span>';
+    initAudio();
+    // 現在の画面に応じてBGM再開
+    var current = document.querySelector('.screen.on');
+    if(current){
+      var id = current.id;
+      if(id === 's-map') playBGM('field');
+      else if(id === 's-story') playBGM('field');
+      else if(id === 's-boss') playBGM('boss');
+      else if(id === 's-battle') playBGM('battle');
+      else if(id === 's-clear') playBGM('victory');
+      else if(id === 's-open') playBGM('title');
+    }
+  }
+}
+
+var hero={lv:1,exp:0,hp:100,maxHp:100,atk:20,gender:'male',items:[]};
+
+/* ===== 章別テーマカラー（人体図ハイライト用） ===== */
+var CHAPTER_COLORS = {
+  heart:    '#F83800',  // 赤
+  lung:     '#50E0F8',  // 水色
+  brain:    '#7838F8',  // 紫
+  kidney:   '#00B800',  // 緑
+  gi:       '#F89018',  // オレンジ
+  endocrine:'#F8B800',  // 黄
+  blood:    '#C0184C',  // 深紅
+  immune:   '#B8F8FC',  // 薄シアン
+  senses:   '#F878F8',  // ピンク
+  final:    '#F8B800'   // 金
+};
+
+function updateBodyMap(){
+  Object.keys(CHAPTER_COLORS).forEach(function(chId){
+    var regions = document.querySelectorAll('.region-'+chId);
+    regions.forEach(function(r){
+      r.style.color = CHAPTER_COLORS[chId];
+      if(clearedChapters.indexOf(chId) !== -1){
+        r.classList.add('cleared');
+      } else {
+        r.classList.remove('cleared');
+      }
+    });
+  });
+  var prog = document.getElementById('body-progress');
+  if(prog) prog.textContent = clearedChapters.length;
+  var total = document.getElementById('body-total');
+  if(total) total.textContent = CHAPTERS.length;
+}
+
+/* ===== 性別選択 ===== */
+function showGenderSelect(){
+  document.getElementById('gender-select').classList.add('on');
+}
+
+function selectGender(gender){
+  initAudio();
+  playSE('select');
+  hero.gender = gender;
+  document.getElementById('gender-select').classList.remove('on');
+  applyGenderToBodyMap();
+  goMap();
+}
+
+function applyGenderToBodyMap(){
+  if(hero.gender === 'female'){
+    document.body.classList.add('gender-female');
+    document.body.classList.remove('gender-male');
+  } else {
+    document.body.classList.add('gender-male');
+    document.body.classList.remove('gender-female');
+  }
+}
+var expTable=[100,220,380,600,900,1300,1800,2500,3500];
+
+/* ===== 絵文字 → SVGスプライト マッピング ===== */
+var SPRITE_MAP={
+  // シーン人物・場所
+  '🏰':{id:'#px-castle-heart'},          // 🏰 心臓城
+  '👴':{id:'#px-doctor'},                // 👴 老医師
+  '👿':{id:'#px-boss1'},                 // 👿 不整脈デーモン
+  '🌫️':{id:'#px-mist'},          // 🌫️ 霧
+  '🌫':{id:'#px-mist'},                  // 🌫
+  '🧝\u200D\u2640️':{id:'#px-fairy'}, // 🧝‍♀️ 精霊
+  '🧝':{id:'#px-fairy'},                 // 🧝
+  '👾':{id:'#px-boss2'},                 // 👾 低酸素スライム
+  '🗼':{id:'#px-tower'},                 // 🗼 神経塔
+  '🤖':{id:'#px-robot'},                 // 🤖 ロボ
+  '😈':{id:'#px-boss3'},                 // 😈 混線デーモン
+  '🏞️':{id:'#px-lake'},          // 🏞️ 湖
+  '🏞':{id:'#px-lake'},                  // 🏞
+  '🧙\u200D\u2642️':{id:'#px-wizard'}, // 🧙‍♂️ 賢者
+  '🧙':{id:'#px-wizard'},                // 🧙
+  '💀':{id:'#px-boss4'},                 // 💀 高K⁺デーモン
+  '🏔️':{id:'#px-dark-castle'},   // 🏔️ 魔王城
+  '🏔':{id:'#px-dark-castle'},           // 🏔
+  '👑':{id:'#px-crown'},                 // 👑 王冠
+  '😱':{id:'#px-boss5'},                 // 😱 病魔大王
+  '🏆':{id:'#px-crown'},                 // 🏆
+  // 章クリア演出
+  '\u2764️':{id:'#px-heart'},            // ❤️
+  '\u2764':{id:'#px-heart'},                    // ❤
+  '🌬️':{id:'#px-mist'},          // 🌬️ 風
+  '🌬':{id:'#px-mist'},                  // 🌬
+  '\u26A1':{id:'#px-mob-bug-bolt',color:'#F8B800'}, // ⚡
+  '💧':{id:'#px-mob-slime2',color:'#0078F8'}, // 💧 水滴
+  // ザコモンスター
+  '🦠':{id:'#px-mob-virus',color:'#F878F8'}, // 🦠
+  '🩸':{id:'#px-mob-golem',color:'#F83800'}, // 🩸
+  '🪨':{id:'#px-mob-golem',color:'#888888'}, // 🪨
+  '💨':{id:'#px-mob-wind',color:'#50E0F8'},  // 💨
+  '🫧':{id:'#px-mob-slime2',color:'#50E0F8'},// 🫧
+  '😮\u200D💨':{id:'#px-mob-cloud',color:'#888888'},// 😮‍💨
+  '😮':{id:'#px-mob-cloud',color:'#888888'}, // 😮
+  '🧟':{id:'#px-mob-virus',color:'#00B800'}, // 🧟
+  '👻':{id:'#px-mob-ghost',color:'#FCFCFC'}, // 👻
+  '🌀':{id:'#px-mob-wind',color:'#7838F8'},  // 🌀
+  '🌊':{id:'#px-mob-slime2',color:'#0078F8'},// 🌊
+  '💊':{id:'#px-mob-potion',color:'#F878F8'},// 💊
+  '🧪':{id:'#px-mob-potion',color:'#00B800'},// 🧪
+  '\u2620️':{id:'#px-mob-ghost',color:'#00B800'},// ☠️
+  '\u2620':{id:'#px-mob-ghost',color:'#00B800'},    // ☠
+  '💢':{id:'#px-mob-golem',color:'#7838F8'}, // 💢
+  '🌑':{id:'#px-mob-dragon',color:'#181828'},// 🌑
+  '👁️':{id:'#px-mob-eye',color:'#F83800'}, // 👁️
+  '👁':{id:'#px-mob-eye',color:'#F83800'},   // 👁
+  // 第5〜9章追加分
+  '💩':{id:'#px-mob-ghost',color:'#A06030'}, // 💩 茶色のゴースト
+  '🦋':{id:'#px-mob-virus',color:'#F8B800'}, // 🦋 黄色の虫
+  '💉':{id:'#px-mob-potion',color:'#F83800'},// 💉 赤い薬瓶
+  '🍽️':{id:'#px-castle-heart'},      // 🍽️
+  '🍽':{id:'#px-castle-heart'}               // 🍽
+};
+
+function emojiToSprite(emoji){
+  if(!emoji)return '';
+  // 文字列の最初の「絵文字塊」を抽出（ZWJシーケンスや異体字セレクタを含めて）
+  var s=String(emoji).trim();
+  // マッピングテーブルから完全一致を探す（長い順に試す）
+  var keys=Object.keys(SPRITE_MAP).sort(function(a,b){return b.length-a.length;});
+  for(var i=0;i<keys.length;i++){
+    if(s.indexOf(keys[i])===0||s===keys[i]){
+      var sprite=SPRITE_MAP[keys[i]];
+      var color=sprite.color||'currentColor';
+      return '<svg style="color:'+color+'" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><use href="'+sprite.id+'"/></svg>';
+    }
+  }
+  // フォールバック：絵文字をそのまま表示
+  return '<span class="px-emoji-fb">'+s+'</span>';
+}
+var clearedChapters=[];
+var mistakes=[];
+var lastAnswerCorrect=false;
+
+/* ===== 復習ダンジョン管理 ===== */
+function addMistake(q,chapter){
+  // 同じ質問が既にあるか確認（質問テキストでマッチ）
+  var existing=mistakes.find(function(m){return m.q===q.q;});
+  if(existing){
+    existing.tries=(existing.tries||1)+1;
+    return;
+  }
+  // 出現させるモンスター情報も保存
+  var monsters=chapter.monsters||[];
+  var monIdx=Math.min(mistakes.length%5,monsters.length-1);
+  var monster=monsters[Math.max(0,monIdx)]||'';
+  mistakes.push({
+    q:q.q,
+    c:q.c.slice(),
+    a:q.a,
+    e:q.e,
+    chapterId:chapter.id,
+    chapterName:chapter.name,
+    monster:monster,
+    tries:1,
+    addedAt:new Date().toISOString()
+  });
+}
+
+function removeMistake(qText){
+  mistakes=mistakes.filter(function(m){return m.q!==qText;});
+}
+
+function shuffleMistakes(){
+  var a=mistakes.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+
+/* ===== セーブ／ロード ===== */
+/* ===== テーマ（デイ/ナイト）===== */
+var THEME_KEY = 'anatomyQuestTheme_v1';
+
+function loadTheme() {
+  var theme = 'night'; // デフォルトはナイト（元のデザイン）
+  try { theme = localStorage.getItem(THEME_KEY) || 'night'; } catch(e) {}
+  applyTheme(theme);
+}
+
+function applyTheme(theme) {
+  if (theme === 'day') {
+    document.body.classList.add('day');
+  } else {
+    document.body.classList.remove('day');
+  }
+  // 全トグルボタンのラベル・アイコンを更新
+  var isDay = theme === 'day';
+  var icon  = isDay ? '🌙' : '☀️';
+  var label = isDay ? 'ナイト' : 'デイ';
+  var labelFull = isDay ? 'ナイトモード' : 'デイモード';
+
+  var tIcon  = document.getElementById('title-theme-icon');
+  var tLabel = document.getElementById('title-theme-label');
+  var mIcon  = document.getElementById('map-theme-icon');
+  var mLabel = document.getElementById('map-theme-label');
+  if (tIcon)  tIcon.textContent  = icon;
+  if (tLabel) tLabel.textContent = labelFull;
+  if (mIcon)  mIcon.textContent  = icon;
+  if (mLabel) mLabel.textContent = label;
+}
+
+function toggleTheme() {
+  var isDay = document.body.classList.contains('day');
+  var next  = isDay ? 'night' : 'day';
+  applyTheme(next);
+  try { localStorage.setItem(THEME_KEY, next); } catch(e) {}
+}
+
+var SAVE_KEY='anatomyQuestSave_v1';
+
+function saveGame(showToast){
+  try{
+    var data={
+      hero:{lv:hero.lv,exp:hero.exp,hp:Math.max(1,hero.hp),maxHp:hero.maxHp,atk:hero.atk,gender:hero.gender,items:(hero.items||[]).slice()},
+      clearedChapters:clearedChapters.slice(),
+      mistakes:mistakes.slice(),
+      savedAt:new Date().toISOString()
+    };
+    localStorage.setItem(SAVE_KEY,JSON.stringify(data));
+    if(showToast){
+      playSE('save');
+      var t=document.getElementById('save-toast');
+      t.classList.add('on');
+      setTimeout(function(){t.classList.remove('on');},1500);
+    }
+  }catch(e){
+    console.warn('Save failed:',e);
+  }
+}
+
+function loadGame(){
+  try{
+    var raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return null;
+    var data=JSON.parse(raw);
+    if(data.hero){
+      hero.lv=data.hero.lv||1;
+      hero.exp=data.hero.exp||0;
+      hero.hp=data.hero.hp||100;
+      hero.maxHp=data.hero.maxHp||100;
+      hero.atk=data.hero.atk||(20+(hero.lv-1)*5); // 旧セーブ互換
+      hero.gender=data.hero.gender||'male';
+      hero.items=Array.isArray(data.hero.items)?data.hero.items:[];
+    }
+    if(Array.isArray(data.clearedChapters)){
+      clearedChapters=data.clearedChapters;
+    }
+    if(Array.isArray(data.mistakes)){
+      mistakes=data.mistakes;
+    }
+    return data;
+  }catch(e){
+    console.warn('Load failed:',e);
+    return null;
+  }
+}
+
+function hasSaveData(){
+  try{
+    var raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return false;
+    var d=JSON.parse(raw);
+    return !!(d&&d.hero&&(d.hero.lv>1||d.hero.exp>0||(d.clearedChapters&&d.clearedChapters.length>0)));
+  }catch(e){return false;}
+}
+
+/* ===== 戦闘アニメーション ===== */
+function playHeroAttack(onMidpoint, onComplete){
+  var heroWrap = document.getElementById('battle-hero-wrap');
+  heroWrap.style.animation = 'heroAttack 0.55s steps(8) forwards';
+  setTimeout(function(){
+    if(onMidpoint) onMidpoint();
+  }, 280);
+  setTimeout(function(){
+    heroWrap.style.animation = '';
+    if(onComplete) onComplete();
+  }, 560);
+}
+
+function playMonAttack(onMidpoint, onComplete){
+  var monWrap = document.getElementById('battle-mon-wrap');
+  monWrap.style.animation = 'monAttack 0.55s steps(8) forwards';
+  setTimeout(function(){
+    if(onMidpoint) onMidpoint();
+  }, 280);
+  setTimeout(function(){
+    monWrap.style.animation = '';
+    if(onComplete) onComplete();
+  }, 560);
+}
+
+function showMonDmg(text){
+  var el = document.getElementById('mon-dmg');
+  el.textContent = text;
+  el.classList.remove('on');
+  void el.offsetWidth; // reflow
+  el.classList.add('on');
+  setTimeout(function(){ el.classList.remove('on'); }, 900);
+}
+
+function showHeroDmg(text){
+  var el = document.getElementById('hero-dmg');
+  el.textContent = text;
+  el.classList.remove('on');
+  void el.offsetWidth;
+  el.classList.add('on');
+  setTimeout(function(){ el.classList.remove('on'); }, 900);
+}
+
+function flashMon(){
+  var monIco = document.getElementById('mon-ico');
+  monIco.style.animation = 'monHitFlash 0.4s steps(4)';
+  setTimeout(function(){ monIco.style.animation = ''; }, 400);
+}
+
+function flashHero(){
+  var heroSvg = document.getElementById('battle-hero-svg');
+  heroSvg.style.animation = 'heroHitFlash 0.4s steps(4)';
+  setTimeout(function(){ heroSvg.style.animation = ''; }, 400);
+}
+
+function applyHeroGender(){
+  var use = document.getElementById('battle-hero-use');
+  if(use){
+    use.setAttribute('href', hero.gender==='female' ? '#px-hero-female' : '#px-hero');
+  }
+}
+
+/* ===== カスタム確認ダイアログ ===== */
+function showConfirm(title, msg, onOk){
+  document.getElementById('px-confirm-title').textContent=title;
+  document.getElementById('px-confirm-msg').textContent=msg;
+  var okBtn=document.getElementById('px-confirm-ok');
+  okBtn.onclick=function(){
+    closeConfirm();
+    if(onOk)onOk();
+  };
+  document.getElementById('px-confirm-overlay').classList.add('on');
+}
+function closeConfirm(){
+  document.getElementById('px-confirm-overlay').classList.remove('on');
+}
+
+function resetGame(){
+  showConfirm(
+    'RESET',
+    'セーブデータを全て削除して\nさいしょから はじめますか？',
+    function(){
+      try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+      location.reload();
+    }
+  );
+}
+
+function newGame(){
+  showConfirm(
+    'NEW GAME',
+    'セーブデータを破棄して\nあたらしく はじめますか？',
+    function(){
+      try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+      hero={lv:1,exp:0,hp:100,maxHp:100,atk:20,gender:'male',items:[]};
+      clearedChapters=[];
+      mistakes=[];
+      showGenderSelect();
+    }
+  );
+}
+
+function continueGame(){
+  initAudio();
+  loadGame();
+  applyGenderToBodyMap();
+  goMap();
+}
+
+function formatSavedAt(iso){
+  try{
+    var d=new Date(iso);
+    var Y=d.getFullYear(),M=d.getMonth()+1,D=d.getDate();
+    var h=('0'+d.getHours()).slice(-2),m=('0'+d.getMinutes()).slice(-2);
+    return Y+'/'+M+'/'+D+' '+h+':'+m;
+  }catch(e){return '';}
+}
+
+function initOpening(){
+  var cont=document.getElementById('continue-btn');
+  var daily=document.getElementById('daily-btn');
+  var mapquick=document.getElementById('mapquick-btn');
+  var play=document.getElementById('playbtn');
+  var ng=document.getElementById('newgame-btn');
+  var info=document.getElementById('save-info');
+  if(hasSaveData()){
+    var d=null;
+    try{
+      var raw=localStorage.getItem(SAVE_KEY);
+      d=JSON.parse(raw);
+    }catch(e){
+      console.warn('Save data read failed:',e);
+    }
+    if(!d){d={hero:{lv:1,exp:0},clearedChapters:[],savedAt:null};}
+    cont.style.display='inline-block';
+    if(daily)daily.style.display='inline-block';
+    if(mapquick)mapquick.style.display='inline-block';
+    ng.style.display='inline-block';
+    play.style.display='none';
+    info.style.display='block';
+    info.innerHTML='SAVE DATA<br>LV.<span class="hi">'+d.hero.lv+'</span> / CLEAR <span class="hi">'+(d.clearedChapters?d.clearedChapters.length:0)+'/'+CHAPTERS.length+'</span><br>'+formatSavedAt(d.savedAt);
+  } else {
+    cont.style.display='none';
+    if(daily)daily.style.display='none';
+    if(mapquick)mapquick.style.display='none';
+    ng.style.display='none';
+    play.style.display='inline-block';
+    info.style.display='none';
+  }
+}
+
+var CHAPTERS=[
+  {
+    id:'heart',name:'第1章 心臓城の呪い',area:'❤️ 心臓城 — 循環器の大地',icon:'🏰',diff:'基礎',
+    scenes:[
+      {illust:'🏰',name:'心臓城',text:'旅人よ、ようこそ<span class="hi">心臓城</span>へ。\nかつてこの城は、休まず血液を全身へ送り続ける\n循環器の守護神「<span class="hi">心王コルダス</span>」が治めていた。\n\nしかし今、城は<span class="red">病魔「不整脈デーモン」</span>に支配され\n血液の流れが乱れ、民は苦しんでいる。'},
+      {illust:'👴',name:'老医師ガレン',text:'「若き勇者よ、聞いてくれ。\n心臓城を救うには<span class="hi">循環器の知識</span>で\n病魔の問いに正しく答えねばならぬ。\n\n心臓の構造、血液の流れ、弁の役割——\nそなたの知識が、この城を救う唯一の希望じゃ。」'},
+      {illust:'👿',name:'不整脈デーモン',text:'「<span class="red">クハハ！ 人間ごときに何ができる！</span>\n我は心臓のリズムを狂わせ、\n全身への血流を支配するデーモンよ！\n\n循環器の知識があるなら来い——\n<span class="red">答えを間違えるたびにHPを奪ってやろう！</span>」'}
+    ],
+    boss:{ico:'#px-boss1',name:'不整脈デーモン',desc:'心臓城を支配する<span class="red">循環器の守護者の敵</span>。\n心拍リズムを乱し、全身への血流を妨げる恐ろしき存在。\n<span class="red">循環器の知識</span>で正しく答え、デーモンを倒せ！'},
+    monsters:['🦠 房室ブロック虫','⚡ 心室細動スライム','🩸 血栓ゴーレム','🪨 動脈硬化オーガ','👿 不整脈デーモン（ボス）'],
+    clearStory:'<span class="hi">不整脈デーモン</span>は光の中に消えていった。\n心臓城の鐘が再び規則正しく鳴り響き、\n守護神「<span class="hi">心王コルダス</span>」の封印が解かれた。\n\n「勇者よ、ありがとう。だが人体王国にはまだ\n多くの守護神が封印されている。旅を続けてくれ。」',
+    clearIcon:'❤️',
+    bossQuestion:{q:"心室細動（VF）に対する救命処置として最も適切なのはどれか？",c:["経口アスピリン投与","電気的除細動","β遮断薬の静脈内投与","胸部温罨法"],a:1,e:"心室細動は心停止に直結する致死的不整脈で、電気的除細動（DC）が第一選択です。BLS/ACLSの基本です。"},
+    questionPool:[
+      {q:"左心室から送り出された血液が最初に通る血管はどれか？",c:["大静脈","肺動脈","大動脈","肺静脈"],a:2,e:"左心室は収縮すると大動脈へ血液を駆出します。肺動脈は右心室から肺へ向かう血管です。"},
+      {q:"心臓のペースメーカーとして最初に興奮する部位はどれか？",c:["房室結節","プルキンエ線維","洞房結節","ヒス束"],a:2,e:"洞房結節（SA node）は右心房にあり、正常な心拍リズムを作るペースメーカーです。"},
+      {q:"左心房と左心室の間にある弁はどれか？",c:["三尖弁","僧帽弁","肺動脈弁","大動脈弁"],a:1,e:"僧帽弁（二尖弁）は左心房と左心室の間で血液の逆流を防ぎます。"},
+      {q:"右心房と右心室の間にある弁はどれか？",c:["僧帽弁","三尖弁","大動脈弁","肺動脈弁"],a:1,e:"三尖弁は3枚の尖弁からなり、右心房と右心室の間にあります。"},
+      {q:"正常な成人の安静時心拍数はどれか？",c:["40〜60回/分","60〜100回/分","100〜120回/分","150回以上/分"],a:1,e:"正常成人の安静時心拍数は60〜100回/分です。"},
+      {q:"心臓に酸素と栄養を供給する血管はどれか？",c:["肺動脈","冠動脈","大静脈","肺静脈"],a:1,e:"冠動脈（右・左）は大動脈基部から分岐し、心筋に血液を供給します。"},
+      {q:"心電図のP波が表すのはどれか？",c:["心房の脱分極","心室の脱分極","心室の再分極","房室伝導遅延"],a:0,e:"P波は心房の脱分極を表します。心室の脱分極はQRS波、再分極はT波です。"},
+      {q:"心電図のQRS波が表すのはどれか？",c:["心房の脱分極","心室の脱分極","心室の再分極","洞房結節の興奮"],a:1,e:"QRS波は心室筋全体の脱分極を表します。"},
+      {q:"心電図のT波が表すのはどれか？",c:["心房の脱分極","心室の脱分極","心室の再分極","心房の再分極"],a:2,e:"T波は心室の再分極を表します。心房の再分極はQRS波に埋もれて通常見えません。"},
+      {q:"心拍出量（CO）の計算式として正しいのはどれか？",c:["1回拍出量×心拍数","平均血圧×心拍数","拡張期血圧×収縮期血圧","左室壁厚×心拍数"],a:0,e:"心拍出量＝1回拍出量（SV）×心拍数（HR）。安静時で約5L/分です。"},
+      {q:"急性心筋梗塞の診断で最も特異度の高いバイオマーカーはどれか？",c:["AST","CK-MB","心筋トロポニン","LDH"],a:2,e:"心筋トロポニン（T/I）は心筋特異的で、急性心筋梗塞の診断・モニタリングに必須のマーカーです。"},
+      {q:"第I心音（S1）の主な発生機序はどれか？",c:["大動脈弁・肺動脈弁の閉鎖","僧帽弁・三尖弁の閉鎖","僧帽弁・三尖弁の開放","大動脈弁の開放"],a:1,e:"S1は心室収縮開始時の房室弁（僧帽弁・三尖弁）の閉鎖音です。S2は半月弁（大動脈弁・肺動脈弁）の閉鎖音。"},
+      {q:"心房細動（Af）の典型的な心電図所見はどれか？",c:["規則正しいRR間隔とP波","RR間隔不整でP波消失・f波","明瞭なP波と規則的なQRS","ST上昇と異常Q波"],a:1,e:"心房細動はP波の消失、基線の細かいf波、絶対性不整脈（RR間隔バラバラ）が特徴です。"},
+      {q:"心房細動患者の脳梗塞予防に用いられる薬剤はどれか？",c:["利尿薬","抗凝固薬（DOAC・ワーファリン）","β遮断薬","ジギタリス"],a:1,e:"心房細動では左心耳に血栓ができやすく、脳塞栓症予防にDOACまたはワーファリンが用いられます。"},
+      {q:"安静時の冠動脈血流が最も多くなるのはどの時期か？",c:["心室収縮期","心室拡張期","心房収縮期","等容収縮期"],a:1,e:"左室壁圧の関係で、左冠動脈血流は拡張期に最も多くなります。"},
+      {q:"動脈硬化の主要な危険因子に含まれないのはどれか？",c:["高血圧","糖尿病","脂質異常症","低体重"],a:3,e:"動脈硬化の四大危険因子は高血圧・糖尿病・脂質異常症・喫煙。低体重はリスクではありません。"},
+      {q:"急性心筋梗塞でST上昇が前胸部誘導（V1〜V4）に見られる時、責任血管として最も疑われるのはどれか？",c:["右冠動脈","左前下行枝（LAD）","左回旋枝","左主幹部のみ"],a:1,e:"V1〜V4のST上昇は前壁梗塞を示唆し、左前下行枝の閉塞が最多です。"},
+      {q:"副交感神経（迷走神経）が心臓に及ぼす作用はどれか？",c:["心拍数増加","心拍数低下","心収縮力増強","房室伝導促進"],a:1,e:"副交感神経はM2受容体を介して心拍数を低下させ、房室伝導を抑制します。"},
+      {q:"交感神経が心臓に及ぼす作用はどれか？",c:["心拍数低下","房室伝導遅延","心収縮力増強","拡張期延長"],a:2,e:"交感神経はβ1受容体を介して心拍数増加・心収縮力増強・房室伝導促進をもたらします。"},
+      {q:"うっ血性心不全で利用される利尿薬として代表的なのはどれか？",c:["フロセミド","アセトアゾラミド","マンニトール","スピロノラクトン単剤"],a:0,e:"フロセミド（ループ利尿薬）はうっ血性心不全の急性期に第一選択として広く使われます。"},
+      {q:"血圧の計算式として正しいのはどれか？",c:["心拍出量×全末梢血管抵抗","1回拍出量÷心拍数","拡張期血圧−収縮期血圧","収縮期血圧×血管直径"],a:0,e:"平均動脈圧は概ね心拍出量×全末梢血管抵抗で表されます。これは循環生理の基本式です。"},
+      {q:"心エコーで評価する左室駆出率（LVEF）の正常下限として一般的なのはどれか？",c:["20%","35%","55%","75%"],a:2,e:"LVEFの正常値は55〜70%程度。40%以下を収縮機能低下、40〜49%を境界域とすることが多いです。"},
+      {q:"狭心症の典型的な発作の誘因として代表的なのはどれか？",c:["睡眠","身体労作","食前","深呼吸"],a:1,e:"労作性狭心症は身体労作（階段昇降など）で需要が増えた際に冠血流が追いつかず発作を起こします。"},
+      {q:"心室の前負荷を最もよく反映する指標はどれか？",c:["全末梢血管抵抗","左室拡張末期容量・圧","心拍数","収縮期血圧"],a:1,e:"前負荷は心室収縮直前の心室壁の伸展度であり、左室拡張末期容量・圧（LVEDV/LVEDP）で評価されます。"}
+    ]
+  },
+  {
+    id:'lung',name:'第2章 霧の肺葉迷宮',area:'🫁 肺葉迷宮 — 呼吸器の霧林',icon:'🌫️',diff:'標準',
+    scenes:[
+      {illust:'🌫️',name:'霧の肺葉迷宮',text:'心臓城を救った勇者よ、次の地は\n<span class="hi">霧に包まれた肺葉迷宮</span>。\n\nここは呼吸器の守護神「<span class="hi">息吹の女神アエラ</span>」が\n生命の息吹を管理していた神聖な場所。\nしかし今、迷宮は深い霧に閉ざされ\n<span class="red">病魔「低酸素スライム」</span>が支配している。'},
+      {illust:'🧝‍♀️',name:'精霊ニュームア',text:'「勇者よ、肺葉迷宮の霧は\n<span class="hi">酸素の知識</span>がなければ晴らせません。\n\n肺胞でのガス交換、ヘモグロビン、\n換気と血流のバランス——\nあなたの呼吸器の知識が\n女神アエラを解放する鍵です。」'},
+      {illust:'👾',name:'低酸素スライム',text:'「<span class="red">ゴォォ……ここを通りたければ\n呼吸器の知識を証明してみせろ。</span>\n\nPaO₂の正常値も知らぬ者に\nこの迷宮は踏破できぬ。\n<span class="red">答えを誤れば、霧がそなたを飲み込む！</span>」'}
+    ],
+    boss:{ico:'#px-boss2',name:'低酸素スライム王',desc:'肺葉迷宮を支配する<span class="red">呼吸器の敵</span>。\n酸素分圧を下げ、ガス交換を妨害する。\n<span class="red">呼吸生理の知識</span>で正しく答え、霧を晴らせ！'},
+    monsters:['💨 過換気スプライト','🫧 肺胞虚脱スライム','😮‍💨 CO₂デーモン','🌫️ 霧の精','👾 低酸素スライム王（ボス）'],
+    clearStory:'スライム王が溶けると、迷宮を覆っていた霧が\nゆっくりと晴れていった。\n\n「<span class="hi">息吹の女神アエラ</span>が目覚めた——\nありがとう、勇者よ。\nこの地に再び新鮮な空気が戻ってきた。」\n\n次の封印された守護神を求め、旅は続く。',
+    clearIcon:'🌬️',
+    bossQuestion:{q:"PaCO₂上昇＋pH低下を呈する典型的な酸塩基異常はどれか？",c:["代謝性アシドーシス","呼吸性アシドーシス","代謝性アルカローシス","呼吸性アルカローシス"],a:1,e:"換気不全によりCO₂が体内に貯留すると呼吸性アシドーシスとなります。COPD増悪、呼吸抑制などが代表例。"},
+    questionPool:[
+      {q:"ガス交換が行われる肺の構造はどれか？",c:["気管","気管支","肺胞","胸膜"],a:2,e:"肺胞は毛細血管と接してO₂とCO₂のガス交換を行います。成人の肺胞は約3億個です。"},
+      {q:"安静時呼吸の主要な吸気筋はどれか？",c:["外肋間筋","横隔膜","内肋間筋","腹直筋"],a:1,e:"横隔膜の収縮が安静時吸気の約70〜80%を担います。"},
+      {q:"動脈血酸素分圧（PaO₂）の正常値はどれか？",c:["40〜50mmHg","60〜70mmHg","80〜100mmHg","120〜150mmHg"],a:2,e:"健常成人のPaO₂正常値は80〜100mmHgです。60mmHg未満をI型呼吸不全の目安とします。"},
+      {q:"動脈血二酸化炭素分圧（PaCO₂）の正常値はどれか？",c:["20〜30mmHg","35〜45mmHg","50〜60mmHg","70〜80mmHg"],a:1,e:"PaCO₂正常値は35〜45mmHgで、肺胞換気量を反映します。"},
+      {q:"動脈血のpH正常値はどれか？",c:["7.20〜7.30","7.35〜7.45","7.50〜7.60","7.60〜7.70"],a:1,e:"動脈血pHの正常範囲は7.35〜7.45です。7.35未満をアシデミア、7.45超をアルカレミアと呼びます。"},
+      {q:"肺サーファクタントの主な役割はどれか？",c:["表面張力を高める","表面張力を低下させ肺胞虚脱を防ぐ","粘液分泌を促進","マクロファージを活性化"],a:1,e:"Ⅱ型肺胞上皮細胞が分泌するサーファクタントは表面張力を下げ、呼気時の肺胞虚脱を防ぎます。"},
+      {q:"肺サーファクタントを分泌するのはどれか？",c:["I型肺胞上皮細胞","II型肺胞上皮細胞","クララ細胞","肺胞マクロファージ"],a:1,e:"II型肺胞上皮細胞がサーファクタントを産生・分泌します。新生児呼吸窮迫症候群（RDS）はこの欠乏が原因。"},
+      {q:"換気/血流比（V/Q比）が低下するとどうなるか？",c:["高酸素血症","シャント様効果による低酸素血症","過換気","CO₂貯留のみ"],a:1,e:"V/Q比が低い領域では換気不足のため静脈血が酸素化されずに動脈系へ流れ込み、低酸素血症を生じます。"},
+      {q:"ヘモグロビンの酸素解離曲線が右方移動する条件はどれか？",c:["pH上昇","PaCO₂低下","体温低下","2,3-DPG増加"],a:3,e:"右方移動はO₂を組織へ放出しやすい状態。pH↓・PaCO₂↑・体温↑・2,3-DPG↑で起こります（ボーア効果）。"},
+      {q:"呼吸中枢が存在する部位はどれか？",c:["大脳皮質","中脳","延髄・橋","小脳"],a:2,e:"呼吸の基本リズムは延髄、調節は橋（呼吸調節中枢）が担います。"},
+      {q:"1秒率（FEV1.0/FVC）の正常下限はどれか？",c:["50%","60%","70%","85%"],a:2,e:"FEV1.0/FVCが70%未満を閉塞性換気障害の基準とします（COPDなど）。"},
+      {q:"閉塞性換気障害の代表的疾患はどれか？",c:["特発性肺線維症","COPD","重症筋無力症","胸膜炎"],a:1,e:"COPDは慢性気道閉塞による閉塞性障害。間質性肺炎・肺線維症は拘束性障害です。"},
+      {q:"拘束性換気障害の代表的疾患はどれか？",c:["気管支喘息","COPD","間質性肺炎","気管支拡張症"],a:2,e:"間質性肺炎・肺線維症は肺の伸展性低下による拘束性障害（%VC<80%）の代表例です。"},
+      {q:"安静時1回換気量（TV）として一般的な値はどれか？",c:["約100mL","約500mL","約1500mL","約3000mL"],a:1,e:"成人の安静時1回換気量は約500mL（6〜8mL/kg）です。"},
+      {q:"成人の解剖学的死腔として一般的な値はどれか？",c:["約50mL","約150mL","約500mL","約1000mL"],a:1,e:"気道の伝導部分（解剖学的死腔）は約150mL（2.2mL/kg）です。"},
+      {q:"血液中のCO₂が運搬される最も多い形態はどれか？",c:["溶解CO₂","重炭酸イオン（HCO₃⁻）","カルバミノヘモグロビン","炭酸"],a:1,e:"血液中CO₂の約70〜80%は赤血球でHCO₃⁻に変換され血漿で運搬されます。"},
+      {q:"過換気症候群で生じる典型的な酸塩基異常はどれか？",c:["代謝性アシドーシス","呼吸性アシドーシス","代謝性アルカローシス","呼吸性アルカローシス"],a:3,e:"過換気でCO₂排出が過剰となりpHが上昇 → 呼吸性アルカローシスを生じます。手指のしびれ、テタニーが特徴。"},
+      {q:"肺胞気酸素分圧（PAO₂）を概算する式に最も近いのはどれか？",c:["PAO₂ ≈ FiO₂×713 − PaCO₂/0.8","PAO₂ ≈ PaO₂×0.8","PAO₂ ≈ PaCO₂÷0.5","PAO₂ ≈ FiO₂×100"],a:0,e:"肺胞気式：PAO₂ = FiO₂×(大気圧−水蒸気圧47) − PaCO₂/R。一般的にA-aDO₂評価に用います。"},
+      {q:"COPDの最大の発症リスクはどれか？",c:["遺伝","受動喫煙のみ","喫煙","加齢のみ"],a:2,e:"COPDの最大のリスク因子は喫煙です。AAT欠乏症は若年発症の特殊型。"},
+      {q:"肺塞栓症で典型的な動脈血ガス所見はどれか？",c:["PaO₂低下＋PaCO₂低下","PaO₂低下＋PaCO₂上昇","PaO₂上昇＋PaCO₂上昇","PaO₂正常＋pH上昇のみ"],a:0,e:"急性肺塞栓症では換気・血流ミスマッチで低酸素血症、頻呼吸でCO₂は低下します。"},
+      {q:"気管支喘息の発作時、聴診で典型的に聴取されるのはどれか？",c:["捻髪音","水泡音","呼気性喘鳴（wheeze）","胸膜摩擦音"],a:2,e:"気管支喘息発作では呼気性喘鳴（笛様音、wheeze）が特徴です。"},
+      {q:"肺胞虚脱を起こしやすい条件はどれか？",c:["サーファクタント不足","換気量増加","PEEP増加","横隔膜運動増強"],a:0,e:"サーファクタント不足は表面張力増加を招き、肺胞虚脱（無気肺）の原因になります。"},
+      {q:"動脈血酸素飽和度（SaO₂）の臨床的下限の目安はどれか？",c:["約70%","約90%","約99%","約100%"],a:1,e:"SaO₂は通常95%以上が正常で、90%が呼吸不全の臨床的目安となります。"},
+      {q:"CO中毒の重症度評価で最も重要な指標はどれか？",c:["SpO₂","PaO₂","カルボキシヘモグロビン（COHb）濃度","BNP"],a:2,e:"パルスオキシメータはCOHbを酸素化Hbと区別できないため、COHb濃度の直接測定が必要です。"}
+    ]
+  },
+  {
+    id:'brain',name:'第3章 神経回路の塔',area:'🧠 神経回路の塔 — 神経系の頂',icon:'🗼',diff:'標準',
+    scenes:[
+      {illust:'🗼',name:'神経回路の塔',text:'霧が晴れた先に、空高くそびえる\n<span class="hi">神経回路の塔</span>が見えてきた。\n\nここは神経の守護神「<span class="hi">電光のニューロス</span>」が\n生命の信号を司っていた塔。\nしかし今、<span class="red">病魔「混線デーモン」</span>に侵食され\n神経の伝達はカオスとなっている。'},
+      {illust:'🤖',name:'守衛ロボ',text:'「ピピッ……勇者ヲ確認。\n<span class="hi">神経生理学のテスト</span>を実施スル。\n\n活動電位、シナプス伝達、神経伝達物質——\nこれらの問いに答えなければ\n塔の上層へは進めぬ。」'},
+      {illust:'😈',name:'混線デーモン',text:'「<span class="red">クククッ……神経の混線を楽しめ！</span>\nアセチルコリンも、ドパミンも、GABAも\n全てが乱れた塔へようこそ。\n\nそなたの<span class="red">神経の知識を試そう。</span>\nひとつでも誤れば、塔から落ちるぞ！」'}
+    ],
+    boss:{ico:'#px-boss3',name:'混線デーモン',desc:'神経回路の塔を支配する<span class="red">神経系の混乱者</span>。\n活動電位とシナプス伝達を妨害し、塔の信号を狂わせる。\n<span class="red">神経生理の知識</span>で混線を解け！'},
+    monsters:['⚡ 活動電位バグ','🧟 シナプス妨害虫','👻 BBBブレイカー','🌀 自律神経乱流','😈 混線デーモン（ボス）'],
+    clearStory:'混線デーモンが消滅すると、塔の信号が正常に戻り\n<span class="hi">電光のニューロス</span>が眠りから目覚めた。\n\n「勇者よ、神経の道は再び開かれた。\n人体王国の信号網はもう乱れない。\nだが、まだ守護神は残っている——」\n\n次なる地、腎臓湖を目指して旅は続く。',
+    clearIcon:'⚡',
+    bossQuestion:{q:"パーキンソン病で減少し、症状の主因となる神経伝達物質はどれか？",c:["セロトニン","ドパミン","GABA","ノルアドレナリン"],a:1,e:"黒質緻密部のドパミン神経細胞が変性・脱落し、線条体でのドパミンが減少します。L-DOPAが治療の基本。"},
+    questionPool:[
+      {q:"神経細胞の活動電位の脱分極相で主に流入するイオンはどれか？",c:["K⁺","Na⁺","Ca²⁺","Cl⁻"],a:1,e:"電位依存性Na⁺チャネルが開口し、Na⁺が細胞内へ流入することで脱分極が起こります。"},
+      {q:"活動電位の再分極相に関わる主なイオンの動きはどれか？",c:["Na⁺の流入","K⁺の流出","Cl⁻の流入","Ca²⁺の流入"],a:1,e:"電位依存性K⁺チャネルが開きK⁺が細胞外へ流出し再分極します。"},
+      {q:"静止膜電位を主に決定するイオンはどれか？",c:["Na⁺","K⁺","Ca²⁺","Cl⁻"],a:1,e:"静止時の膜はK⁺透過性が高く、K⁺の平衡電位（約-90mV）に近い値（約-70mV）になります。"},
+      {q:"神経筋接合部の主要な神経伝達物質はどれか？",c:["GABA","アセチルコリン","ドパミン","セロトニン"],a:1,e:"運動神経終末からアセチルコリンが放出され、骨格筋の終板のニコチン性受容体を刺激します。"},
+      {q:"中枢神経系で最も主要な抑制性神経伝達物質はどれか？",c:["グルタミン酸","アセチルコリン","GABA","ヒスタミン"],a:2,e:"GABA（γ-アミノ酪酸）はCl⁻チャネルを開き過分極させる、中枢の主要な抑制性伝達物質です。"},
+      {q:"中枢神経系で最も主要な興奮性神経伝達物質はどれか？",c:["GABA","グリシン","グルタミン酸","セロトニン"],a:2,e:"グルタミン酸はNMDA・AMPA受容体などを介する中枢の主要な興奮性伝達物質です。"},
+      {q:"交感神経の節後線維で主に分泌される神経伝達物質はどれか？",c:["アセチルコリン","ノルアドレナリン","ドパミン","セロトニン"],a:1,e:"交感神経の節後線維からはノルアドレナリンが分泌されます（汗腺は例外でACh）。"},
+      {q:"副交感神経の節後線維で分泌される神経伝達物質はどれか？",c:["ノルアドレナリン","アセチルコリン","ドパミン","GABA"],a:1,e:"副交感神経の節後線維はアセチルコリンを分泌し、ムスカリン受容体に作用します。"},
+      {q:"中枢神経で髄鞘を形成する細胞はどれか？",c:["シュワン細胞","オリゴデンドロサイト","アストロサイト","ミクログリア"],a:1,e:"中枢神経はオリゴデンドロサイト、末梢神経はシュワン細胞が髄鞘を形成します。"},
+      {q:"末梢神経で髄鞘を形成する細胞はどれか？",c:["オリゴデンドロサイト","シュワン細胞","アストロサイト","上衣細胞"],a:1,e:"末梢神経の髄鞘はシュワン細胞が形成。1個のシュワン細胞は1つの軸索のみを覆います。"},
+      {q:"有髄神経の伝導様式はどれか？",c:["連続伝導","跳躍伝導","双方向伝導のみ","連続的拡散"],a:1,e:"有髄神経ではランビエ絞輪間で活動電位が跳躍するため、伝導速度が著しく速くなります。"},
+      {q:"アルツハイマー病で減少することが知られる神経伝達物質はどれか？",c:["アセチルコリン","ドパミン","ノルアドレナリン","GABA"],a:0,e:"アルツハイマー病ではマイネルト基底核を起源とするコリン作動性神経が変性し、アセチルコリンが減少します。"},
+      {q:"統合失調症の陽性症状に関与するとされる神経伝達物質の過剰はどれか？",c:["セロトニン","アセチルコリン","ドパミン","GABA"],a:2,e:"中脳辺縁系のドパミン過剰が陽性症状（幻覚・妄想）に関与し、抗精神病薬（D2拮抗薬）が用いられます。"},
+      {q:"血液脳関門（BBB）を構成する主な細胞はどれか？",c:["神経細胞","脳血管内皮細胞","上衣細胞","末梢シュワン細胞"],a:1,e:"BBBは脳血管内皮細胞のタイトジャンクション・基底膜・アストロサイト終足から構成されます。"},
+      {q:"自律神経系の最高中枢が存在する部位はどれか？",c:["延髄","中脳","視床下部","小脳"],a:2,e:"視床下部は自律神経・内分泌・体温調節など多くの自律機能の最高中枢です。"},
+      {q:"運動野（一次運動野）が存在するのはどれか？",c:["前頭葉（中心前回）","頭頂葉（中心後回）","側頭葉","後頭葉"],a:0,e:"一次運動野は前頭葉の中心前回（Brodmann 4野）に存在します。"},
+      {q:"体性感覚野が存在するのはどれか？",c:["前頭葉","頭頂葉（中心後回）","側頭葉","後頭葉"],a:1,e:"一次体性感覚野は頭頂葉の中心後回（Brodmann 3,1,2野）に存在します。"},
+      {q:"視覚野が存在する大脳葉はどれか？",c:["前頭葉","頭頂葉","側頭葉","後頭葉"],a:3,e:"一次視覚野は後頭葉の鳥距溝周囲（Brodmann 17野）に存在します。"},
+      {q:"言語の表出に関わるブローカ野があるのはどれか？",c:["左前頭葉下部","左側頭葉","右前頭葉","右後頭葉"],a:0,e:"ブローカ野は通常左半球の前頭葉下部にあり、運動性言語中枢として働きます。損傷で運動性失語。"},
+      {q:"聴覚情報を処理するウェルニッケ野があるのはどれか？",c:["前頭葉","左側頭葉上部","右後頭葉","頭頂葉"],a:1,e:"ウェルニッケ野は左側頭葉上部（上側頭回後部）にあり、感覚性言語中枢です。損傷で感覚性失語。"},
+      {q:"小脳の主な機能はどれか？",c:["言語生成","運動の協調・平衡","視覚処理","情動の中枢"],a:1,e:"小脳は運動の協調、姿勢・平衡、運動学習に関与します。障害で失調症状が出ます。"},
+      {q:"単シナプス反射の代表例はどれか？",c:["膝蓋腱反射","屈曲逃避反射","咳反射","対光反射"],a:0,e:"膝蓋腱反射（伸張反射）はIa線維と運動神経が直接シナプスを作る単シナプス反射の代表です。"},
+      {q:"絶対不応期の意義として正しいのはどれか？",c:["伝導の速度を上げる","活動電位の一方向性伝導を保証する","脱分極を抑制する","シナプス可塑性を生む"],a:1,e:"不応期があるため逆行性伝導が起こらず、活動電位は一方向に伝導されます。"},
+      {q:"脳脊髄液（CSF）の主な産生部位はどれか？",c:["クモ膜顆粒","脈絡叢","硬膜","下垂体"],a:1,e:"CSFは側脳室・第三脳室・第四脳室の脈絡叢で産生され、クモ膜顆粒で吸収されます。"}
+    ]
+  },
+  {
+    id:'kidney',name:'第4章 腎臓湖の封印',area:'💧 腎臓湖 — 泌尿器の聖地',icon:'🏞️',diff:'応用',
+    scenes:[
+      {illust:'🏞️',name:'腎臓湖',text:'塔を抜けた勇者の前に広がるのは\n清らかな<span class="hi">腎臓湖</span>。\n\nここは腎の守護神「<span class="hi">水使いネフロン</span>」が\n体液バランスを管理していた聖地。\nしかし今、<span class="red">病魔「高K⁺デーモン」</span>によって\n湖の浄化機能が停止している。'},
+      {illust:'🧙‍♂️',name:'賢者アルドス',text:'「勇者よ、腎臓湖の浄化を取り戻すには\n<span class="hi">腎生理の深い理解</span>が必要じゃ。\n\nGFR、ろ過、再吸収、ホルモン調節、電解質——\nこれらすべてが絡み合い湖の働きを支えておる。\n答えを誤れば、毒素が体を蝕むぞ。」'},
+      {illust:'💀',name:'高K⁺デーモン',text:'「<span class="red">フフフ……K⁺は静かなる暗殺者。</span>\n血中濃度が上がれば、\nそなたの心臓は止まる。\n\nアルドステロン、ADH、RAAS——\n知らぬ者に湖を救うことはできぬ！」'}
+    ],
+    boss:{ico:'#px-boss4',name:'高K⁺デーモン',desc:'腎臓湖を支配する<span class="red">電解質バランスの破壊者</span>。\n血中K⁺濃度を上げ、心臓を脅かす。\n<span class="red">腎・電解質の知識</span>で湖を浄化せよ！'},
+    monsters:['🌊 ろ過障害スライム','💊 電解質乱流','🧪 アルドステロン憑き','☠️ 尿毒症ゴースト','💀 高K⁺デーモン（ボス）'],
+    clearStory:'高K⁺デーモンが浄化されると、湖は再び透明な水を取り戻し\n<span class="hi">水使いネフロン</span>が湖底から姿を現した。\n\n「勇者よ、ありがとう。\n体液の聖地はもう汚されない。\n人体王国の浄化システムは復活した。」\n\nだが、人体王国にはまだ多くの病魔が潜む。\n旅は続く——次なる地へ向かおう。',
+    clearIcon:'💧',
+    bossQuestion:{q:"高K⁺血症で心電図上見られる典型的な所見はどれか？",c:["ST下降","テント状T波","u波出現","延長したQT間隔のみ"],a:1,e:"高K⁺血症ではテント状T波（高く尖ったT波）が早期所見。さらに進行するとQRS幅広・正弦波様→心停止に至ります。"},
+    questionPool:[
+      {q:"腎臓の機能的構造単位はどれか？",c:["糸球体","ネフロン","集合管","尿細管"],a:1,e:"ネフロン（糸球体＋尿細管）が腎臓の機能単位で、片腎に約100万個存在します。"},
+      {q:"健常成人の糸球体ろ過量（GFR）の目安はどれか？",c:["約20mL/分","約60mL/分","約100mL/分","約300mL/分"],a:2,e:"健常成人のGFRは約100mL/分（約180L/日）です。eGFR<60mL/分/1.73m²がCKDの目安。"},
+      {q:"GFRの測定の指標として理論的に最適とされる物質はどれか？",c:["クレアチニン","イヌリン","尿素窒素","アルブミン"],a:1,e:"イヌリンは糸球体で完全にろ過され、尿細管で分泌・再吸収されないためGFR測定の標準です。臨床では簡便なクレアチニンを用います。"},
+      {q:"近位尿細管で再吸収されるNa⁺の割合に最も近いのはどれか？",c:["約5%","約25%","約65%","約95%"],a:2,e:"近位尿細管はろ過されたNa⁺の約65%を再吸収する最大の再吸収部位です。"},
+      {q:"アルドステロンの主な作用部位と作用はどれか？",c:["近位尿細管：Na⁺再吸収","ヘンレループ：Cl⁻分泌","集合管：Na⁺再吸収・K⁺排泄","糸球体：ろ過促進"],a:2,e:"アルドステロンは集合管（主細胞）でNa⁺再吸収とK⁺・H⁺排泄を促進します。"},
+      {q:"抗利尿ホルモン（ADH/バソプレシン）の主な作用部位はどれか？",c:["糸球体","近位尿細管","ヘンレループ下行脚","集合管"],a:3,e:"ADHは集合管にアクアポリン2を発現させ、水の再吸収を促進します。"},
+      {q:"ADH分泌を促進する刺激はどれか？",c:["血漿浸透圧低下","循環血漿量低下","低体温","脱水以外の運動"],a:1,e:"血漿浸透圧上昇または循環血漿量低下（圧受容器）でADH分泌が刺激されます。"},
+      {q:"ループ利尿薬（フロセミド）の主な作用部位はどれか？",c:["近位尿細管","ヘンレループ太い上行脚","遠位尿細管","集合管"],a:1,e:"フロセミドはヘンレループ太い上行脚のNa⁺/K⁺/2Cl⁻共輸送体（NKCC2）を阻害します。"},
+      {q:"サイアザイド系利尿薬の主な作用部位はどれか？",c:["近位尿細管","ヘンレループ","遠位尿細管","集合管"],a:2,e:"サイアザイドは遠位尿細管のNa⁺/Cl⁻共輸送体を阻害します。降圧薬としても重要。"},
+      {q:"スピロノラクトンの主な作用機序はどれか？",c:["NKCC2阻害","Na⁺/Cl⁻共輸送体阻害","アルドステロン受容体拮抗","炭酸脱水酵素阻害"],a:2,e:"スピロノラクトンは集合管でアルドステロン受容体を拮抗し、Na⁺再吸収抑制とK⁺保持作用をもたらします。"},
+      {q:"レニン-アンギオテンシン-アルドステロン系（RAAS）を活性化する刺激はどれか？",c:["血圧上昇","循環血漿量低下","高Na⁺血症","浮腫の改善"],a:1,e:"循環血漿量低下や腎血流低下が傍糸球体細胞のレニン分泌を刺激しRAASが活性化します。"},
+      {q:"腎臓で産生されるホルモンはどれか？",c:["インスリン","エリスロポエチン","ガストリン","コルチゾール"],a:1,e:"腎臓は エリスロポエチン・活性型ビタミンD（1,25-(OH)₂D）・レニン を産生します。"},
+      {q:"活性型ビタミンDの代謝で腎臓が担う反応はどれか？",c:["7-デヒドロコレステロールの紫外線変換","25位水酸化","1α位水酸化","脱水酸化"],a:2,e:"腎の近位尿細管で1α-水酸化酵素により1,25-(OH)₂D（活性型）が生成されます。肝で25位水酸化。"},
+      {q:"健常人の1日尿蛋白量の上限の目安はどれか？",c:["50mg","150mg","500mg","1500mg"],a:1,e:"健常人は1日150mg未満。蛋白尿の基準を超えると腎疾患を疑います。"},
+      {q:"ネフローゼ症候群の四徴に含まれないのはどれか？",c:["高度蛋白尿","低アルブミン血症","浮腫","高血糖"],a:3,e:"ネフローゼ症候群の四徴は ①高度蛋白尿（3.5g/日以上） ②低アルブミン血症 ③浮腫 ④脂質異常症 です。"},
+      {q:"急性腎障害（AKI）の腎前性原因の代表はどれか？",c:["急性尿細管壊死","糸球体腎炎","脱水・出血による循環血漿量減少","尿管結石による閉塞"],a:2,e:"腎前性AKIは腎血流低下が原因で、脱水・出血・心不全などで起こります。早期改善で可逆的。"},
+      {q:"急性腎障害（AKI）の腎性原因の代表はどれか？",c:["心不全","急性尿細管壊死","前立腺肥大","尿管結石"],a:1,e:"急性尿細管壊死（ATN）は腎性AKIの最多原因。虚血や腎毒性物質によって起こります。"},
+      {q:"急性腎障害（AKI）の腎後性原因はどれか？",c:["心不全","糸球体腎炎","尿路閉塞","急性尿細管壊死"],a:2,e:"腎後性AKIは尿路閉塞（前立腺肥大・尿管結石・腫瘍など）が原因です。"},
+      {q:"慢性腎臓病（CKD）でみられる代表的な電解質異常の組み合わせはどれか？",c:["低K⁺・低P血症","高K⁺・高P・低Ca血症","高Na⁺・低Cl血症","低Na⁺・低K⁺血症"],a:1,e:"CKDでは排泄低下から高K⁺・高Pとなり、活性型VitD低下から低Caが進行します。"},
+      {q:"高K⁺血症の緊急治療で最も迅速に心筋を保護するのはどれか？",c:["インスリン+ブドウ糖","重炭酸投与","カルシウム製剤の静注","陽イオン交換樹脂内服"],a:2,e:"カルシウム製剤は心筋の興奮性を直接安定化させ、心電図異常を即座に改善します（K⁺自体は下げない）。"},
+      {q:"代謝性アシドーシスの腎による代償機序はどれか？",c:["過換気でPaCO₂低下","HCO₃⁻再吸収増加・H⁺排泄増加","ADH分泌減少","Na⁺再吸収抑制"],a:1,e:"腎は近位でHCO₃⁻再吸収を増やし、遠位でH⁺排泄（NH₄⁺・滴定酸）を増やしてpHを補正します。"},
+      {q:"アニオンギャップ（AG）開大型代謝性アシドーシスの典型的原因はどれか？",c:["下痢","尿細管性アシドーシス","糖尿病性ケトアシドーシス","アルドステロン過剰"],a:2,e:"AG開大の代表的原因はMUDPILES（メタノール、尿毒症、DKA、ラクトアシドーシスなど）です。"},
+      {q:"原発性アルドステロン症で典型的に見られる電解質異常はどれか？",c:["低K⁺・代謝性アルカローシス","高K⁺・代謝性アシドーシス","低Na⁺・低K⁺","高Ca・低P"],a:0,e:"アルドステロン過剰でNa⁺再吸収↑K⁺・H⁺排泄↑となり、低K⁺血症と代謝性アルカローシスを生じます。"},
+      {q:"血液透析の緊急適応として最も重要なのはどれか？",c:["軽度高K⁺血症","治療抵抗性高K⁺血症・尿毒症・体液過剰","軽度の浮腫","食欲低下"],a:1,e:"血液透析の緊急適応は AIUEO（Acidosis, Intoxication, Uremia, Electrolyte, Overload）と覚えます。"}
+    ]
+  },
+  {
+    id:'gi',name:'第5章 消化王国の試練',area:'🍽️ 消化王国 — 食物の旅路',icon:'🏰',diff:'標準',
+    scenes:[
+      {illust:'🏰',name:'消化王国',text:'勇者よ、次の地は<span class="hi">消化王国</span>。\nここは食物がエネルギーへと姿を変える\n生命の道筋。\n\n王国の守護神「<span class="hi">料理長グルメス</span>」が\n消化と吸収を司っていたが、今は\n<span class="red">病魔「胆石ドラゴン」</span>に囚われている。'},
+      {illust:'👴',name:'見習い料理人ジン',text:'「勇者よ、お願いだ！\n師匠の<span class="hi">料理長グルメス</span>がドラゴンに囚われ\n王国の消化機能が停止している。\n\n胃酸、ペプシン、ガストリン、CCK、\n膵液、胆汁、肝代謝——\n師匠を救うため、消化生理の知識で\nどうか胆石ドラゴンを倒してくれ。」'},
+      {illust:'👿',name:'胆石ドラゴン',text:'「<span class="red">グォォォ……胆道を塞ぎ、\n胆汁を堰き止めた我に勝てるか？</span>\n\n肝臓・胆嚢・膵臓の知識なくして\nこの王国を解放することはできぬ！\n<span class="red">食物の旅路で立ち向かえ！</span>」'}
+    ],
+    boss:{ico:'#px-boss4',name:'胆石ドラゴン',desc:'消化王国を支配する<span class="red">肝胆膵の破壊者</span>。\n胆道を塞ぎ、消化と代謝を妨害する。\n<span class="red">消化器系の知識</span>でドラゴンを倒せ！'},
+    monsters:['🦠 胃酸過多バグ','💊 消化酵素ピル','🧟 肝細胞ヴァンパイア','💩 腸内乱菌','👿 胆石ドラゴン（ボス）'],
+    clearStory:'胆石ドラゴンが砕け散ると、胆汁の流れが回復し\n封印を解かれた<span class="hi">料理長グルメス</span>が再び厨房に戻った。\n\n「ありがとう勇者よ。\n消化王国の食物の旅路は再び動き出した。\n生命のエネルギーは、ここから生まれるのじゃ。」',
+    clearIcon:'🍽️',
+    bossQuestion:{q:"コレシストキニン（CCK）の主な作用として正しいのはどれか？",c:["胃酸分泌の抑制のみ","胆嚢収縮と膵酵素分泌促進","インスリン分泌のみ","唾液分泌のみ"],a:1,e:"CCKは十二指腸I細胞から分泌され、胆嚢を収縮させて胆汁排出、膵腺房細胞を刺激して膵消化酵素を分泌させます。"},
+    questionPool:[
+      {q:"胃酸（HCl）を分泌する胃の細胞はどれか？",c:["主細胞","壁細胞（旁細胞）","副細胞","G細胞"],a:1,e:"壁細胞（旁細胞）はH⁺/K⁺-ATPaseを介してHClを分泌します。プロトンポンプ阻害薬（PPI）はここに作用します。"},
+      {q:"ペプシノゲンを分泌する胃の細胞はどれか？",c:["壁細胞","主細胞","G細胞","ECL細胞"],a:1,e:"主細胞はペプシノゲンを分泌し、胃酸により活性型ペプシンに変換され蛋白質分解を開始します。"},
+      {q:"内因子（intrinsic factor）を分泌するのはどれか？",c:["主細胞","壁細胞","G細胞","副細胞"],a:1,e:"内因子は壁細胞から分泌され、ビタミンB12と結合して回腸末端での吸収を助けます。萎縮性胃炎では悪性貧血を生じます。"},
+      {q:"ガストリンを分泌する細胞はどれか？",c:["胃幽門部のG細胞","十二指腸S細胞","膵β細胞","小腸L細胞"],a:0,e:"ガストリンは胃幽門部のG細胞から分泌され、壁細胞に作用して胃酸分泌を促進します。"},
+      {q:"セクレチンの主な作用はどれか？",c:["胃酸分泌促進","膵液（HCO₃⁻）分泌促進","胆嚢収縮","唾液分泌促進"],a:1,e:"セクレチンは十二指腸S細胞から酸性内容物刺激で分泌され、膵から重炭酸を含む膵液を分泌させて中和します。"},
+      {q:"胆汁を生成するのはどれか？",c:["胆嚢","肝細胞","膵臓","脾臓"],a:1,e:"胆汁は肝細胞で生成され、胆管→胆嚢で濃縮・貯蔵されます。脂質乳化が主な役割です。"},
+      {q:"胆嚢の主な機能はどれか？",c:["胆汁の生成","胆汁の濃縮・貯蔵","インスリン分泌","アンモニア処理"],a:1,e:"胆嚢は肝臓で作られた胆汁を貯蔵・濃縮し、食事時にCCK刺激で収縮して十二指腸へ排出します。"},
+      {q:"胆汁中に含まれる主成分でないのはどれか？",c:["胆汁酸","ビリルビン","コレステロール","アミラーゼ"],a:3,e:"胆汁の主成分は胆汁酸・コレステロール・ビリルビン・リン脂質。アミラーゼは膵液・唾液の消化酵素です。"},
+      {q:"膵α細胞が分泌するホルモンはどれか？",c:["インスリン","グルカゴン","ソマトスタチン","ガストリン"],a:1,e:"膵ランゲルハンス島のα細胞はグルカゴンを分泌し、肝の糖新生・グリコーゲン分解を促進して血糖を上昇させます。"},
+      {q:"膵β細胞が分泌するホルモンはどれか？",c:["グルカゴン","インスリン","ソマトスタチン","コルチゾール"],a:1,e:"膵β細胞はインスリンを分泌し、骨格筋・脂肪組織への糖取り込み、肝のグリコーゲン合成を促進します。"},
+      {q:"食物の主な消化吸収の場はどれか？",c:["胃","小腸","大腸","食道"],a:1,e:"小腸（特に空腸）は絨毛で表面積が広く、糖・アミノ酸・脂質などほとんどの栄養素を吸収します。"},
+      {q:"大腸の主な機能はどれか？",c:["蛋白質の消化","水分・電解質の吸収","脂質の消化","ビタミン類の生成のみ"],a:1,e:"大腸は水分・電解質を吸収し、便を形成します。腸内細菌によるビタミンK合成も行います。"},
+      {q:"肝臓の主な代謝機能でないのはどれか？",c:["糖新生","アンモニアの尿素化","解毒","エリスロポエチン産生"],a:3,e:"エリスロポエチン産生は腎臓の機能です。肝臓は糖新生・尿素サイクル・薬物代謝・蛋白合成を担います。"},
+      {q:"間接ビリルビンと直接ビリルビンの違いとして正しいのはどれか？",c:["直接ビリルビンは脂溶性","間接ビリルビンはグルクロン酸抱合済","直接ビリルビンはグルクロン酸抱合済","両者に違いはない"],a:2,e:"肝細胞でグルクロン酸抱合された後（水溶性）が直接ビリルビン、抱合前が間接ビリルビンです。"},
+      {q:"閉塞性黄疸で増加する主なビリルビンはどれか？",c:["間接ビリルビン","直接ビリルビン","ハプトグロビン","アルブミン"],a:1,e:"胆道閉塞では肝で抱合された直接ビリルビン（水溶性）が血中に逆流して上昇します。尿中ビリルビン陽性。"},
+      {q:"食道下部括約筋（LES）の弛緩異常で生じる疾患はどれか？",c:["GERD（胃食道逆流症）","アカラシア","食道癌","食道憩室"],a:1,e:"アカラシアは下部食道括約筋の弛緩不全により食物が胃へ通過できなくなる疾患です。"},
+      {q:"嚥下の3相に含まれないのはどれか？",c:["口腔相","咽頭相","食道相","胃相"],a:3,e:"嚥下は ①口腔相（随意） ②咽頭相（反射） ③食道相（蠕動）の3相です。胃相はガストリン分泌の段階。"},
+      {q:"急性膵炎の代表的な血液検査所見はどれか？",c:["AST↑のみ","アミラーゼ・リパーゼ上昇","ALPのみ上昇","BUNのみ上昇"],a:1,e:"急性膵炎では膵腺房細胞が障害されアミラーゼ・リパーゼが血中に上昇します。リパーゼの方が特異性高い。"},
+      {q:"肝硬変による門脈圧亢進症の合併症で典型的なのはどれか？",c:["食道静脈瘤・腹水","膵石灰化","胆嚢腺筋症","胃ポリープ"],a:0,e:"門脈圧亢進では側副血行路（食道静脈瘤）形成、腹水貯留、脾腫が三大徴候です。"},
+      {q:"ビタミンB12欠乏で生じる典型的な貧血はどれか？",c:["小球性低色素性貧血","巨赤芽球性貧血","溶血性貧血","再生不良性貧血"],a:1,e:"VitB12欠乏ではDNA合成障害により赤芽球が巨大化し、巨赤芽球性貧血となります。萎縮性胃炎で生じる。"},
+      {q:"小腸絨毛のリンパ管（中心リンパ管）が主に吸収するのはどれか？",c:["単糖類","アミノ酸","長鎖脂肪酸（カイロミクロン）","水"],a:2,e:"長鎖脂肪酸はカイロミクロンとして中心リンパ管（乳び管）から胸管経由で全身循環へ入ります。"},
+      {q:"胆汁酸の主な役割はどれか？",c:["蛋白質の消化","脂質の乳化","糖の分解","ビタミンB12吸収"],a:1,e:"胆汁酸は両親媒性で脂肪を乳化（ミセル化）し、リパーゼによる消化と吸収を助けます。"},
+      {q:"消化管ホルモンであるソマトスタチンの作用として正しいのはどれか？",c:["消化管ホルモン分泌の促進","消化管ホルモン分泌の抑制","胃酸分泌促進","インスリン分泌促進"],a:1,e:"膵δ細胞や消化管D細胞が分泌するソマトスタチンは、ガストリン・セクレチン・インスリン等の分泌を抑制します。"},
+      {q:"ヘリコバクター・ピロリ菌感染と関連が深い疾患はどれか？",c:["クローン病","胃癌・胃十二指腸潰瘍","急性膵炎","逆流性食道炎"],a:1,e:"ヘリコバクター・ピロリは胃十二指腸潰瘍・慢性胃炎・胃癌・MALTリンパ腫の原因として確立しています。"}
+    ]
+  },
+  {
+    id:'endocrine',name:'第6章 内分泌神殿の謎',area:'⛩️ 内分泌神殿 — ホルモンの調和',icon:'🗼',diff:'応用',
+    scenes:[
+      {illust:'🗼',name:'内分泌神殿',text:'消化王国を抜けた勇者の前に\n荘厳な<span class="hi">内分泌神殿</span>が現れた。\n\nここはホルモンの守護神「<span class="hi">神官ホルモナ</span>」が\n体の調和を司っていた神聖な場所。\nしかし今、<span class="red">病魔「ホルモン乱舞神」</span>に侵食され\n王国全体のバランスが崩れている。'},
+      {illust:'🧝‍♀️',name:'巫女アンナ',text:'「勇者よ、お願いします！\n師である<span class="hi">神官ホルモナ</span>が囚われ\n神殿の調和が崩れています。\n\n下垂体、甲状腺、副腎、膵島——\nそれぞれが微妙なフィードバックで\n体の恒常性を保っています。\nどうか師を救ってください。」'},
+      {illust:'😈',name:'ホルモン乱舞神',text:'「<span class="red">フハハ……ホルモンを乱して\n貴様の体を支配してやろう！</span>\n\n甲状腺、副腎、糖代謝……\n知らずして我に勝てるはずがない！\n<span class="red">フィードバック制御の知識を試そう！</span>」'}
+    ],
+    boss:{ico:'#px-boss2',name:'ホルモン乱舞神',desc:'内分泌神殿を支配する<span class="red">ホルモン制御の破壊者</span>。\n下垂体・甲状腺・副腎・膵島のバランスを乱す。\n<span class="red">内分泌の知識</span>で調和を取り戻せ！'},
+    monsters:['🦋 甲状腺亢進虫','☠️ 副腎危機ゴースト','💊 糖尿魔王','🌀 下垂体悪魔','😈 ホルモン乱舞神（ボス）'],
+    clearStory:'ホルモン乱舞神が消滅すると、神殿に再び調和の光が戻り\n封印を解かれた<span class="hi">神官ホルモナ</span>が祈りを再開した。\n\n「勇者、感謝します。\n体の恒常性は、こうした繊細な制御によって\n保たれているのです。次の地もまた、お気をつけて。」',
+    clearIcon:'⛩️',
+    bossQuestion:{q:"糖尿病の診断基準で最も標準的なHbA1cの値はどれか？（NGSP値）",c:["5.5%以上","6.5%以上","7.5%以上","8.5%以上"],a:1,e:"HbA1c 6.5%以上で糖尿病型と判定されます。空腹時血糖126mg/dL以上、随時血糖200以上、OGTT2h血糖200以上のいずれかと組合せて診断。"},
+    questionPool:[
+      {q:"下垂体前葉から分泌されないホルモンはどれか？",c:["ACTH","成長ホルモン","抗利尿ホルモン（ADH）","プロラクチン"],a:2,e:"ADHは下垂体後葉から分泌されます。前葉ホルモンはACTH/TSH/GH/LH/FSH/PRLの6つ。"},
+      {q:"下垂体後葉から分泌されるホルモンはどれか？",c:["TSH","GH","ADH（バソプレシン）","ACTH"],a:2,e:"下垂体後葉はADH（バソプレシン）とオキシトシンを分泌します（視床下部で合成→後葉で貯蔵・分泌）。"},
+      {q:"抗利尿ホルモン（ADH）の主な作用部位はどれか？",c:["糸球体","近位尿細管","ヘンレループ","集合管"],a:3,e:"ADHは集合管にアクアポリン2を発現させ水の再吸収を促進し、尿を濃縮します。"},
+      {q:"甲状腺ホルモン（T3, T4）の作用として正しいのはどれか？",c:["基礎代謝の低下","基礎代謝の亢進","Ca濃度の低下","血糖の低下"],a:1,e:"甲状腺ホルモンは全身の代謝を亢進させ、心拍数・体温・酸素消費を増加させます。"},
+      {q:"バセドウ病で陽性となる代表的な自己抗体はどれか？",c:["抗TSH受容体抗体（TRAb）","抗ds-DNA抗体","リウマトイド因子","抗ミトコンドリア抗体"],a:0,e:"バセドウ病はTSH受容体に対する刺激抗体（TRAb）により甲状腺が持続的に刺激され、機能亢進症をきたします。"},
+      {q:"副甲状腺ホルモン（PTH）の主な作用はどれか？",c:["血中Ca濃度の低下","血中Ca濃度の上昇","血糖低下","水再吸収促進"],a:1,e:"PTHは骨吸収促進・腎尿細管でのCa再吸収増・活性型VitD産生を介して血中Caを上昇させます。"},
+      {q:"カルシトニンの作用として正しいのはどれか？",c:["血中Ca濃度を上昇させる","血中Ca濃度を低下させる","骨吸収を促進する","腎でCa再吸収を促進する"],a:1,e:"カルシトニンは甲状腺C細胞から分泌され、破骨細胞抑制・骨吸収抑制によって血中Caを低下させます。"},
+      {q:"副腎皮質球状帯から主に分泌されるのはどれか？",c:["コルチゾール","アルドステロン","アンドロゲン","アドレナリン"],a:1,e:"副腎皮質は外側から球状帯（鉱質コルチコイド：アルドステロン）・束状帯（糖質：コルチゾール）・網状帯（性ホルモン）の3層。"},
+      {q:"副腎皮質束状帯から主に分泌されるのはどれか？",c:["アルドステロン","コルチゾール","アドレナリン","アンドロゲン"],a:1,e:"束状帯はコルチゾールを分泌。糖新生促進・抗炎症・免疫抑制作用などを持ちます。"},
+      {q:"副腎髄質から分泌される主なホルモンはどれか？",c:["コルチゾール・アルドステロン","アドレナリン・ノルアドレナリン","インスリン・グルカゴン","T3・T4"],a:1,e:"副腎髄質はクロム親和性細胞からカテコラミン（アドレナリン:80%、ノルアドレナリン:20%）を分泌します。"},
+      {q:"クッシング症候群の典型的所見でないのはどれか？",c:["中心性肥満","満月様顔貌","低血糖","皮膚線条"],a:2,e:"コルチゾール過剰では糖新生が亢進し高血糖をきたします（低血糖はアジソン病・副腎不全の特徴）。"},
+      {q:"アジソン病（原発性副腎不全）の典型的所見はどれか？",c:["高血糖・高血圧","低血糖・低血圧・色素沈着","高Na・低K","満月様顔貌"],a:1,e:"コルチゾール・アルドステロン低下により低血糖・低Na・高K・低血圧をきたします。ACTH↑によりMSH様作用で色素沈着。"},
+      {q:"インスリンの作用として正しいのはどれか？",c:["糖新生の促進","骨格筋へのGLUT4介在性糖取込促進","脂肪分解の促進","ケトン体産生促進"],a:1,e:"インスリンは骨格筋・脂肪組織へのGLUT4を介した糖取り込みを促進し、グリコーゲン合成・脂肪合成を促進します。"},
+      {q:"グルカゴンの作用として正しいのはどれか？",c:["肝での糖新生・グリコーゲン分解促進","インスリン分泌の抑制のみ","脂肪合成促進","水再吸収促進"],a:0,e:"グルカゴンは肝臓に作用し、糖新生・グリコーゲン分解を促進して血糖を上昇させる。低血糖時の主要対抗ホルモン。"},
+      {q:"1型糖尿病の主な病態はどれか？",c:["インスリン抵抗性のみ","自己免疫性の膵β細胞破壊","インスリン受容体異常","肥満による分泌低下"],a:1,e:"1型糖尿病は自己免疫機序による膵β細胞破壊で、絶対的インスリン欠乏となります。"},
+      {q:"2型糖尿病の主な病態はどれか？",c:["自己免疫性β細胞破壊","インスリン抵抗性＋分泌低下","ステロイド使用のみ","膵摘出"],a:1,e:"2型糖尿病はインスリン抵抗性と相対的分泌不全の組合せで、肥満・運動不足が背景。"},
+      {q:"糖尿病性ケトアシドーシス（DKA）の典型的所見はどれか？",c:["高血糖＋ケトン体陽性＋代謝性アシドーシス","低血糖＋アルカローシス","正常血糖＋呼吸性アシドーシス","低Na＋低血糖"],a:0,e:"DKAはインスリン欠乏で脂肪分解亢進→ケトン体増加→AG開大型代謝性アシドーシス。Kussmaul呼吸が特徴。"},
+      {q:"先端巨大症（末端肥大症）の原因はどれか？",c:["GH分泌過剰（成人発症）","TSH過剰","ACTH過剰","ADH過剰"],a:0,e:"骨端線閉鎖後のGH過剰では先端巨大症となり、手足や下顎が肥大します。下垂体腺腫が原因。"},
+      {q:"中枢性尿崩症の病態はどれか？",c:["ADH分泌不足","ADH作用不全（受容体異常）","アルドステロン過剰","インスリン不足"],a:0,e:"中枢性尿崩症はADH分泌が低下する病態。腎性尿崩症はADH作用不全。多尿・低比重尿・口渇が特徴。"},
+      {q:"SIADH（不適切ADH分泌症候群）の典型的検査所見はどれか？",c:["低Na血症＋血漿浸透圧低下","高Na血症＋多尿","低K血症＋アルカローシス","高Ca血症＋低P血症"],a:0,e:"ADH過剰により水貯留が起こり、希釈性低Na血症・血漿浸透圧低下を生じます。"},
+      {q:"原発性アルドステロン症の典型的所見はどれか？",c:["低Na・高K・低血圧","高Na傾向・低K・高血圧","高K・代謝性アシドーシス","低血糖・低血圧"],a:1,e:"アルドステロン過剰でNa再吸収↑とK・H排泄↑となり、高血圧・低K血症・代謝性アルカローシスを呈します。"},
+      {q:"褐色細胞腫の主な病態はどれか？",c:["カテコラミン過剰分泌","コルチゾール過剰","インスリン過剰","TSH過剰"],a:0,e:"副腎髄質または傍神経節由来の腫瘍でカテコラミンが過剰分泌され、発作性の高血圧・頭痛・動悸・発汗を呈します。"},
+      {q:"視床下部から下垂体前葉への伝達経路はどれか？",c:["神経軸索","下垂体門脈系","リンパ管","脳脊髄液"],a:1,e:"視床下部の放出ホルモン（CRH/TRH/GHRH等）は下垂体門脈系を介して前葉に届き、各ホルモンの分泌を制御します。"},
+      {q:"メラトニンを分泌する内分泌器官はどれか？",c:["松果体","胸腺","視床下部","副腎髄質"],a:0,e:"松果体（脳の中央）が暗刺激に応じてメラトニンを分泌し、概日リズム（睡眠覚醒）の調節に関わります。"}
+    ]
+  },
+  {
+    id:'blood',name:'第7章 血の谷の死闘',area:'🩸 血の谷 — 造血と止血の地',icon:'🌫️',diff:'標準',
+    scenes:[
+      {illust:'🌫️',name:'血の谷',text:'勇者の前に広がるのは、深い霧に覆われた\n<span class="hi">血の谷</span>。\n\nここは血の守護神「<span class="hi">血盟戦士ヘモル</span>」が\n造血と止血のバランスを守る地。\nしかし今、<span class="red">病魔「DICデーモン」</span>に支配され\n血の流れと凝固が大混乱に陥っている。'},
+      {illust:'🤖',name:'血の番人レッド',text:'「勇者よ、頼む！\n隊長の<span class="hi">血盟戦士ヘモル</span>がDICデーモンに敗れ\n血の谷の秩序が崩れている。\n\n造血、貧血の分類、\n凝固カスケード、線溶系——\nこのバランスが崩れれば、生命は守れぬ。\nお前だけが頼りだ。」'},
+      {illust:'👿',name:'DICデーモン',text:'「<span class="red">クククッ……血液は流れも固まりも\n両方が暴走するとき最も恐ろしい！</span>\n\n血小板、凝固因子、フィブリン——\nそれら全てが乱れたとき、\n<span class="red">体は内部から崩壊するのだ！</span>」'}
+    ],
+    boss:{ico:'#px-boss3',name:'DICデーモン',desc:'血の谷を支配する<span class="red">凝固線溶系の破壊者</span>。\n血小板を減らし、凝固因子を消費し、出血と血栓を同時に起こす。\n<span class="red">血液生理の知識</span>でこのデーモンを倒せ！'},
+    monsters:['🩸 貧血スライム','💊 血小板減少バグ','👻 白血病ファントム','💢 出血ゾンビ','👿 DICデーモン（ボス）'],
+    clearStory:'DICデーモンが消えると、血の谷の流れが整い\n封印を解かれた<span class="hi">血盟戦士ヘモル</span>が剣を収めた。\n\n「勇者、見事だった。\n造血と止血の調和こそ命の源。\n人体王国の血脈は再び健やかに流れる。」',
+    clearIcon:'🩸',
+    bossQuestion:{q:"播種性血管内凝固症候群（DIC）の典型的検査所見はどれか？",c:["血小板上昇・PT短縮・Fib上昇","血小板減少・PT延長・Fib低下・FDP上昇","白血球上昇・血小板正常・Dダイマー陰性","赤血球増加・PT正常・Fib正常"],a:1,e:"DICでは凝固線溶異常により血小板・Fibが消費されて低下、PT/APTT延長、線溶亢進でFDP/Dダイマーが上昇します。"},
+    questionPool:[
+      {q:"成人における主な造血の場はどれか？",c:["脾臓","肝臓","骨髄","リンパ節"],a:2,e:"成人の造血は骨髄（特に椎体・骨盤・大腿骨近位）で行われます。胎児期は肝臓・脾臓も造血に関与。"},
+      {q:"赤血球の寿命はおよそどれか？",c:["1日","30日","120日","1年"],a:2,e:"赤血球の寿命は約120日。古い赤血球は脾臓のマクロファージで処理され、Hbが分解されてビリルビンが生成されます。"},
+      {q:"エリスロポエチン（EPO）を主に産生する器官はどれか？",c:["肝臓","腎臓","脾臓","骨髄"],a:1,e:"EPOは腎臓の傍尿細管細胞で産生され、低酸素刺激で分泌が増えて骨髄での赤血球産生を促進します。"},
+      {q:"鉄欠乏性貧血の典型的な末梢血所見はどれか？",c:["小球性低色素性貧血","大球性貧血","正球性正色素性貧血","赤血球破砕像のみ"],a:0,e:"鉄欠乏ではHb合成が障害され、MCV・MCHCが低下した小球性低色素性貧血となります。"},
+      {q:"ビタミンB12欠乏によって生じる典型的貧血はどれか？",c:["小球性低色素性貧血","巨赤芽球性貧血","溶血性貧血","再生不良性貧血"],a:1,e:"VitB12欠乏ではDNA合成障害から赤芽球の核成熟遅延が生じ、MCVが上昇する巨赤芽球性貧血となります。"},
+      {q:"葉酸欠乏で生じる貧血はどれか？",c:["小球性低色素性貧血","巨赤芽球性貧血","正球性貧血","鉄芽球性貧血"],a:1,e:"葉酸欠乏もVitB12と同様にDNA合成障害から巨赤芽球性貧血を起こします（VitB12欠乏と異なり神経症状なし）。"},
+      {q:"溶血性貧血で増加しやすい検査値はどれか？",c:["ハプトグロビン","間接ビリルビン・LDH","フェリチン低下","MCV低下"],a:1,e:"溶血では間接Bil・LDH・遊離Hbが上昇し、ハプトグロビンが低下します。網状赤血球も増加。"},
+      {q:"鎌状赤血球症の原因はどれか？",c:["α鎖の点突然変異","β鎖の点突然変異（HbS）","スペクトリン異常","G6PD欠乏"],a:1,e:"βグロビン鎖6番目のグルタミン酸→バリン置換でHbSが生じ、低酸素時に重合して赤血球が鎌状に変形します。"},
+      {q:"成人の血小板正常値はどれか？",c:["1〜3万/μL","5〜10万/μL","15〜40万/μL","50〜100万/μL"],a:2,e:"血小板正常値は15〜40万/μL（15〜40×10⁴/μL）です。10万未満で出血傾向、5万未満で自然出血リスク。"},
+      {q:"血小板の主な役割はどれか？",c:["細菌の貪食","一次止血（血小板血栓形成）","抗体産生","酸素運搬"],a:1,e:"血小板は損傷部位に粘着・凝集し、一次止血を担います。続いて凝固系（二次止血）でフィブリン血栓が形成。"},
+      {q:"内因系凝固を反映する検査はどれか？",c:["PT（プロトロンビン時間）","APTT（活性化部分トロンボプラスチン時間）","Dダイマー","血小板数"],a:1,e:"APTTは内因系（第VIII, IX, XI, XII因子）を含み、PTは外因系（第VII因子）を主に評価します。共通系（X, V, II, I）は両方に影響。"},
+      {q:"フィブリノゲン（第I因子）が活性化されて生成するのはどれか？",c:["フィブリン","トロンビン","プラスミン","Xa因子"],a:0,e:"トロンビンの作用でフィブリノゲン → フィブリン（網目状）が形成され二次止血の主体となります。"},
+      {q:"プロトロンビン（第II因子）が活性化されて生成するのはどれか？",c:["フィブリン","トロンビン","プラスミン","Xa因子"],a:1,e:"Xa因子の作用でプロトロンビンがトロンビンに変換され、フィブリノゲンを切断してフィブリンを作ります。"},
+      {q:"ビタミンK依存性凝固因子はどれか？",c:["I, V, VIII, X","II, V, VII, IX","II, VII, IX, X","V, VIII, X, XI"],a:2,e:"ビタミンK依存性凝固因子はII, VII, IX, X（プロテインC, Sも含む）。ワーファリンはこれらの活性化を阻害。"},
+      {q:"ヘパリンの主な作用機序はどれか？",c:["ビタミンK依存性凝固因子の合成阻害","アンチトロンビン（ATIII）を介した抗トロンビン作用","COX-1阻害","ADP受容体阻害"],a:1,e:"ヘパリンはATIIIに結合してその抗凝固活性を増強し、トロンビン・Xa因子を阻害します。"},
+      {q:"ワーファリンの作用機序はどれか？",c:["ATIIIを介した抗凝固","ビタミンKエポキシド還元酵素阻害","直接トロンビン阻害","COX-1阻害"],a:1,e:"ワーファリンはVitKエポキシド還元酵素を阻害し、ビタミンK依存性凝固因子（II・VII・IX・X）の合成を抑制します。"},
+      {q:"アスピリン（低用量）の主な抗血小板作用機序はどれか？",c:["COX-1阻害（TXA₂産生抑制）","ADP受容体阻害","直接トロンビン阻害","GPIIb/IIIa阻害"],a:0,e:"低用量アスピリンは血小板COX-1を不可逆的に阻害してTXA₂産生を抑制し、血小板凝集を抑えます。"},
+      {q:"特発性血小板減少性紫斑病（ITP）の主な機序はどれか？",c:["骨髄での血小板産生抑制","自己抗体による血小板破壊","遺伝性凝固因子欠乏","ビタミン欠乏"],a:1,e:"ITPは血小板膜糖蛋白に対する自己抗体が結合し、脾臓のマクロファージにより血小板が貪食・破壊されます。"},
+      {q:"急性骨髄性白血病（AML）に特徴的な細胞内構造はどれか？",c:["フィラデルフィア染色体","アウエル小体","花弁状核","二核細胞"],a:1,e:"アウエル小体（Auer rod）は骨髄芽球内に見られる針状封入体で、AMLの特徴的所見です。"},
+      {q:"慢性骨髄性白血病（CML）の特徴的染色体異常はどれか？",c:["t(8;14)","t(9;22)（フィラデルフィア染色体）","t(15;17)","t(11;14)"],a:1,e:"CMLはt(9;22)によるBCR-ABL融合遺伝子が原因。チロシンキナーゼ阻害薬（イマチニブ等）で治療されます。"},
+      {q:"ABO不適合輸血で生じる典型的な反応はどれか？",c:["遅発性溶血","急性溶血性反応","皮膚アレルギーのみ","熱性反応のみ"],a:1,e:"ABO不適合輸血では受血者の抗ABO抗体（IgM）が補体活性化を介して血管内溶血を起こし致死的になり得ます。"},
+      {q:"血友病Aで欠乏する凝固因子はどれか？",c:["第VII因子","第VIII因子","第IX因子","第X因子"],a:1,e:"血友病AはX連鎖劣性遺伝で第VIII因子が欠乏。血友病Bは第IX因子欠乏。APTTが延長します。"},
+      {q:"DダイマーはどのDIC関連のマーカーか？",c:["凝固活性化","線溶活性化","補体活性化","血小板活性化"],a:1,e:"Dダイマーは架橋フィブリンがプラスミンで分解された産物。線溶亢進を示す指標で、DIC・肺塞栓症で上昇します。"},
+      {q:"Hbの正常値範囲（成人男性）として正しいのはどれか？",c:["8〜10 g/dL","10〜12 g/dL","13〜17 g/dL","20〜25 g/dL"],a:2,e:"成人男性のHb基準値は約13〜17 g/dL、女性は12〜15 g/dL程度です。それ未満は貧血の目安。"}
+    ]
+  },
+  {
+    id:'immune',name:'第8章 免疫要塞の防衛',area:'🛡️ 免疫要塞 — 自己と非自己の境',icon:'🏔️',diff:'応用',
+    scenes:[
+      {illust:'🏔️',name:'免疫要塞',text:'勇者の前に立ち塞がるのは、堅牢な\n<span class="hi">免疫要塞</span>。\n\nここは免疫の守護神「<span class="hi">免疫将軍リンフォス</span>」が\n外敵から人体王国を守る最後の砦。\nしかし今、<span class="red">病魔「自己免疫キマイラ」</span>が\n要塞を内側から崩壊させている。'},
+      {illust:'🤖',name:'要塞兵士ガード',text:'「勇者よ、助けてくれ！\n総司令<span class="hi">免疫将軍リンフォス</span>が囚われ\n要塞の防衛が崩壊しかけている。\n\n自然免疫、獲得免疫、抗体、補体、\nT細胞、B細胞、過敏反応——\n敵と味方を見分ける知識を示し\nどうか将軍を救出してくれ！」'},
+      {illust:'😈',name:'自己免疫キマイラ',text:'「<span class="red">フッ……自己と非自己の区別が\n崩れたとき、最強の敵が現れる！</span>\n\n貴様自身の細胞を攻撃する我に\n勝てるかな？\n<span class="red">免疫の知識を試そう！</span>」'}
+    ],
+    boss:{ico:'#px-boss1',name:'自己免疫キマイラ',desc:'免疫要塞を侵食する<span class="red">自己と非自己の区別を失った異形</span>。\n体の組織を自ら攻撃し続ける。\n<span class="red">免疫学の知識</span>でキマイラを倒せ！'},
+    monsters:['🦠 アレルギー精','👻 免疫不全ゴースト','💊 補体破壊魔','💉 IgEスプライト','😈 自己免疫キマイラ（ボス）'],
+    clearStory:'自己免疫キマイラが浄化されると、要塞の防衛が回復し\n封印を解かれた<span class="hi">免疫将軍リンフォス</span>が剣を収めた。\n\n「勇者、よくぞやり遂げた。\n免疫こそ生命の最終防衛線。\n自己と非自己を見分ける英知が、\n人体王国を守るのだ。」',
+    clearIcon:'🛡️',
+    bossQuestion:{q:"細胞性免疫の主役となる細胞はどれか？",c:["B細胞","T細胞","形質細胞","NK細胞のみ"],a:1,e:"細胞性免疫の中心はT細胞（特にCD8+細胞傷害性T細胞）。CD4+ヘルパーT細胞も他の免疫細胞を制御します。"},
+    questionPool:[
+      {q:"自然免疫の中心となる細胞でないのはどれか？",c:["好中球","マクロファージ","NK細胞","形質細胞"],a:3,e:"形質細胞は獲得免疫の抗体産生細胞（B細胞由来）。自然免疫は好中球・マクロファージ・NK細胞・樹状細胞などが担います。"},
+      {q:"獲得免疫の中心となる細胞はどれか？",c:["好中球","マクロファージ","T細胞・B細胞","好酸球"],a:2,e:"獲得免疫はT細胞（細胞性免疫）とB細胞（液性免疫）が主役。特異的・記憶性が特徴。"},
+      {q:"抗体を産生する細胞はどれか？",c:["T細胞","形質細胞（B細胞由来）","NK細胞","樹状細胞"],a:1,e:"B細胞は抗原刺激後に形質細胞へ分化し、特異的抗体を大量産生します。"},
+      {q:"ヘルパーT細胞の表面マーカーはどれか？",c:["CD3","CD4","CD8","CD19"],a:1,e:"ヘルパーT細胞（Th）はCD4を発現し、MHCクラスIIで提示された抗原を認識します。"},
+      {q:"細胞傷害性T細胞の表面マーカーはどれか？",c:["CD4","CD8","CD19","CD20"],a:1,e:"細胞傷害性T細胞（CTL）はCD8を発現し、MHCクラスIで提示された抗原を認識して感染細胞を殺傷します。"},
+      {q:"MHCクラスIを発現するのはどれか？",c:["有核細胞のほとんど全て","樹状細胞のみ","T細胞のみ","B細胞のみ"],a:0,e:"MHCクラスIは赤血球・血小板を除くほぼ全有核細胞に発現し、CD8+T細胞に内因性抗原を提示します。"},
+      {q:"MHCクラスIIを主に発現する細胞はどれか？",c:["全ての体細胞","抗原提示細胞（樹状細胞・マクロファージ・B細胞）","赤血球","血小板"],a:1,e:"MHCクラスIIは抗原提示に特化した細胞（樹状細胞・マクロファージ・B細胞）に発現し、CD4+T細胞に外因性抗原を提示します。"},
+      {q:"プロの抗原提示細胞として最も強力なのはどれか？",c:["好中球","樹状細胞","好塩基球","赤血球"],a:1,e:"樹状細胞はMHCクラスIIと共刺激分子を高発現し、ナイーブT細胞を活性化できる唯一の細胞です。"},
+      {q:"補体活性化の最終段階で形成される膜侵襲複合体（MAC）の本体はどれか？",c:["C3b","C5b-9","C1q","C4b"],a:1,e:"C5b-9は標的細胞膜に孔を開け、浸透圧で細菌を溶解します（特にグラム陰性菌に有効）。"},
+      {q:"アナフィラキシー反応の主体となる抗体クラスはどれか？",c:["IgG","IgM","IgA","IgE"],a:3,e:"IgEは肥満細胞・好塩基球のFcεRIに結合し、抗原架橋でヒスタミン等を放出させ、即時型過敏反応を起こします。"},
+      {q:"母乳中（特に初乳）に多く含まれる抗体クラスはどれか？",c:["IgG","IgA（分泌型）","IgM","IgE"],a:1,e:"分泌型IgAは粘膜免疫の主役で、母乳・唾液・腸管粘液に多く含まれ、新生児の腸管感染を防ぎます。"},
+      {q:"一次免疫応答で最初に出現する抗体クラスはどれか？",c:["IgG","IgM","IgA","IgD"],a:1,e:"一次応答ではIgMが先行して出現します。再暴露の二次応答ではIgGが主体（クラススイッチ）。"},
+      {q:"再暴露時に大量産生される抗体クラスはどれか？",c:["IgM","IgG","IgD","IgE"],a:1,e:"二次応答ではメモリーB細胞からクラススイッチ後のIgGが大量・迅速に産生されます。"},
+      {q:"補体活性化の古典経路を主に活性化するのはどれか？",c:["LPS","抗原抗体複合体（IgG/IgM）","マンノース結合レクチン","プロパージン"],a:1,e:"古典経路はIgM・IgGの抗原抗体複合体がC1qに結合して開始されます。レクチン経路はMBL、副経路はC3bの自発的活性化。"},
+      {q:"I型過敏反応（即時型）の代表例はどれか？",c:["花粉症・アナフィラキシー","自己免疫性溶血性貧血","SLE","ツベルクリン反応"],a:0,e:"I型は IgE 介在性で、花粉症・アナフィラキシー・喘息発作などが代表。発症は数分〜数十分以内。"},
+      {q:"II型過敏反応の代表例はどれか？",c:["遅延型ツベルクリン反応","自己免疫性溶血性貧血","花粉症","血清病"],a:1,e:"II型は IgG/IgM が細胞表面抗原に結合し補体・貪食を惹起。AIHA、血液型不適合輸血、Goodpasture症候群など。"},
+      {q:"III型過敏反応の代表例はどれか？",c:["蕁麻疹","SLE・血清病","接触性皮膚炎","ABO不適合輸血"],a:1,e:"III型は免疫複合体が組織に沈着して補体活性化を起こす。SLE、血清病、急性糸球体腎炎などが代表例。"},
+      {q:"IV型過敏反応（遅延型）の代表例はどれか？",c:["アナフィラキシー","ツベルクリン反応・接触性皮膚炎","Goodpasture症候群","血清病"],a:1,e:"IV型は感作T細胞が関与する細胞性免疫反応。発症が48〜72時間後と遅い。ツベルクリン反応・接触皮膚炎・移植拒絶。"},
+      {q:"全身性エリテマトーデス（SLE）に最も特異性の高い自己抗体はどれか？",c:["抗核抗体（ANA）","抗ds-DNA抗体・抗Sm抗体","リウマトイド因子","抗ミトコンドリア抗体"],a:1,e:"ANAはSLEのスクリーニング、抗ds-DNA抗体・抗Sm抗体は特異性が高くSLEの診断的価値が大きい。"},
+      {q:"関節リウマチ（RA）で陽性となる自己抗体はどれか？",c:["抗核抗体","リウマトイド因子・抗CCP抗体","抗ミトコンドリア抗体","抗GAD抗体"],a:1,e:"RFはRAで70〜80%陽性。抗CCP抗体は特異性が高く（90%以上）、早期診断に有用です。"},
+      {q:"HIVが主に感染標的とする細胞はどれか？",c:["CD8+T細胞","CD4+T細胞","B細胞","好中球"],a:1,e:"HIVはgp120がCD4とケモカイン受容体（CCR5/CXCR4）に結合して感染。CD4数の減少が免疫不全を招きます。"},
+      {q:"AIDSと診断する目安となるCD4数はどれか？",c:["1000/μL以下","500/μL以下","200/μL以下","50/μL以下"],a:2,e:"CD4数<200/μL以下、または日和見感染症・特定の悪性腫瘍を発症した状態がAIDSの定義です。"},
+      {q:"移植拒絶反応の主役となる細胞はどれか？",c:["B細胞","T細胞","好中球","NK細胞のみ"],a:1,e:"移植拒絶は主にレシピエントのT細胞によるドナーHLA認識で起こります。CD8+による直接傷害とCD4+による炎症惹起。"},
+      {q:"免疫グロブリンの基本構造を構成する鎖はどれか？",c:["重鎖2本＋軽鎖2本","重鎖4本のみ","軽鎖4本のみ","重鎖1本＋軽鎖1本"],a:0,e:"抗体は重鎖（H鎖）2本＋軽鎖（L鎖）2本がジスルフィド結合で繋がれた構造。Fab領域で抗原認識、Fc領域で機能発現。"}
+    ]
+  },
+  {
+    id:'senses',name:'第9章 五感の森の幻惑',area:'👁️ 五感の森 — 感覚器の聖域',icon:'🏞️',diff:'標準',
+    scenes:[
+      {illust:'🏞️',name:'五感の森',text:'勇者は、神秘の<span class="hi">五感の森</span>に踏み入れた。\n\nここは感覚の守護神「<span class="hi">五感の妖精センスィア</span>」が\n視覚・聴覚・平衡感覚・味覚・嗅覚を\n司る聖なる森。\nしかし今、<span class="red">病魔「幻覚の魔女」</span>が\n感覚を狂わせている。'},
+      {illust:'🧝‍♀️',name:'妖精見習いミラ',text:'「勇者、お願いします！\n師匠の<span class="hi">五感の妖精センスィア</span>が魔女に囚われ\n森の感覚が狂っています。\n\n眼の構造、網膜、聴覚の伝導、\n平衡感覚、味覚、嗅覚——\n人が世界を感じる仕組みを\n知識で示し、師匠を救ってください。」'},
+      {illust:'😱',name:'幻覚の魔女',text:'「<span class="red">フフフ……感覚を狂わせれば\n人は何も信じられなくなる！</span>\n\n見えるものも、聞こえるものも、\n全て幻にしてやろう。\n<span class="red">五感の知識で立ち向かえるか？</span>」'}
+    ],
+    boss:{ico:'#px-boss5',name:'幻覚の魔女',desc:'五感の森を支配する<span class="red">感覚器を狂わせる魔女</span>。\n視覚・聴覚・平衡感覚を歪ませる。\n<span class="red">感覚器の知識</span>で幻惑を打ち破れ！'},
+    monsters:['👁️ 視野狭窄ファントム','👻 難聴の精','🌀 めまい竜巻','💊 味覚乱れスライム','😱 幻覚の魔女（ボス）'],
+    clearStory:'幻覚の魔女が消滅すると、森の感覚が正常に戻り\n封印を解かれた<span class="hi">五感の妖精センスィア</span>が舞い踊った。\n\n「勇者、感謝です。\n五感は世界と人を繋ぐ橋。\nこの森の調和は、ここに復活しました。」\n\n残るは……魔王城のみ。',
+    clearIcon:'👁️',
+    bossQuestion:{q:"視覚の主な伝導路として正しい順序はどれか？",c:["網膜→視神経→視交叉→視索→外側膝状体→視覚野","網膜→視神経→内側膝状体→側頭葉","網膜→視神経→視床下部→前頭葉","網膜→視神経→海馬→扁桃体"],a:0,e:"視覚情報は 網膜→視神経→視交叉（鼻側交叉）→視索→外側膝状体→視放線→後頭葉一次視覚野（V1） を経由します。"},
+    questionPool:[
+      {q:"眼の屈折に最も大きく寄与する構造はどれか？",c:["角膜","水晶体","硝子体","網膜"],a:0,e:"屈折力の約2/3は角膜（空気との界面で屈折率差が大）が担います。水晶体は調節の中心。"},
+      {q:"水晶体の調節（焦点合わせ）を担う筋はどれか？",c:["瞳孔括約筋","瞳孔散大筋","毛様体筋","上眼瞼挙筋"],a:2,e:"毛様体筋の収縮で水晶体を支えるチン小帯が緩み水晶体が厚くなり、近見視できます。副交感神経支配。"},
+      {q:"瞳孔散大に作用する神経はどれか？",c:["副交感神経（動眼神経）","交感神経","三叉神経","顔面神経"],a:1,e:"瞳孔散大筋は交感神経支配。副交感神経（動眼神経）は瞳孔括約筋を支配し縮瞳させます。"},
+      {q:"瞳孔縮小（縮瞳）の対光反射を担う神経はどれか？",c:["顔面神経","副交感神経（動眼神経）","三叉神経","視神経"],a:1,e:"対光反射の遠心路は動眼神経副核→毛様体神経節→瞳孔括約筋（副交感）。求心路は視神経。"},
+      {q:"網膜にある2種類の視細胞はどれか？",c:["杆体細胞・錐体細胞","双極細胞・神経節細胞","アマクリン細胞・水平細胞","ミュラー細胞・色素上皮細胞"],a:0,e:"視細胞は杆体細胞（暗所視）と錐体細胞（色覚・明所視）の2種類です。"},
+      {q:"暗所視（薄暗い場所での視覚）を主に担うのはどれか？",c:["錐体細胞","杆体細胞","双極細胞","色素上皮細胞"],a:1,e:"杆体細胞はロドプシンを持ち、暗所視・周辺視に強い。中心窩には存在せず周辺網膜に分布。"},
+      {q:"色覚を担う視細胞はどれか？",c:["杆体細胞","錐体細胞","水平細胞","双極細胞"],a:1,e:"錐体細胞はR/G/Bの3種類があり、色覚と中心視を担います。中心窩に集中分布。"},
+      {q:"両耳側半盲を起こす視覚路の障害部位はどれか？",c:["視神経","視交叉","視索","視放線"],a:1,e:"視交叉では鼻側半網膜からの線維が交叉。下垂体腫瘍などによる視交叉圧迫で両耳側半盲を生じます。"},
+      {q:"緑内障の主な病態はどれか？",c:["水晶体混濁","眼圧上昇などに関連する視神経障害","網膜剥離","角膜感染症"],a:1,e:"緑内障は視神経が障害され、進行性の視野欠損を生じる疾患です。眼圧上昇は重要な危険因子ですが、正常眼圧緑内障もあります。"},
+      {q:"白内障の主な病態はどれか？",c:["水晶体の混濁","網膜剥離","視神経萎縮","角膜浮腫"],a:0,e:"白内障は水晶体（蛋白質）の変性混濁により視力が低下する疾患。加齢が最多原因です。"},
+      {q:"老視（老眼）の主な原因はどれか？",c:["角膜混濁","水晶体の弾性低下","網膜剥離","視神経萎縮"],a:1,e:"加齢で水晶体の弾性が低下し調節力が衰えるため、近くにピントが合わせにくくなります。"},
+      {q:"内耳で音を電気信号に変換する細胞はどれか？",c:["ツチ骨","アブミ骨","コルチ器の有毛細胞","耳石"],a:2,e:"蝸牛のコルチ器に並ぶ有毛細胞が、基底膜の振動で機械的に活性化し聴神経への電気信号を発します。"},
+      {q:"半規管の主な機能はどれか？",c:["音の周波数分析","回転加速度の感知","直線加速度の感知","重力のみの感知"],a:1,e:"3つの半規管（外側・前・後）は内リンパの流れを介して回転加速度を感知します。"},
+      {q:"耳石器（球形嚢・卵形嚢）の機能はどれか？",c:["回転加速度のみ","直線加速度・重力","聴覚","視覚"],a:1,e:"球形嚢・卵形嚢の有毛細胞上には耳石（炭酸Caの結晶）が乗り、頭部の傾き・直線加速度を感知します。"},
+      {q:"伝音性難聴の原因として典型的なのはどれか？",c:["外耳・中耳の障害（耳垢栓塞、滲出性中耳炎など）","内耳・蝸牛の障害","聴神経腫瘍","脳幹梗塞"],a:0,e:"伝音性難聴は外耳・中耳の音伝導障害（耳垢、中耳炎、耳硬化症など）。Rinne試験陰性、Weber試験で患側偏位。"},
+      {q:"感音性難聴の原因として典型的なのはどれか？",c:["耳硬化症","内耳・蝸牛・聴神経の障害（老人性難聴、騒音性難聴）","耳垢栓塞","中耳炎"],a:1,e:"感音性難聴は内耳・蝸牛・聴神経の障害。老人性・騒音性・突発性難聴・聴神経腫瘍など。"},
+      {q:"聴覚の一次中枢があるのはどれか？",c:["前頭葉","頭頂葉","側頭葉（横側頭回）","後頭葉"],a:2,e:"一次聴覚野は側頭葉横側頭回（Brodmann 41野）。両耳からの情報を受け取ります。"},
+      {q:"嗅覚の伝導路の特徴として正しいのはどれか？",c:["視床を経由せず直接大脳辺縁系へ","視床を必ず経由","小脳を経由","延髄を経由"],a:0,e:"嗅覚は他の感覚と異なり視床を経由せず、嗅球→嗅索→大脳辺縁系（梨状皮質・扁桃体・海馬）に直接投射します。"},
+      {q:"5基本味（甘・酸・塩・苦・うま味）でないのはどれか？",c:["甘味","辛味","うま味","苦味"],a:1,e:"5基本味は甘・酸・塩・苦・うま味。辛味は実は痛覚（三叉神経）で、味覚ではありません。"},
+      {q:"舌の前2/3の味覚を伝える脳神経はどれか？",c:["顔面神経（VII）","舌咽神経（IX）","迷走神経（X）","三叉神経（V）"],a:0,e:"舌前2/3の味覚は顔面神経（鼓索神経枝）、後1/3は舌咽神経、舌根・喉頭蓋は迷走神経が伝えます。"},
+      {q:"平衡感覚を伝える脳神経はどれか？",c:["VII（顔面神経）","VIII（内耳神経）","IX（舌咽神経）","X（迷走神経）"],a:1,e:"内耳神経（VIII）は蝸牛神経（聴覚）と前庭神経（平衡）の2部から構成され、内耳の信号を脳幹へ伝えます。"},
+      {q:"三叉神経（V）が支配する感覚領域はどれか？",c:["顔面の感覚","舌前2/3の味覚","聴覚","平衡感覚"],a:0,e:"三叉神経は顔面の感覚（眼神経・上顎神経・下顎神経の3枝）と咀嚼筋運動を支配します。"},
+      {q:"前庭眼反射（VOR）の機能はどれか？",c:["瞳孔散大","頭部運動中の眼球安定","対光反応","調節反応"],a:1,e:"VORは半規管の信号を介して頭部回転と逆方向に眼球を動かし、視野を安定させる脳幹反射です。"},
+      {q:"メニエール病の三主徴はどれか？",c:["頭痛・嘔気・羞明","難聴・耳鳴・回転性めまい","複視・眼瞼下垂・縮瞳","失語・片麻痺・意識障害"],a:1,e:"メニエール病は内リンパ水腫を病態とし、難聴・耳鳴・回転性めまいの三主徴を反復発作で呈します。"}
+    ]
+  },
+  {
+    id:'final',name:'終章 病魔大王との決戦',area:'🏔️ 人体王国 — 魔王城',icon:'🏔️',diff:'応用',
+    scenes:[
+      {illust:'🏔️',name:'魔王城',text:'人体王国の四つの領域を解放した勇者の前に\n暗黒に染まる<span class="hi">魔王城</span>がそびえ立つ。\n\nここは全ての病魔の根源——\n<span class="red">病魔大王モルバス</span>が人体王国を闇に染めた\n諸悪の根源の地。\n\n四つの守護神の力が、勇者の中に集う。'},
+      {illust:'👑',name:'九柱の守護神たち',text:'「勇者よ、よくぞここまで来た。\nそなたが救った<span class="hi">九柱の守護神</span>の声を聞け——\n\n<span class="hi">コルダス・アエラ・ニューロス・ネフロン</span>\n<span class="hi">グルメス・ホルモナ・ヘモル</span>\n<span class="hi">リンフォス・センスィア</span>。\n\n九柱の力をそなたに託す。\n全ての医学知識が一つとなる時\n魔王を倒す力が完成する。」'},
+      {illust:'😱',name:'病魔大王モルバス',text:'「<span class="red">アハハハハ！ ようやく来たか、勇者よ！</span>\n我は全ての病魔を統べる者——\n敗血症、ARDS、多臓器不全……\n\n貴様の<span class="red">医学知識の総力</span>を試そう。\nひとつでも誤れば、貴様は闇に堕ちる！」'}
+    ],
+    boss:{ico:'#px-boss5',name:'病魔大王モルバス',desc:'すべての病魔の根源、<span class="red">人体王国を闇に染めた最強の存在</span>。\n複合的な病態と総合医学の知識が試される。\n<span class="red">医学の総合力</span>で世界を救え！'},
+    monsters:['💢 総合病態ゴーレム','☠️ 多臓器不全デーモン','🌑 エビデンス闇竜','👁️ 鑑別診断眼','😱 病魔大王モルバス（ボス）'],
+    clearStory:'<span class="hi">病魔大王モルバス</span>は最後の咆哮を残し\n光に包まれて消えていった。\n\n人体王国に再び平和が訪れた。\n四人の守護神が空に舞い上がり、\nそなたを<span class="hi">「医学の聖騎士」</span>と讃える。\n\n勇者よ、君の医学への旅はまだ続く——\n人々を救う、本物の医師として。',
+    clearIcon:'🏆',
+    bossQuestion:{q:"敗血症（Sepsis-3定義）における主要な診断要素はどれか？",c:["体温≥38℃のみ","SOFAスコアの2点以上の急性上昇＋感染","白血球>15000のみ","血圧低下のみ"],a:1,e:"Sepsis-3では「感染に対する制御不能な宿主反応によるSOFAスコアの2点以上の急性上昇」と定義されます。"},
+    questionPool:[
+      {q:"心原性ショックの最も多い原因はどれか？",c:["大動脈解離","急性心筋梗塞","心筋炎","弁膜症"],a:1,e:"心原性ショックの最多原因は急性心筋梗塞（特に左室広範梗塞）です。早期再灌流療法が予後を左右します。"},
+      {q:"出血性ショックに対する初期対応で最優先されるのはどれか？",c:["昇圧薬投与","止血処置と急速輸液","抗菌薬投与","利尿薬投与"],a:1,e:"出血性ショックの基本は止血と急速輸液（必要時輸血）。原因除去が最優先です。"},
+      {q:"アナフィラキシーショックの第一選択薬はどれか？",c:["アドレナリン筋注","ヒドロコルチゾン静注","抗ヒスタミン薬経口","ドパミン点滴"],a:0,e:"アナフィラキシーの第一選択はアドレナリン0.3〜0.5mg筋注（大腿外側）。ステロイド・抗ヒスタミンは補助的。"},
+      {q:"敗血症性ショックの初期治療として推奨されないのはどれか？",c:["広域抗菌薬の早期投与","乳酸リンゲル液による初期輸液（30mL/kg）","昇圧薬（ノルアドレナリン）","ステロイドのみで治療"],a:3,e:"敗血症性ショックでは早期抗菌薬・輸液・昇圧薬が基本。ステロイドは輸液・昇圧薬不応例で考慮。"},
+      {q:"心室細動・無脈性心室頻拍に対するACLSで最も重要な処置はどれか？",c:["経口アスピリン投与","電気的除細動（DC）","利尿薬静注","β遮断薬静注"],a:1,e:"VF/pulseless VTはshockableリズム。直ちに電気的除細動を行いCPRと並行して薬剤投与します。"},
+      {q:"成人に対する胸骨圧迫の深さの推奨はどれか？",c:["2〜3cm","約4cm","5〜6cm","8cm以上"],a:2,e:"成人の胸骨圧迫は深さ5〜6cm。圧迫頻度100〜120回/分、完全な解放を意識。"},
+      {q:"成人に対する胸骨圧迫の頻度の推奨はどれか？",c:["60〜80回/分","80〜100回/分","100〜120回/分","150〜180回/分"],a:2,e:"成人CPRの胸骨圧迫頻度は100〜120回/分です。中断時間の最小化も重要。"},
+      {q:"BLSの基本手順として正しい順序はどれか？",c:["反応確認→通報→胸骨圧迫→AED","胸骨圧迫→反応確認→通報→AED","通報→AED→反応確認→胸骨圧迫","反応確認→人工呼吸→AED→通報"],a:0,e:"BLSの基本手順は 反応確認→通報・AED依頼→胸骨圧迫開始→AED装着 です。"},
+      {q:"急性肺塞栓症の心電図で典型的とされる所見はどれか？",c:["デルタ波","SI QIII TIII pattern","epsilon波","異常Q波のみ"],a:1,e:"SI QIII TIII（I誘導のS波、III誘導のQ波・陰性T波）は肺塞栓症の古典的所見。洞性頻脈の方が高頻度。"},
+      {q:"ARDS（Berlin定義）の診断要素として正しいのはどれか？",c:["1ヶ月以上の慢性経過","急性発症（1週間以内）＋両側陰影＋酸素化障害","片側陰影のみ","単独の高血圧"],a:1,e:"Berlin定義：①1週間以内の急性発症 ②両側陰影 ③心不全/体液過剰では説明できない ④P/F比≤300。"},
+      {q:"ARDSのP/F比に基づく重症度で「中等症」とされる範囲はどれか？",c:["P/F≤300","P/F 200以下〜100超","P/F≤100","P/F>500"],a:1,e:"Berlin定義 軽症P/F≤300、中等症P/F≤200、重症P/F≤100（PEEP≥5cmH₂O下）。"},
+      {q:"播種性血管内凝固症候群（DIC）の典型的検査異常はどれか？",c:["血小板減少・FDP/D-dimer上昇・PT延長","血小板増加・D-dimer低下","Fib著明上昇・血小板正常","D-dimer陰性・PT短縮"],a:0,e:"DICでは凝固線溶異常により血小板減少、FDP/D-dimer上昇、PT/APTT延長、Fib低下が見られます。"},
+      {q:"qSOFAスコアの3項目に含まれないのはどれか？",c:["呼吸数22回/分以上","収縮期血圧100mmHg以下","意識変容（GCS<15）","白血球12000以上"],a:3,e:"qSOFAは ①呼吸数≥22 ②sBP≤100 ③意識変容（GCS<15） の3項目。2項目以上で敗血症疑い。"},
+      {q:"敗血症の重症度評価に用いられるスコアはどれか？",c:["GCS","SOFAスコア","NIHSS","MMSE"],a:1,e:"SOFAスコアは6臓器系の機能評価で、Sepsis-3定義の根幹となります。"},
+      {q:"救急初期評価で重視されるABCの順序はどれか？",c:["A気道→B呼吸→C循環","C循環→A気道→B呼吸","B呼吸→A気道→C循環","C循環→B呼吸→A気道"],a:0,e:"ABCの原則：Airway（気道）→Breathing（呼吸）→Circulation（循環）。気道確保が最優先。"},
+      {q:"血管内皮細胞由来の血管拡張物質はどれか？",c:["エンドセリン","NO（一酸化窒素）","アンギオテンシンII","アドレナリン"],a:1,e:"NOはL-アルギニンからNOSにより生成され、cGMPを介して血管平滑筋を弛緩させます。"},
+      {q:"血漿膠質浸透圧を主に維持するタンパクはどれか？",c:["免疫グロブリン","アルブミン","フィブリノゲン","セルロプラスミン"],a:1,e:"アルブミンは血漿浸透圧の約80%を担い、低下すると浮腫を生じます。"},
+      {q:"中心静脈圧（CVP）が反映するのはどれか？",c:["左室拡張末期圧","右室前負荷","全末梢血管抵抗","心拍出量"],a:1,e:"CVPは右房圧≒右室拡張末期圧として右室前負荷を反映します。輸液管理の指標として用いられます。"},
+      {q:"心不全のバイオマーカーとして最も用いられるのはどれか？",c:["CK-MB","BNP/NT-proBNP","CRP","アミラーゼ"],a:1,e:"BNP/NT-proBNPは心室壁ストレッチに応じて分泌され、心不全の重症度・治療効果判定に用います。"},
+      {q:"アナフィラキシーの主な病態生理はどれか？",c:["IgEを介した肥満細胞・好塩基球の脱顆粒","IgGを介した補体活性化","T細胞による直接細胞傷害","遅発型過敏反応"],a:0,e:"アナフィラキシーはI型（即時型）アレルギーで、IgEを介し肥満細胞・好塩基球からヒスタミン等が放出されます。"},
+      {q:"低血糖発作の主症状として典型的なのはどれか？",c:["徐脈・冷汗・意識障害","頻脈・発汗・意識障害","発熱・咳嗽","便秘・体重増加"],a:1,e:"低血糖では交感神経刺激（頻脈・発汗・振戦）と中枢神経症状（意識障害・痙攣）が起こります。"},
+      {q:"Glasgow Coma Scale（GCS）の最低スコアはどれか？",c:["0点","1点","3点","5点"],a:2,e:"GCSは開眼1〜4、最良発語1〜5、最良運動1〜6の合計で3〜15点。3点が最低（深昏睡）。"},
+      {q:"ICU管理で重要な感染兆候の早期マーカーはどれか？",c:["AST","プロカルシトニン（PCT）","アミラーゼ","LDH"],a:1,e:"プロカルシトニンは細菌感染に特異性が高く、敗血症の補助診断・抗菌薬中止判断に用いられます。"},
+      {q:"敗血症性ショックでの初期昇圧薬として推奨される第一選択はどれか？",c:["ドパミン","ノルアドレナリン","アドレナリン","フェニレフリン"],a:1,e:"ノルアドレナリンが第一選択。Surviving Sepsis Campaignガイドラインでも推奨されています。"}
+    ]
+  }
+];
+
+
+
+
+var currentChapter=null,currentScene=0,questions=[],cur=0,score=0,answered=false,battleQuestionVisible=false;
+var bossWrongCount=0,bossWillSwap=false;
+var correctStreak=0,totalBattleQuestions=0,bossStartIndex=999,bossMaxHits=3;
+var LABELS=['A','B','C','D'];
+
+function expForNext(l){return expTable[Math.min(l-1,expTable.length-1)];}
+
+function getHeroTitle(){
+  if(clearedChapters.length>=CHAPTERS.length) return '人体王国の救命勇者';
+  if(clearedChapters.length>=7) return '上級メディカルナイト';
+  if(clearedChapters.length>=4) return '臓器守護の医学生';
+  if(clearedChapters.length>=2) return '解剖生理の冒険者';
+  if(hero.lv>=3) return '成長中の医学生';
+  return '見習い医学生';
+}
+
+function isBossQuestionIndex(i){
+  return questions[i] && questions[i]._isBoss === true && !currentChapter.isReview;
+}
+
+function makeHint(q){
+  var topic = String(q.q||'').replace(/[？?]/g,'');
+  topic = topic.replace(/として(最も)?(適切|正しい)なのはどれか/g,'');
+  topic = topic.replace(/はどれか/g,'').replace(/でないのはどれか/g,'');
+  if(topic.length>28) topic = topic.slice(0,28)+'…';
+  return '問題文のキーワード「'+topic+'」に注目。正解そのものではなく、まず“何を聞かれているか”を整理しよう。';
+}
+
+function showHintFor(q){
+  var hb=document.getElementById('hintbox');
+  var ht=document.getElementById('hinttext');
+  if(!hb||!ht)return;
+  ht.textContent=makeHint(q);
+  hb.style.display='block';
+}
+
+function hideHint(){
+  var hb=document.getElementById('hintbox');
+  if(hb)hb.style.display='none';
+}
+
+function updateMapStatus(){
+  document.getElementById('map-lv').textContent=hero.lv;
+  document.getElementById('map-hp').textContent=hero.hp;
+  document.getElementById('map-atk').textContent=hero.atk;
+  var need=expForNext(hero.lv);
+  document.getElementById('map-expbar').style.width=Math.min(100,Math.round(hero.exp/need*100))+'%';
+  document.getElementById('map-hpbar').style.width=Math.max(0,Math.round(hero.hp/hero.maxHp*100))+'%';
+  document.getElementById('map-cleared').textContent=clearedChapters.length+'/'+CHAPTERS.length;
+  var tb=document.getElementById('map-title-badge');
+  if(tb)tb.textContent='TITLE: '+getHeroTitle();
+  updateBodyMap();
+  // 復習カードの状態
+  var rcard=document.getElementById('review-card');
+  var rcount=document.getElementById('review-count');
+  rcount.textContent=mistakes.length;
+  if(mistakes.length>0){rcard.classList.remove('disabled');}
+  else{rcard.classList.add('disabled');}
+}
+
+function buildChapters(){
+  var c=document.getElementById('chapters');c.innerHTML='';
+  CHAPTERS.forEach(function(ch,i){
+    var locked=i>0&&!clearedChapters.includes(CHAPTERS[i-1].id);
+    var cleared=clearedChapters.includes(ch.id);
+    var d=document.createElement('div');
+    d.className='chapter-card'+(locked?' locked':'')+(cleared?' cleared':'');
+    var badge=cleared?'<span class="ch-badge badge-clear">CLEAR!</span>':
+      locked?'<span class="ch-badge badge-lock">LOCK</span>':
+      '<span class="ch-badge badge-open">OPEN</span>';
+    d.innerHTML='<div class="ch-header"><span class="ch-icon-box">'+emojiToSprite(ch.icon)+'</span><div class="ch-info"><div class="ch-num">[ '+ch.diff+' ]</div><div class="ch-name">'+ch.name+'</div><div class="ch-boss">>> BOSS: '+ch.boss.name+'</div></div></div><div class="ch-desc">'+ch.area+'</div>'+badge;
+    if(!locked){d.onclick=(function(chapter){return function(){startChapter(chapter);};})(ch);}
+    c.appendChild(d);
+  });
+}
+
+function show(id){
+  ['s-open','s-map','s-story','s-boss','s-battle','s-clear','s-gameover'].forEach(function(s){
+    var el=document.getElementById(s);
+    el.classList.remove('on');
+    el.style.display='none';
+  });
+  var target=document.getElementById(id);
+  if(['s-open','s-story','s-boss','s-battle','s-clear','s-gameover'].includes(id)){
+    target.style.display='flex';
+  } else {
+    target.style.display='block';
+  }
+  target.classList.add('on');
+  // BGM切り替え
+  if(id==='s-open'){playBGM('title');}
+  else if(id==='s-map'){playBGM('field');}
+  else if(id==='s-story'){playBGM('field');}
+  else if(id==='s-boss'){playBGM('boss');playSE('bossAppear');}
+  else if(id==='s-battle'){playBGM('battle');}
+  else if(id==='s-clear'){playBGM('victory');playSE('victory');}
+  else if(id==='s-gameover'){stopBGM();playSE('gameover');}
+}
+
+function goMap(){initAudio();updateMapStatus();buildChapters();show('s-map');}
+
+function startChapter(ch){currentChapter=ch;currentScene=0;showScene();}
+
+function showScene(){
+  var ch=currentChapter,sc=ch.scenes[currentScene];
+  document.getElementById('sc-area').textContent='▶ '+ch.area;
+  document.getElementById('sc-illust').innerHTML=emojiToSprite(sc.illust);
+  document.getElementById('sc-name').textContent='【'+sc.name+'】';
+  document.getElementById('sc-btn').textContent=currentScene>=ch.scenes.length-1?'▶ ボスに たちむかう！':'▶ つぎへ';
+  show('s-story');
+  typewriteHTML('sc-text', sc.text.replace(/\n/g,'<br>'), 30);
+}
+
+function nextScene(){
+  currentScene++;
+  if(currentScene>=currentChapter.scenes.length)showBoss();
+  else showScene();
+}
+
+function showBoss(){
+  var b=currentChapter.boss;
+  var bossVB2=(b.ico==='#px-boss5')?'0 0 24 24':'0 0 16 16';
+  document.getElementById('boss-ico').innerHTML='<svg viewBox="'+bossVB2+'" xmlns="http://www.w3.org/2000/svg"><use href="'+b.ico+'"/></svg>';
+  document.getElementById('boss-name').textContent=b.name;
+  show('s-boss');
+  typewriteHTML('boss-desc', b.desc.replace(/\n/g,'<br>'), 32);
+}
+
+function shuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+
+function getUnlockedChapters(){
+  return CHAPTERS.filter(function(ch,i){
+    return i===0 || clearedChapters.indexOf(ch.id)!==-1 || clearedChapters.indexOf(CHAPTERS[i-1].id)!==-1;
+  });
+}
+
+function startQuick3(){
+  initAudio();
+  loadGame();
+  applyGenderToBodyMap();
+  var unlocked=getUnlockedChapters();
+  var pool=[];
+  unlocked.forEach(function(ch){
+    var mons=ch.monsters||['👾 まなびモンスター'];
+    (ch.questionPool||[]).forEach(function(q,i){
+      pool.push({q:q.q,c:q.c.slice(),a:q.a,e:q.e,monster:mons[Math.min(i,mons.length-1)]||mons[0]});
+    });
+    if(ch.bossQuestion){
+      pool.push({q:ch.bossQuestion.q,c:ch.bossQuestion.c.slice(),a:ch.bossQuestion.a,e:ch.bossQuestion.e,monster:(ch.monsters&&ch.monsters[ch.monsters.length-1])||'👾 ボスの残影'});
+    }
+  });
+  if(pool.length===0){showGenderSelect();return;}
+  var picked=shuffle(pool).slice(0,3);
+  currentChapter={
+    id:'quick3',name:'今日の3問',area:'📱 今日の3問 — QUICK QUEST',icon:'📱',diff:'復習',isReview:true,isQuick:true,
+    monsters:picked.map(function(p){return p.monster||'👾 まなびモンスター';}),
+    boss:{ico:'#px-tower',name:'今日の3問',desc:'短時間の確認バトル'},
+    questions:picked.map(function(p){return {q:p.q,c:p.c.slice(),a:p.a,e:p.e};}),
+    clearStory:'短い時間でも よく学んだ！\n\n<span class="hi">今日の3問を クリアした。</span>\nこの小さな積み重ねが、知識のHPを回復させる——',
+    clearIcon:'🏆'
+  };
+  cur=0;score=0;answered=false;correctStreak=0;bossWrongCount=0;bossWillSwap=false;bossStartIndex=999;bossMaxHits=0;
+  questions=currentChapter.questions;totalBattleQuestions=questions.length;
+  document.getElementById('area-nm').textContent=currentChapter.area;
+  updateBattleStatus();renderQ();show('s-battle');
+}
+
+function startReview(){
+  if(mistakes.length===0)return;
+  // 復習用の疑似チャプターを作成
+  var reviewQs=shuffleMistakes();
+  // モンスター情報を集約（各 mistake から）
+  var monsters=reviewQs.map(function(m){return m.monster||'👾 ふっかつモンスター';});
+  currentChapter={
+    id:'review',
+    name:'しゅうれんの とう',
+    area:'🗼 しゅうれんの とう \u2014 REVIEW DUNGEON',
+    icon:'🗼',
+    diff:'復習',
+    isReview:true,
+    monsters:monsters,
+    boss:{ico:'#px-tower',name:'まよえる ちしき',desc:'復習バトル'},
+    questions:reviewQs.map(function(m){return {q:m.q,c:m.c.slice(),a:m.a,e:m.e,_origin:m};}),
+    clearStory:'よくぞ \u3000まちがえた もんだいに ふたたび たちむかった！\n\n<span class="hi">きおくは ちからに かわった。</span>\nこの けいけんは そなたの しんりょうの ちからとなる——',
+    clearIcon:'📚'
+  };
+  show('s-battle');
+  cur=0;score=0;answered=false;correctStreak=0;
+  bossWrongCount=0;bossWillSwap=false;bossStartIndex=999;bossMaxHits=0;
+  questions=currentChapter.questions;totalBattleQuestions=questions.length;
+  document.getElementById('area-nm').textContent=currentChapter.area;
+  updateBattleStatus();renderQ();
+}
+
+function startBattle(){
+  cur=0;score=0;answered=false;correctStreak=0;
+  bossWrongCount=0;bossWillSwap=false;bossStartIndex=999;bossMaxHits=3;
+  if(currentChapter.questionPool && currentChapter.bossQuestion){
+    // 通常章：ザコ4問 + ボス3問。ボスはHPを3回削って撃破する。
+    var pool=currentChapter.questionPool.slice();
+    for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+    var normalQs=pool.slice(0, Math.min(4, pool.length));
+    var usedTexts=normalQs.map(function(qq){return qq.q;});
+    var bossQs=[Object.assign({}, currentChapter.bossQuestion, {_isBoss:true})];
+    var bossPool=pool.filter(function(qq){return usedTexts.indexOf(qq.q)===-1 && qq.q!==currentChapter.bossQuestion.q;});
+    bossPool.slice(0,2).forEach(function(qq){bossQs.push(Object.assign({}, qq, {_isBoss:true}));});
+    while(bossQs.length<3){bossQs.push(Object.assign({}, currentChapter.bossQuestion, {_isBoss:true}));}
+    bossStartIndex=normalQs.length;
+    bossMaxHits=bossQs.length;
+    questions=normalQs.concat(bossQs);
+  } else if(currentChapter.questions){
+    // 復習バトルや後方互換性のため
+    questions=shuffle(currentChapter.questions);
+    totalBattleQuestions=questions.length;
+    bossMaxHits=0;
+  } else {
+    questions=[];
+  }
+  totalBattleQuestions=questions.length;
+  document.getElementById('area-nm').textContent=currentChapter.area;
+  updateBattleStatus();renderQ();show('s-battle');
+}
+
+
+var BATTLE_BG_CLASSES={heart:'bg-heart',lung:'bg-lung',brain:'bg-brain',kidney:'bg-kidney',gi:'bg-gi',endocrine:'bg-endocrine',blood:'bg-blood',immune:'bg-immune',senses:'bg-senses',final:'bg-final',review:'bg-brain'};
+var TREASURE_REWARDS={
+  heart:'循環器の巻物',lung:'肺胞のオーブ',brain:'神経伝導の石板',kidney:'ネフロンの鍵',gi:'消化のレシピ',endocrine:'ホルモン調和の鈴',blood:'止血の紋章',immune:'免疫記憶の盾',senses:'五感の水晶',final:'人体王国の王冠',review:'復習のしおり'
+};
+function getBattleBgClass(chId){return BATTLE_BG_CLASSES[chId]||'bg-heart';}
+function getTreasureName(ch){return TREASURE_REWARDS[(ch&&ch.id)||'']||'知識の宝玉';}
+function getMonsterFlavor(mon,isBoss){
+  if(isBoss) return 'ただならぬ気配だ。弱点は、問題文の中に隠されている……';
+  var name=(mon||'モンスター').replace(/^[^\s]+\s*/,'');
+  if(name.indexOf('スライム')>=0) return name+'は ぷるぷる震えている。基礎知識で押し切れそうだ。';
+  if(name.indexOf('虫')>=0||name.indexOf('バグ')>=0) return name+'は 細かな知識のすき間を狙ってくる。';
+  if(name.indexOf('ゴースト')>=0||name.indexOf('ファントム')>=0) return name+'は あいまいな記憶に取りついている。';
+  return name+'のようすを うかがった。落ち着いて選択肢を読めば勝機がある。';
+}
+function setQuestionVisible(flag){
+  battleQuestionVisible=!!flag;
+  var qbox=document.querySelector('#s-battle .q-box');
+  var choices=document.getElementById('choices');
+  if(qbox) qbox.classList.toggle('command-hidden',!flag);
+  if(choices) choices.classList.toggle('command-hidden',!flag);
+}
+function showBattleCommands(){
+  var cmd=document.getElementById('battle-command');
+  if(cmd) cmd.classList.add('on');
+  setQuestionVisible(false);
+}
+function hideBattleCommands(){
+  var cmd=document.getElementById('battle-command');
+  if(cmd) cmd.classList.remove('on');
+}
+function chooseCommand(cmd){
+  if(answered)return;
+  var q=questions[cur];
+  var isBoss=isBossQuestionIndex(cur);
+  var monsters=currentChapter.monsters||['👾'];
+  var m=monsters[Math.min(cur,monsters.length-1)];
+  playSE('cursor');
+  if(cmd==='attack'){
+    hideBattleCommands();
+    setQuestionVisible(true);
+    typewriteHTML('battle-msg','勇者は こうげきの構えをとった！<br><span class="hi">正しい知識を 選べ！</span>',20);
+    return;
+  }
+  if(cmd==='inspect'){
+    typewriteHTML('battle-msg','勇者は '+m+' をしらべた！<br><span class="hi">'+getMonsterFlavor(m,isBoss)+'</span>',22);
+    return;
+  }
+  if(cmd==='hint'){
+    showHintFor(q);
+    typewriteHTML('battle-msg','勇者は きおくを たどった！<br><span class="hi">ヒントが 表示された。</span>',22);
+    return;
+  }
+  if(cmd==='run'){
+    if(isBoss||currentChapter.isReview){
+      typewriteHTML('battle-msg','しかし まわりこまれてしまった！<br><span class="hi">この戦いからは にげられない。</span>',22);
+      return;
+    }
+    hero.hp=Math.max(1,hero.hp-3);
+    updateBattleStatus();
+    typewriteHTML('battle-msg','勇者は うまく にげだした！<br><span class="hi">HPを3消費して ワールドマップへ戻った。</span>',22);
+    hideBattleCommands();
+    setQuestionVisible(false);
+    var nxt=document.getElementById('nxtbtn');
+    nxt.textContent='▶ ワールドマップへ';
+    nxt.onclick=function(){nxt.onclick=nextQ;goMap();};
+    nxt.classList.add('on');
+  }
+}
+
+function updateBattleStatus(){
+  document.getElementById('lv-val').textContent=hero.lv;
+  document.getElementById('hp-val').textContent=hero.hp;
+  document.getElementById('atk-val').textContent=hero.atk;
+  var need=expForNext(hero.lv);
+  document.getElementById('exp-bar').style.width=Math.min(100,Math.round(hero.exp/need*100))+'%';
+  document.getElementById('exp-cur').textContent=hero.exp;
+  document.getElementById('exp-max').textContent=need;
+  document.getElementById('hp-bar').style.width=Math.max(0,Math.round(hero.hp/hero.maxHp*100))+'%';
+}
+
+function renderQ(){
+  applyHeroGender();
+  var q=questions[cur];answered=false;
+  var monsters=currentChapter.monsters||['👾'];
+  var m=monsters[Math.min(cur,monsters.length-1)];
+  var isBoss=isBossQuestionIndex(cur);
+  var bf=document.querySelector('#s-battle .battle-field');
+  if(bf){bf.className='battle-field '+getBattleBgClass(currentChapter.id)+(isBoss?' boss-bg':'');}
+  var monIco=document.getElementById('mon-ico');
+  if(isBoss){
+    var bossVB=(currentChapter.boss.ico==='#px-boss5')?'0 0 24 24':'0 0 16 16';
+    monIco.innerHTML='<svg viewBox="'+bossVB+'" xmlns="http://www.w3.org/2000/svg"><use href="'+currentChapter.boss.ico+'"/></svg>';
+  } else {
+    var emoji=m.split(' ')[0]||'👾';
+    monIco.innerHTML=emojiToSprite(emoji);
+  }
+  document.getElementById('mon-nm').textContent=m;
+  
+  if(isBoss){
+    var bossRemain=questions.length-cur;
+    document.getElementById('mon-hp').style.width=Math.max(8,Math.round(bossRemain/bossMaxHits*100))+'%';
+    document.getElementById('q-num').textContent='BOSS HP '+bossRemain+' / '+bossMaxHits+'　問題 '+(cur+1)+' / '+totalBattleQuestions;
+  } else {
+    document.getElementById('mon-hp').style.width='100%';
+    document.getElementById('q-num').textContent='問題 '+(cur+1)+' / '+totalBattleQuestions;
+  }
+  document.getElementById('q-txt').textContent=q.q;
+  document.getElementById('qcnt').textContent='⭐'+score+' 正解';
+  var appearMsg=isBoss?currentChapter.boss.name+' が たちはだかった！<br><span class="hi">3回正解して HPを削れ！</span>':m+' が あらわれた！<br><span class="hi">コマンドを 選んで たたかえ！</span>';
+  typewriteHTML('battle-msg',appearMsg,18);
+  var ch=document.getElementById('choices');ch.innerHTML='';
+  for(var i=0;i<q.c.length;i++){
+    var b=document.createElement('button');
+    b.className='cbtn';
+    b.innerHTML='<span class="clbl">'+LABELS[i]+'</span><span>'+q.c[i]+'</span>';
+    b.onclick=(function(idx){return function(){checkA(idx);};})(i);
+    ch.appendChild(b);
+  }
+  document.getElementById('expbox').style.display='none';
+  document.getElementById('gain-popup').style.display='none';
+  document.getElementById('lvup-popup').style.display='none';
+  var sp=document.getElementById('streak-popup'); if(sp)sp.style.display='none';
+  hideHint();
+  showBattleCommands();
+  var nxt=document.getElementById('nxtbtn');nxt.classList.remove('on');nxt.onclick=nextQ;
+}
+
+function checkA(idx){
+  if(answered||!battleQuestionVisible)return;
+  hideBattleCommands();
+  answered=true;
+  playSE('select');
+  var q=questions[cur];
+  var btns=document.querySelectorAll('.cbtn');
+  // ボス戦で不正解の場合、正解の緑枠を表示しない（再挑戦時のヒントを与えないため）
+  var isWrongAttempt=(idx!==q.a);
+  // 不正解時は通常戦・ボス戦とも正解を伏せ、同じ敵に再挑戦させる
+  var shouldHideAnswer=isWrongAttempt;
+  for(var i=0;i<btns.length;i++){
+    btns[i].disabled=true;
+    if(i===q.a && !shouldHideAnswer) btns[i].classList.add('correct');
+    else if(i===idx && isWrongAttempt) btns[i].classList.add('wrong');
+  }
+  if(idx===q.a){
+    score++;
+    lastAnswerCorrect=true;
+    correctStreak++;
+    q._attempts=0;
+    bossWrongCount=0;
+    playSE('correct');
+    // 勇者攻撃アニメーション
+    playHeroAttack(
+      function(){
+        flashMon();
+        showMonDmg('★ GOOD! ★');
+        document.getElementById('mon-hp').style.width='0%';
+      },
+      function(){
+        // アニメ完了後に結果を表示
+        _showCorrectResult(q, gain, lvBefore, atkBefore, maxHpBefore);
+      }
+    );
+    // 復習バトルで正解 → mistakesから削除
+    if(currentChapter.isReview&&q._origin){
+      removeMistake(q._origin.q);
+    }
+    var gain=currentChapter.diff==='基礎'?40:currentChapter.diff==='標準'?65:currentChapter.diff==='復習'?70:100;
+    var criticalBonus=0;
+    if(correctStreak>0 && correctStreak%3===0){criticalBonus=25;gain+=criticalBonus;playSE('critical');}
+    var lvBefore=hero.lv;
+    var atkBefore=hero.atk;
+    var maxHpBefore=hero.maxHp;
+    hero.exp+=gain;
+    var need=expForNext(hero.lv);
+    while(hero.exp>=need&&hero.lv<9){
+      hero.exp-=need;hero.lv++;
+      hero.maxHp+=15;hero.atk+=5;
+      hero.hp=Math.min(hero.maxHp,hero.hp+15);
+      need=expForNext(hero.lv);
+    }
+    // _showCorrectResult はアニメ完了後に呼ばれる（上のplayHeroAttack内）
+  } else {
+    lastAnswerCorrect=false;
+    correctStreak=0;
+    q._attempts=(q._attempts||0)+1;
+    // 復習バトルで不正解 → そのままmistakesに残す（_origin の tries++）
+    if(currentChapter.isReview&&q._origin){
+      var found=mistakes.find(function(m){return m.q===q._origin.q;});
+      if(found)found.tries=(found.tries||1)+1;
+    } else if(!currentChapter.isReview){
+      // 通常バトルで不正解 → mistakesに追加
+      addMistake(q,currentChapter);
+    }
+    playSE('wrong');
+    // モンスター攻撃アニメーション
+    var dmg=calcDamage();
+    hero.hp=Math.max(0,hero.hp-dmg);
+    playMonAttack(
+      function(){
+        flashHero();
+        setTimeout(function(){playSE('damage');},50);
+        showHeroDmg('-'+dmg+' HP');
+      },
+      null
+    );
+    // ボス戦の場合：3回連続不正解で問題切替
+    var isBossQ_wrong=isBossQuestionIndex(cur);
+    var msg;
+    if(isBossQ_wrong){
+      // ボス戦：正解を伏せて再挑戦を促す
+      msg='❌ 不正解！ -'+dmg+'HP… もういちど 答えを見つけよ！';
+    } else {
+      // 通常戦も正解するまで同じ敵が残る仕様
+      msg='❌ 不正解！ -'+dmg+'HP… 敵はまだ倒れていない！<br><span class="hi">同じ問題にもういちど挑もう。</span>';
+    }
+    if(q._attempts>=3 && hero.hp>0){
+      showHintFor(q);
+      msg+='<br><span class="hi">💡 ヒントが表示された！</span>';
+    }
+    if(isBossQ_wrong){
+      bossWrongCount++;
+      if(bossWrongCount>=3){
+        // 次のnextQで問題切替
+        bossWillSwap=true;
+        bossWrongCount=0;
+        msg+='<br><span class="hi">⚠️ ボスが新たな攻撃を準備している…！</span>';
+      } else {
+        msg+='<br>(連続不正解 '+bossWrongCount+'/3)';
+      }
+    }
+    typewriteHTML('battle-msg',msg,24);
+  }
+  updateBattleStatus();
+  // 不正解時: 正解するまで戦闘継続。ヒント化を避けるため解説は非表示
+  var hideExp = (lastAnswerCorrect===false && hero.hp>0);
+  if(hideExp){
+    document.getElementById('expbox').style.display='none';
+  }
+  var nxt=document.getElementById('nxtbtn');
+  var isLastQ=(cur>=questions.length-1);
+  var isBossQ=isBossQuestionIndex(cur);
+  if(hero.hp<=0){
+    nxt.textContent='💀 結果を見る…';
+  } else if(!lastAnswerCorrect){
+    // 通常戦・ボス戦とも正解するまで同じ問題に再挑戦
+    nxt.textContent=isBossQ?'⚔️ もういちど ボスに 挑む！':'⚔️ 同じ敵に もういちど挑む！';
+  } else if(isLastQ){
+    nxt.textContent='🏆 クリア演出へ';
+  } else {
+    nxt.textContent='⚔️ 次のモンスターへ';
+  }
+  nxt.classList.add('on');
+}
+
+function _showCorrectResult(q, gain, lvBefore, atkBefore, maxHpBefore){
+  var defeatMsg=isBossQuestionIndex(cur)?'✅ 正解！ '+q.c[q.a]+' — ボスに一撃！':'✅ 正解！ '+q.c[q.a]+' — モンスターを撃退！';
+  typewriteHTML('battle-msg',defeatMsg,22);
+  hideHint();
+  var gp=document.getElementById('gain-popup');
+  gp.textContent='+'+gain+' EXP！';gp.style.display='block';
+  var sp=document.getElementById('streak-popup');
+  if(sp && correctStreak>0 && correctStreak%3===0){sp.innerHTML='⚡ CRITICAL BONUS！ 3れんぞく正解 +25EXP';sp.style.display='block';setTimeout(function(){sp.style.display='none';},2200);}
+  if(hero.lv>lvBefore){
+    setTimeout(function(){playSE('levelup');},300);
+    var hpInc=hero.maxHp-maxHpBefore;
+    var atkInc=hero.atk-atkBefore;
+    var lu=document.getElementById('lvup-popup');
+    lu.innerHTML='⬆️ LEVEL UP！ → Lv.'+hero.lv+'<br>HP+'+hpInc+' / ATK+'+atkInc;
+    lu.style.display='block';
+    setTimeout(function(){lu.style.display='none';},2200);
+  }
+  updateBattleStatus();
+  var isBossQ_check2=isBossQuestionIndex(cur);
+  document.getElementById('exptext').textContent=q.e;
+  document.getElementById('expbox').classList.add('on');
+  document.getElementById('expbox').style.display='block';
+  var nxt=document.getElementById('nxtbtn');
+  var isLastQ=(cur>=questions.length-1);
+  var isBossQ2=isBossQuestionIndex(cur);
+  if(hero.hp<=0){nxt.textContent='💀 結果を見る…';}
+  else if(isBossQ2&&!lastAnswerCorrect){nxt.textContent='⚔️ もういちど ボスに 挑む！';}
+  else if(isLastQ){nxt.textContent='🏆 クリア演出へ';}
+  else{nxt.textContent='⚔️ 次のモンスターへ';}
+  nxt.classList.add('on');
+}
+
+function nextQ(){
+  if(hero.hp<=0){showGameOver();return;}
+  // 不正解時は通常戦・ボス戦とも cur を進めず再挑戦
+  var isBossQ=isBossQuestionIndex(cur);
+  if(!lastAnswerCorrect){
+    if(isBossQ&&bossWillSwap){
+      bossWillSwap=false;
+      var swapped=swapBossQuestion();
+      renderQ();
+      if(swapped){
+        typewriteHTML('battle-msg','💥 ボスが姿を変えた！新たな問いが現れた——',26);
+      }
+      return;
+    }
+    renderQ();
+    return;
+  }
+  cur++;
+  if(cur>=questions.length)showClear();
+  else renderQ();
+}
+
+function showGameOver(){
+  var ch=currentChapter;
+  saveGame(false);
+  document.getElementById('go-sub').textContent=ch.name+' — 敗北…';
+  var msg;
+  if(ch.isReview){
+    msg='まだ きおくは あいまいだ…<br><br>'+
+      '正解数：'+score+' / '+questions.length+'問<br>'+
+      'HPが0になりました。<br><br>'+
+      'もういちど ちょうせんして きおくを かためよう！';
+  } else {
+    var bossName=(ch.boss&&ch.boss.name)?ch.boss.name:'病魔';
+    msg='勇者よ、<span class="hi">'+bossName+'</span>に倒されてしまった。<br><br>'+
+      '正解数：'+score+' / '+questions.length+'問<br>'+
+      'HPが0になりました。<br><br>'+
+      'ワールドマップで復習してから、もういちど挑戦しよう！';
+  }
+  document.getElementById('go-msg').innerHTML='';
+  show('s-gameover');
+  setTimeout(function(){
+    typewriteHTML('go-msg', msg, 30);
+  }, 250);
+}
+
+function retryChapter(){
+  hero.hp=hero.maxHp;
+  saveGame(false);
+  if(currentChapter&&currentChapter.isReview){
+    startReview();
+  } else {
+    startChapter(currentChapter);
+  }
+}
+
+function showClear(){
+  var ch=currentChapter;
+  // 通常バトルのみクリア状況を更新
+  if(!ch.isReview&&!clearedChapters.includes(ch.id))clearedChapters.push(ch.id);
+  saveGame(true);
+  var pct=Math.round(score/questions.length*100);
+  var ranks=[
+    {min:100,title:'完全制覇！伝説の医学生！'},
+    {min:80,title:'見事な勝利！'},
+    {min:60,title:'クリア！よく戦った'},
+    {min:0,title:'クリア！復習して再挑戦しよう'}
+  ];
+  var rank=ranks.find(function(r){return pct>=r.min;});
+  document.getElementById('clear-ico').innerHTML=emojiToSprite(ch.clearIcon||'🏆');
+  document.getElementById('clear-title').textContent=ch.name+' クリア！';
+  document.getElementById('clear-ch').textContent=rank.title;
+  var storyHTML=ch.clearStory.replace(/\n/g,'<br>');
+  storyHTML+='<br><br><span class="hi">獲得称号：'+getHeroTitle()+'</span>';
+  var treasure=getTreasureName(ch);
+  if(!ch.isReview){
+    hero.items=hero.items||[];
+    if(hero.items.indexOf(treasure)===-1)hero.items.push(treasure);
+  }
+  if(ch.isReview&&!ch.isQuick){
+    var remaining=mistakes.length;
+    if(remaining===0){
+      storyHTML+='<br><br><span class="hi">✨ すべての まちがいを かいしょうした！✨</span><br>もう くりかえしは ない！';
+    } else {
+      storyHTML+='<br><br>のこりの まちがい : <span class="hi">'+remaining+'</span> もん';
+    }
+  }
+  // typewriter効果で表示（画面遷移後に少し待ってから）
+  document.getElementById('clear-story').innerHTML='';
+  setTimeout(function(){
+    typewriteHTML('clear-story', storyHTML, 32);
+  }, 250);
+  var tbox=document.getElementById('treasure-box');
+  var ttext=document.getElementById('treasure-text');
+  if(tbox&&ttext){
+    tbox.style.display='block';
+    if(ch.isQuick){
+      ttext.innerHTML='<span class="treasure-item">スキマ学習のメダル</span> を てにいれた！<br>今日の短時間クエストを達成した。';
+    }else if(ch.isReview){
+      ttext.innerHTML='<span class="treasure-item">復習のしおり</span> を てにいれた！<br>まちがえた知識が 経験値に変わった。';
+    }else{
+      ttext.innerHTML='<span class="treasure-item">'+treasure+'</span> を てにいれた！<br>この章の要点が ぼうけんの記録に刻まれた。';
+    }
+  }
+  document.getElementById('cs1').textContent='Lv.'+hero.lv;
+  document.getElementById('cs2').textContent=score+'/'+questions.length;
+  document.getElementById('cs3').textContent=hero.hp;
+  saveGame(false);
+  show('s-clear');
+}
+
+loadGame();
+loadTheme();   // テーマをlocalStorageから復元
+initOpening();
+show('s-open');
+</script>
+</body>
+</html>
