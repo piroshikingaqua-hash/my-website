@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MedExam Pro - 医師国家試験 過去問演習</title>
+<style>
+  :root{
+    --bg:#f6f8fb;
+    --surface:#ffffff;
+    --surface-soft:#f9fbff;
+    --text:#172033;
+    --muted:#667085;
+    --line:#e5e9f2;
+    --line-strong:#d3dae8;
+    --primary:#155eef;
+    --primary-dark:#0f47bd;
+    --primary-soft:#eef4ff;
+    --navy:#0b1f44;
+    --cyan:#08a4b4;
+    --green:#16a34a;
+    --green-soft:#ecfdf3;
+    --red:#dc2626;
+    --red-soft:#fef2f2;
+    --amber:#d97706;
+    --amber-soft:#fffbeb;
+    --purple:#7c3aed;
+    --purple-soft:#f4f0ff;
+    --shadow:0 16px 40px rgba(15,23,42,.08);
+    --shadow-sm:0 8px 24px rgba(15,23,42,.06);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Noto Sans JP","Meiryo",sans-serif;
+    background:
+      radial-gradient(circle at top left, rgba(21,94,239,.12), transparent 32rem),
+      linear-gradient(180deg,#fbfcff 0%,var(--bg) 38%,#f8fafc 100%);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  button,input,select,textarea{font:inherit}
+  button{cursor:pointer}
+  .hidden{display:none!important}
+  .screen{min-height:100vh}
+  .container{width:min(1024px,calc(100% - 40px));margin:0 auto}
+
+  /* Login */
+  #loginScreen{display:grid;place-items:center;padding:28px 16px}
+  .login-shell{width:min(980px,100%);display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:stretch}
+  .hero-card,.login-card{background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border:1px solid rgba(229,233,242,.9);border-radius:28px;box-shadow:var(--shadow);padding:32px}
+  .hero-card{position:relative;overflow:hidden;background:linear-gradient(145deg,#0b1f44 0%,#123c8c 56%,#155eef 100%);color:#fff;min-height:520px;display:flex;flex-direction:column;justify-content:space-between}
+  .hero-card:after{content:"";position:absolute;right:-120px;bottom:-120px;width:360px;height:360px;border-radius:999px;background:rgba(255,255,255,.11)}
+  .brand{display:flex;gap:12px;align-items:center;position:relative;z-index:1}
+  .logo{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-weight:800;letter-spacing:-.02em}
+  .brand-title{font-size:22px;font-weight:800;letter-spacing:-.03em}.brand-sub{font-size:12px;color:#c7d7fe;margin-top:2px}
+  .hero-copy{position:relative;z-index:1;margin-top:52px}.hero-copy h1{font-size:36px;line-height:1.25;margin:0 0 16px;letter-spacing:-.05em}.hero-copy p{line-height:1.9;color:#dbeafe;margin:0;font-size:15px;max-width:500px}
+  .hero-metrics{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:24px}.hero-metric{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.11);border-radius:18px;padding:14px}.hero-metric strong{font-size:24px;display:block}.hero-metric span{font-size:12px;color:#dbeafe}
+  .login-card{display:flex;flex-direction:column;justify-content:center}.login-card h2{font-size:24px;margin:0 0 6px;letter-spacing:-.03em}.login-card .lead{color:var(--muted);font-size:14px;margin:0 0 24px;line-height:1.7}
+  .field{margin-bottom:14px}.field label{display:block;font-size:12px;font-weight:700;color:#344054;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line-strong);background:#fff;border-radius:14px;padding:12px 14px;outline:none;color:var(--text);transition:.15s}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(21,94,239,.12)}
+  .btn{border:none;border-radius:14px;padding:12px 16px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.16s;text-decoration:none;white-space:nowrap}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),#0b73e8);color:#fff;box-shadow:0 12px 24px rgba(21,94,239,.24)}.btn-primary:hover{transform:translateY(-1px);background:linear-gradient(135deg,var(--primary-dark),#0b73e8)}
+  .btn-secondary{background:#fff;color:#344054;border:1px solid var(--line-strong)}.btn-secondary:hover{background:#f8fafc}
+  .btn-soft{background:var(--primary-soft);color:var(--primary)}.btn-soft:hover{background:#dbeafe}
+  .btn-danger{background:var(--red-soft);color:var(--red);border:1px solid #fecaca}.btn-danger:hover{background:#fee2e2}
+  .btn-small{padding:8px 10px;border-radius:11px;font-size:12px;font-weight:800}
+  .err-box{background:var(--red-soft);border:1px solid #fecaca;color:var(--red);border-radius:14px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+  .hint{font-size:12px;color:var(--muted);line-height:1.8;text-align:center;margin:14px 0 0}.hint strong{color:var(--text)}
+
+  /* App */
+  .app-header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border-bottom:1px solid rgba(229,233,242,.88)}
+  .topbar{height:72px;display:flex;align-items:center;justify-content:space-between;gap:16px}.topbar-left{display:flex;align-items:center;gap:12px}.topbar .logo{background:linear-gradient(135deg,var(--primary),#0b73e8);color:#fff;width:40px;height:40px;border-radius:13px}.topbar h1{font-size:18px;margin:0;letter-spacing:-.03em}.topbar p{font-size:12px;color:var(--muted);margin:2px 0 0}.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.id-pill{font-size:12px;font-weight:800;color:var(--primary);background:var(--primary-soft);border:1px solid #dbeafe;border-radius:999px;padding:8px 12px}
+  .tabs{display:flex;gap:6px;overflow:auto;padding:0 0 12px}.tab{border:none;background:transparent;color:var(--muted);font-weight:800;font-size:13px;border-radius:999px;padding:9px 12px;white-space:nowrap}.tab.active{background:var(--navy);color:#fff}.tab:hover:not(.active){background:#eef2f7;color:var(--text)}
+  main{padding:22px 0 44px}.grid{display:grid;gap:16px}.dashboard-grid{grid-template-columns:1.35fr .65fr}.practice-grid{grid-template-columns:.72fr 1.28fr}.analytics-grid{grid-template-columns:1fr 1fr}
+  .card{background:rgba(255,255,255,.9);border:1px solid rgba(229,233,242,.95);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:18px}.card-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.card-title h2,.card-title h3{margin:0;font-size:16px;letter-spacing:-.03em}.card-title p{margin:4px 0 0;font-size:12px;color:var(--muted);line-height:1.6}.eyebrow{font-size:11px;font-weight:900;color:var(--primary);letter-spacing:.08em;text-transform:uppercase}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.kpi{background:linear-gradient(180deg,#fff,var(--surface-soft));border:1px solid var(--line);border-radius:18px;padding:15px}.kpi .num{font-size:28px;font-weight:900;letter-spacing:-.05em}.kpi .lbl{font-size:12px;color:var(--muted);margin-top:4px}.kpi .delta{font-size:11px;color:var(--green);font-weight:800;margin-top:8px}.kpi.warn .delta{color:var(--amber)}.kpi.bad .delta{color:var(--red)}
+  .menu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.menu-card{border:1px solid var(--line);background:#fff;border-radius:18px;padding:16px;text-align:left;transition:.16s;display:flex;gap:12px;align-items:flex-start}.menu-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm);border-color:#c8d4ea}.menu-icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;flex:0 0 auto;font-size:20px}.ic-blue{background:var(--primary-soft)}.ic-green{background:var(--green-soft)}.ic-rose{background:var(--red-soft)}.ic-purple{background:var(--purple-soft)}.menu-title{font-size:15px;font-weight:900}.menu-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-top:3px}.badge{display:inline-flex;align-items:center;gap:6px;font-weight:900;font-size:11px;border-radius:999px;padding:5px 9px;background:#eef2f7;color:#475467}.badge.primary{background:var(--primary-soft);color:var(--primary)}.badge.green{background:var(--green-soft);color:var(--green)}.badge.red{background:var(--red-soft);color:var(--red)}.badge.amber{background:var(--amber-soft);color:var(--amber)}.badge.purple{background:var(--purple-soft);color:var(--purple)}
+  .progress-wrap{display:grid;gap:12px}.progress-line{display:grid;gap:7px}.progress-head{display:flex;align-items:center;justify-content:space-between;font-size:12px}.progress-head strong{font-size:13px}.progress-head span{color:var(--muted);font-weight:700}.track{height:9px;background:#eef2f7;border-radius:999px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--cyan));border-radius:999px;width:0%;transition:.35s}.fill.green{background:linear-gradient(90deg,#16a34a,#22c55e)}.fill.amber{background:linear-gradient(90deg,#d97706,#f59e0b)}.fill.red{background:linear-gradient(90deg,#dc2626,#fb7185)}
+  .study-plan{display:grid;gap:10px}.plan-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:16px;padding:12px;background:#fff}.plan-check{width:26px;height:26px;border-radius:999px;display:grid;place-items:center;background:var(--primary-soft);color:var(--primary);font-weight:900;flex:0 0 auto}.plan-main{min-width:0}.plan-main strong{font-size:13px}.plan-main p{margin:3px 0 0;font-size:12px;color:var(--muted);line-height:1.5}
+
+  /* Practice */
+  .filter-stack{display:grid;gap:12px}.inline-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.check-pill{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:9px 10px;font-size:12px;font-weight:800;background:#fff}.check-pill input{accent-color:var(--primary)}.actions{display:flex;gap:8px;flex-wrap:wrap}
+  .advanced-filter{background:linear-gradient(180deg,#f8fbff,#eef4ff);border:1px solid #d8e2f5;border-radius:18px;padding:12px;display:grid;gap:10px}.advanced-head{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#344054}.advanced-head strong{font-size:13px}.advanced-head span:last-child{font-size:11px;color:var(--muted);font-weight:800}.filter-row{display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:start}.filter-label{font-size:11px;font-weight:900;color:#667085;padding-top:8px;text-align:right}.chip-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.chip-grid.wide{grid-template-columns:repeat(4,minmax(0,1fr))}.chip-grid.exam{grid-template-columns:repeat(4,minmax(0,1fr))}.chip-grid.subject{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.chip-grid.subject .filter-chip{min-height:0;height:40px;display:flex;align-items:center;justify-content:center;gap:3px;padding:0 8px;font-size:13px;border-radius:8px;box-shadow:none}.chip-grid.subject .filter-chip small{margin-left:0;font-size:10px;opacity:.65}.chip-grid.subject .filter-chip.active{box-shadow:none;background:#3f7fd6;border-color:#3f7fd6;color:#fff}.chip-grid.subject .filter-chip:not(.active){background:#fff;color:#3f6ea5;border-color:#cdd9ec}.chip-grid.subject .filter-chip.empty:not(.active){color:#a9b4c4;border-style:dashed;border-color:#dbe2ee}.chip-grid.subject .filter-chip.empty.active{background:#a9c2e2;border-color:#a9c2e2}.filter-chip{min-height:44px;border:1px solid var(--line-strong);background:#fff;color:#344054;border-radius:9px;padding:8px 10px;font-size:13px;font-weight:900;line-height:1.2;box-shadow:0 1px 0 rgba(15,23,42,.02)}.filter-chip:hover{border-color:#9db4d6;background:#f8fbff}.filter-chip.active{background:#7fbf2f;border-color:#7fbf2f;color:#fff;box-shadow:0 8px 18px rgba(127,191,47,.22)}.filter-chip.strong.active{background:#16a34a;border-color:#16a34a}.filter-chip.muted{font-size:11px}.filter-chip small{display:inline-block;margin-left:4px;font-size:10px;font-weight:900;opacity:.7}.filter-chip.empty{color:#98a2b3;border-style:dashed}.filter-chip.empty small{opacity:.6}.filter-chip.empty.active{background:#c8d3a8;border-color:#c8d3a8;color:#fff}.filter-tools{display:flex;gap:4px;flex-direction:column}.mini-action{border:1px solid #b8d8a1;background:#f7fff1;color:#398217;border-radius:8px;padding:8px 8px;font-size:11px;font-weight:900;min-height:36px}.mini-action:hover{background:#ecfdf3}.filter-row.with-tools{grid-template-columns:78px 48px 1fr}.compact-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}.filter-note{font-size:11px;color:var(--muted);line-height:1.7;margin:0}.question-shell{min-height:520px;display:flex;flex-direction:column}.quiz-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}.quiz-progress{font-size:12px;color:var(--muted);font-weight:900}.question-title{font-size:18px;line-height:1.7;font-weight:800;margin:10px 0 18px;white-space:pre-wrap}.meta-row{display:flex;gap:7px;flex-wrap:wrap}.choice-list{display:grid;gap:10px;margin-top:auto}.choice{width:100%;border:1px solid var(--line-strong);background:#fff;border-radius:16px;padding:13px;text-align:left;display:flex;gap:12px;align-items:flex-start;color:var(--text);transition:.16s;line-height:1.55}.choice:hover{border-color:#b7c5dc;background:#fbfdff}.choice.selected{border-color:var(--primary);background:var(--primary-soft);box-shadow:0 0 0 4px rgba(21,94,239,.08)}.choice.correct{border-color:#22c55e;background:var(--green-soft)}.choice.wrong{border-color:#fb7185;background:var(--red-soft)}.choice.disabled{pointer-events:none}.mark{width:26px;height:26px;border-radius:999px;border:1px solid var(--line-strong);display:grid;place-items:center;flex:0 0 auto;font-weight:900;color:var(--muted);font-size:12px;background:#fff}.selected .mark{background:var(--primary);border-color:var(--primary);color:#fff}.correct .mark{background:var(--green);border-color:var(--green);color:#fff}.wrong .mark{background:var(--red);border-color:var(--red);color:#fff}.quiz-footer{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.result-box{border-radius:18px;padding:16px;margin-top:16px;border:1px solid var(--line);background:#fff}.result-box.ok{border-color:#bbf7d0;background:var(--green-soft)}.result-box.ng{border-color:#fecaca;background:var(--red-soft)}.result-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.result-head strong{font-size:17px}.explain-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.explain-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px}.explain-card h4{margin:0 0 8px;font-size:12px;color:var(--muted);letter-spacing:.03em}.explain-card p{margin:0;line-height:1.8;font-size:14px}.srs-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.srs-btn{border:1px solid var(--line-strong);border-radius:14px;background:#fff;padding:14px 8px;font-weight:900;color:#344054;min-height:56px}.srs-btn:hover{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}.srs-btn span{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
+  .note-box textarea{min-height:110px;resize:vertical}.bookmark-btn.active{background:var(--amber-soft);color:var(--amber);border-color:#fde68a}
+  .empty{padding:44px 16px;text-align:center;color:var(--muted);line-height:1.9}.empty strong{display:block;color:var(--text);font-size:16px;margin-bottom:6px}
+
+  /* Analytics */
+  .analytics-pro{align-items:start}.span-2{grid-column:1 / -1}.analysis-hero{background:linear-gradient(135deg,#ffffff 0%,#f6fbff 48%,#eef8f0 100%);border-color:#dbeade}.analysis-hero-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}.analysis-hero h2{font-size:22px;margin:4px 0 0;letter-spacing:-.04em}.analysis-hero p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.7}.threshold-panel{display:grid;grid-template-columns:repeat(2,minmax(130px,1fr));gap:10px;width:min(360px,100%)}.threshold-control{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px}.threshold-control label{font-size:11px;font-weight:900;color:var(--muted);display:block;margin-bottom:6px}.threshold-control .threshold-input{display:flex;align-items:center;gap:6px}.threshold-control input{width:76px;border:1px solid var(--line-strong);border-radius:11px;padding:8px 9px;font-weight:900;text-align:right}.threshold-control span{font-size:12px;font-weight:900;color:#344054}.score-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.score-card{position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;min-height:106px}.score-card:after{content:"";position:absolute;right:-26px;bottom:-34px;width:92px;height:92px;border-radius:999px;background:rgba(21,94,239,.08)}.score-card.good:after{background:rgba(22,163,74,.1)}.score-card.warn:after{background:rgba(217,119,6,.12)}.score-card.bad:after{background:rgba(220,38,38,.1)}.score-card small{display:block;font-size:11px;color:var(--muted);font-weight:900}.score-card strong{font-size:32px;letter-spacing:-.06em;display:block;margin-top:5px}.score-card p{font-size:12px;color:var(--muted);line-height:1.5;margin:6px 0 0}.organ-list{display:grid;gap:10px}.organ-row{display:grid;grid-template-columns:150px 1fr 126px;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}.organ-row.need{border-color:#fed7aa;background:linear-gradient(90deg,#fff7ed,#fff)}.organ-row.ok{border-color:#bbf7d0;background:linear-gradient(90deg,#f0fdf4,#fff)}.organ-name strong{display:block;font-size:14px}.organ-name span{display:block;color:var(--muted);font-size:11px;margin-top:3px}.stacked-track{position:relative;height:28px;background:#eef2f7;border-radius:999px;overflow:hidden}.stacked-correct,.stacked-wrong{position:absolute;top:0;height:100%;transition:.35s}.stacked-correct{left:0;background:linear-gradient(90deg,#22b8cf,#155eef)}.stacked-wrong{background:linear-gradient(90deg,#fb7185,#ef4444);opacity:.88}.threshold-marker{position:absolute;top:-3px;bottom:-3px;width:2px;background:#111827;box-shadow:0 0 0 3px rgba(17,24,39,.08)}.threshold-marker:after{content:attr(data-label);position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted);font-weight:900;white-space:nowrap}.organ-rate{text-align:right}.organ-rate strong{font-size:22px;letter-spacing:-.04em}.organ-rate small{display:block;font-size:11px;color:var(--muted);font-weight:800;margin-top:2px}.format-threshold-list{display:grid;gap:10px}.threshold-line{display:grid;gap:8px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}.threshold-line-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}.threshold-line-head strong{font-size:14px}.threshold-line-head span{font-weight:900;color:var(--muted)}.volume-chart{height:220px;display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff}.day-bar{height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;text-align:center;min-width:0}.day-stack{height:150px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;background:#f8fafc;border-radius:12px;padding:4px}.day-correct{background:#22b8cf;border-radius:9px 9px 4px 4px;min-height:0}.day-wrong{background:#fb7185;border-radius:4px 4px 9px 9px;min-height:0}.day-bar strong{font-size:11px;color:#344054}.day-bar span{font-size:10px;color:var(--muted);font-weight:800}.exam-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.exam-tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}.exam-tile strong{font-size:13px}.exam-tile p{margin:4px 0 0;font-size:11px;color:var(--muted)}.table{width:100%;border-collapse:separate;border-spacing:0 8px}.table th{font-size:11px;color:var(--muted);text-align:left;padding:0 10px}.table td{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:11px 10px;font-size:13px}.table td:first-child{border-left:1px solid var(--line);border-radius:14px 0 0 14px;font-weight:800}.table td:last-child{border-right:1px solid var(--line);border-radius:0 14px 14px 0}.mini-chart{display:grid;gap:9px}.timeline{display:grid;gap:10px}.timeline-item{display:flex;gap:10px;border-bottom:1px solid var(--line);padding-bottom:10px}.timeline-item:last-child{border-bottom:none;padding-bottom:0}.dot{width:10px;height:10px;border-radius:999px;background:var(--primary);margin-top:5px;flex:0 0 auto}.timeline-item small{color:var(--muted);font-size:11px}.timeline-item p{margin:2px 0 0;font-size:13px;line-height:1.6}
+  .toast{position:fixed;right:18px;bottom:18px;z-index:50;background:#0b1f44;color:#fff;border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);font-size:13px;font-weight:800;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
+  footer{color:var(--muted);font-size:11px;text-align:center;line-height:1.8;padding:26px 0 8px}
+
+  @media(max-width:1024px){
+    .login-shell,.dashboard-grid,.practice-grid,.analytics-grid{grid-template-columns:1fr}.hero-card{min-height:420px}.kpi-grid,.score-cards{grid-template-columns:repeat(2,1fr)}.explain-grid{grid-template-columns:1fr}.topbar{height:auto;padding:14px 0;align-items:flex-start}.topbar-right{justify-content:flex-start}.tabs{padding-bottom:10px}.analysis-hero-head{flex-direction:column}.threshold-panel{width:100%}.organ-row{grid-template-columns:1fr}.organ-rate{text-align:left}.exam-grid{grid-template-columns:repeat(2,1fr)}.chip-grid.subject{grid-template-columns:repeat(4,minmax(0,1fr))}.chip-grid.exam{grid-template-columns:repeat(6,minmax(0,1fr))}.question-title{font-size:19px}.choice{padding:15px}
+  }
+  @media(min-width:1025px){
+    .chip-grid.subject{grid-template-columns:repeat(4,minmax(0,1fr))}
+  }
+  @media(max-width:560px){
+    .container{width:min(100% - 24px,1120px)}.hero-card,.login-card,.card{border-radius:20px;padding:18px}.hero-copy h1{font-size:28px}.hero-metrics,.menu-grid,.inline-fields,.check-list,.srs-row,.compact-controls,.score-cards,.threshold-panel{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr 1fr}.practice-grid{gap:12px}.filter-row,.filter-row.with-tools{grid-template-columns:1fr}.filter-label{text-align:left;padding-top:0}.filter-tools{flex-direction:row}.chip-grid,.chip-grid.wide,.chip-grid.exam{grid-template-columns:repeat(2,minmax(0,1fr))}.chip-grid.subject{grid-template-columns:repeat(3,minmax(0,1fr))}.question-title{font-size:16px}.quiz-footer .btn{width:100%}.volume-chart{gap:4px;padding:10px}.exam-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div id="loginScreen" class="screen">
+  <div class="login-shell">
+    <section class="hero-card" aria-label="MedExam Pro概要">
+      <div class="brand"><div class="logo">M</div><div><div class="brand-title">MedExam Pro</div><div class="brand-sub">National Board Review System</div></div></div>
+      <div class="hero-copy">
+        <h1>過去問を、解くだけで終わらせない。</h1>
+        <p>回次・形式・科目を横断して演習し、誤答・手応え・メモを蓄積。SRS復習と弱点分析で、医学部生が毎日の学習計画に落とし込める教材システムです。</p>
+      </div>
+      <div class="hero-metrics">
+        <div class="hero-metric"><strong>3</strong><span>必修・一般・臨床</span></div>
+        <div class="hero-metric"><strong>SRS</strong><span>復習間隔を自動化</span></div>
+        <div class="hero-metric"><strong>CSV</strong><span>学習ログ出力</span></div>
+      </div>
+    </section>
+    <section class="login-card" aria-label="ログイン">
+      <span class="eyebrow">Prototype Login</span>
+      <h2>学習を開始</h2>
+      <p class="lead">このHTMLだけで動作するプロトタイプです。学生ごとの進捗はブラウザのlocalStorageに保存されます。</p>
+      <div class="field"><label for="loginId">ID（5桁数字）</label><input id="loginId" type="text" inputmode="numeric" maxlength="5" placeholder="00999" autocomplete="off"></div>
+      <div class="field"><label for="loginPw">パスワード</label><input id="loginPw" type="password" maxlength="64" placeholder="medexam"></div>
+      <div id="loginErr" class="err-box hidden"></div>
+      <button id="loginBtn" class="btn btn-primary" type="button">ログイン</button>
+      <p class="hint">テスト用ID: <strong>00999</strong> / パスワード: <strong>medexam</strong><br>本番化時はサーバー認証・暗号化・管理画面が必要です。</p>
+    </section>
+  </div>
+</div>
+
+<div id="appScreen" class="screen hidden">
+  <header class="app-header">
+    <div class="container">
+      <div class="topbar">
+        <div class="topbar-left"><div class="logo">M</div><div><h1>MedExam Pro</h1><p>医師国家試験 過去問演習・弱点補強システム</p></div></div>
+        <div class="topbar-right"><span class="id-pill" id="idBadge">ID 00999</span><button class="btn btn-secondary btn-small" id="exportBtn">CSV出力</button><button class="btn btn-secondary btn-small" id="logoutBtn">ログアウト</button></div>
+      </div>
+      <nav class="tabs" aria-label="メインメニュー">
+        <button class="tab active" data-view="dashboard">ダッシュボード</button>
+        <button class="tab" data-view="practice">演習</button>
+        <button class="tab" data-view="review">復習</button>
+        <button class="tab" data-view="analytics">成績分析</button>
+        <button class="tab" data-view="library">教材管理</button>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <section id="dashboardView" class="view">
+      <div class="grid dashboard-grid">
+        <div class="grid">
+          <div class="card">
+            <div class="card-title"><div><span class="eyebrow">Overview</span><h2>学習状況</h2><p>過去問演習の進捗・正答率・復習待ちを確認できます。</p></div></div>
+            <div class="kpi-grid" id="kpiGrid"></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><div><h3>今日のおすすめ</h3><p>データに基づいて、次に取り組むべき演習を提示します。</p></div></div>
+            <div class="menu-grid">
+              <button class="menu-card" id="quickPractice"><span class="menu-icon ic-blue">📝</span><span><span class="menu-title">未演習から10問</span><span class="menu-desc">回次・科目を横断し、未着手問題を優先します。</span></span></button>
+              <button class="menu-card" id="quickSrs"><span class="menu-icon ic-green">🔄</span><span><span class="menu-title">今日のSRS復習</span><span class="menu-desc" id="quickSrsDesc">復習待ちを自動出題します。</span></span></button>
+              <button class="menu-card" id="quickWeak"><span class="menu-icon ic-rose">🎯</span><span><span class="menu-title">苦手科目を補強</span><span class="menu-desc">正答率が低い科目を優先出題します。</span></span></button>
+              <button class="menu-card" id="quickBookmark"><span class="menu-icon ic-purple">⭐</span><span><span class="menu-title">ブックマーク復習</span><span class="menu-desc">講義・面談前に見直したい問題を集約します。</span></span></button>
+            </div>
+          </div>
+        </div>
+        <aside class="grid">
+          <div class="card">
+            <div class="card-title"><div><h3>本日の学習目標</h3><p>1日20問を目安に学習ペースを可視化します。</p></div></div>
+            <div class="progress-wrap" id="dailyGoal"></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><div><h3>回次別進捗</h3><p>実施済み問題の割合です。</p></div></div>
+            <div class="progress-wrap" id="examProgress"></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><div><h3>学習導線</h3><p>教材として使う場合の推奨フローです。</p></div></div>
+            <div class="study-plan" id="studyPlan"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="practiceView" class="view hidden">
+      <div class="grid practice-grid">
+        <aside class="card">
+          <div class="card-title"><div><span class="eyebrow">Practice Setup</span><h2>演習条件</h2><p>状態・履歴・問題区分・回数・科目をボタンで指定できます。</p></div></div>
+          <div class="filter-stack">
+            <div class="advanced-filter" id="advancedFilter">
+              <div class="advanced-head"><strong>⊕ 詳細設定</strong><span id="filterSummary">条件指定なし</span></div>
+
+              <div class="filter-row" data-group="status" data-mode="single">
+                <div class="filter-label">演習状態</div>
+                <div class="chip-grid wide">
+                  <button class="filter-chip active" type="button" data-value="all">指定なし</button>
+                  <button class="filter-chip" type="button" data-value="unseen">未演習</button>
+                  <button class="filter-chip" type="button" data-value="recentCorrect">直近○</button>
+                  <button class="filter-chip" type="button" data-value="recentWrong">直近×</button>
+                </div>
+              </div>
+
+              <div class="filter-row" data-group="history" data-mode="single">
+                <div class="filter-label">解答履歴<br>より抽出</div>
+                <div class="chip-grid">
+                  <button class="filter-chip active" type="button" data-value="all">指定なし</button>
+                  <button class="filter-chip strong" type="button" data-value="pastWrongOnce">過去1回×</button>
+                  <button class="filter-chip" type="button" data-value="wrongTwicePlus">2回以上×</button>
+                </div>
+              </div>
+
+              <div class="filter-row" data-group="format" data-mode="multi">
+                <div class="filter-label">問題区分</div>
+                <div class="chip-grid" id="formatChips">
+                  <button class="filter-chip active" type="button" data-value="必修">必修</button>
+                  <button class="filter-chip active" type="button" data-value="一般">一般</button>
+                  <button class="filter-chip active" type="button" data-value="臨床">臨床</button>
+                </div>
+              </div>
+
+              <div class="filter-row" data-group="source" data-mode="single">
+                <div class="filter-label">書籍</div>
+                <div class="chip-grid">
+                  <button class="filter-chip active" type="button" data-value="all">すべて</button>
+                  <button class="filter-chip strong" type="button" data-value="published">掲載問題</button>
+                  <button class="filter-chip" type="button" data-value="unpublished">未掲載問題</button>
+                </div>
+              </div>
+
+              <div class="filter-row" data-group="must" data-mode="single">
+                <div class="filter-label">重要度</div>
+                <div class="chip-grid">
+                  <button class="filter-chip active" type="button" data-value="all">すべて</button>
+                  <button class="filter-chip strong" type="button" data-value="must">★Must!</button>
+                  <button class="filter-chip" type="button" data-value="standard">標準以上</button>
+                </div>
+              </div>
+
+              <div class="filter-row with-tools" data-group="exam" data-mode="multi">
+                <div class="filter-label">回数選択</div>
+                <div class="filter-tools">
+                  <button class="mini-action" type="button" data-action="exam-all">全て選択</button>
+                  <button class="mini-action" type="button" data-action="exam-none">全て解除</button>
+                  <button class="mini-action" type="button" data-action="exam-recent5">直近5年</button>
+                </div>
+                <div class="chip-grid exam" id="examChips"></div>
+              </div>
+
+              <div class="filter-row with-tools" data-group="subject" data-mode="multi">
+                <div class="filter-label">科目選択</div>
+                <div class="filter-tools">
+                  <button class="mini-action" type="button" data-action="subject-all">全て選択</button>
+                  <button class="mini-action" type="button" data-action="subject-none">全て解除</button>
+                </div>
+                <div class="chip-grid subject" id="subjectChips"></div>
+              </div>
+
+              <div class="compact-controls">
+                <div class="field"><label for="countFilter">出題数</label><select id="countFilter"><option value="5">5問</option><option value="10" selected>10問</option><option value="20">20問</option><option value="999">全問</option></select></div>
+                <div class="field"><label for="orderFilter">出題順</label><select id="orderFilter"><option value="smart">未演習・誤答優先</option><option value="random">ランダム</option><option value="exam">回次順</option></select></div>
+              </div>
+              <div class="check-list">
+                <label class="check-pill"><input type="checkbox" id="onlyMarked"> ★ブックマークのみ</label>
+                <label class="check-pill"><input type="checkbox" id="examMode"> 解説を後で表示</label>
+              </div>
+              <p class="filter-note">※現在のプロトタイプではサンプル問題のみ収録しています。問題DBを接続すれば、画像のように118回〜103回以前まで横断出題できます。</p>
+            </div>
+            <div class="actions"><button class="btn btn-primary" id="startPracticeBtn">この条件で開始</button><button class="btn btn-secondary" id="resetFilterBtn">条件リセット</button></div>
+          </div>
+        </aside>
+        <section class="card question-shell">
+          <div id="quizArea"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="reviewView" class="view hidden">
+      <div class="grid dashboard-grid">
+        <div class="card question-shell"><div id="reviewQuizArea"></div></div>
+        <aside class="grid">
+          <div class="card"><div class="card-title"><div><h3>復習メニュー</h3><p>SRS・誤答・ブックマークから復習できます。</p></div></div><div class="study-plan" id="reviewMenu"></div></div>
+          <div class="card"><div class="card-title"><div><h3>保存メモ</h3><p>問題ごとの自分用メモを確認できます。</p></div></div><div id="memoList" class="timeline"></div></div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="analyticsView" class="view hidden">
+      <div class="grid analytics-grid analytics-pro">
+        <div class="card analysis-hero span-2">
+          <div class="analysis-hero-head">
+            <div>
+              <span class="eyebrow">Analytics</span>
+              <h2>成績分析ダッシュボード</h2>
+              <p>臓器別・形式別に、正答率と基準値との差分を確認できます。</p>
+            </div>
+            <div class="threshold-panel" id="thresholdPanel"></div>
+          </div>
+          <div class="score-cards" id="analyticsScoreCards"></div>
+        </div>
+
+        <div class="card span-2">
+          <div class="card-title">
+            <div><h2>臓器別 正答率</h2><p>青＝正解、赤＝不正解。縦線は基準値です。</p></div>
+            <button class="btn btn-soft btn-small" id="startWeakFromAnalytics">基準未達を解く</button>
+          </div>
+          <div id="organStats"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div><h2>本日の演習量</h2><p>直近7日間の解答数と正誤です。</p></div></div>
+          <div id="studyVolumeChart"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div><h2>形式別 基準達成状況</h2><p>必修80%、一般・臨床75%を初期値にしています。</p></div></div>
+          <div id="formatThresholdStats"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div><h2>回次別 進捗</h2><p>過去問の回次ごとの演習状況です。</p></div></div>
+          <div id="examHeatmap"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div><h2>直近の解答履歴</h2><p>正誤と出題領域を確認します。</p></div></div>
+          <div id="recentTimeline" class="timeline"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="libraryView" class="view hidden">
+      <div class="grid dashboard-grid">
+        <div class="card"><div class="card-title"><div><span class="eyebrow">Question Library</span><h2>問題一覧</h2><p>過去問データベースの確認用です。検索・ブックマーク・メモ登録ができます。</p></div></div><div class="field"><label for="searchBox">検索</label><input id="searchBox" placeholder="疾患名・科目・キーワードで検索"></div><div id="questionList"></div></div>
+        <aside class="grid"><div class="card"><div class="card-title"><div><h3>運用上の注意</h3><p>本番導入時の実装ポイントです。</p></div></div><div class="study-plan" id="opsNotes"></div></div><div class="card"><div class="card-title"><div><h3>データ操作</h3><p>プロトタイプ用の学習データ管理です。</p></div></div><div class="actions"><button class="btn btn-secondary" id="exportBtn2">CSV出力</button><button class="btn btn-danger" id="resetAllBtn">学習データをリセット</button></div></div></aside>
+      </div>
+    </section>
+
+    <footer>&copy; 2026 M3 Education, Inc. Prototype / localStorage version</footer>
+  </main>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+'use strict';
+// ▼ テスト用: true の間は起動時に自動ログインし、ログイン画面を省略します。
+//   本番前に必ず false に戻してください。
+const TEST_AUTOLOGIN = true;
+const VALID_ID = '00999';
+const VALID_PW = 'medexam';
+const KEYS = {
+  log:'medexamPro.answerLog',
+  srs:'medexamPro.srs',
+  marks:'medexamPro.bookmarks',
+  notes:'medexamPro.notes',
+  thresholds:'medexamPro.thresholds',
+  lock:'medexamPro.loginFailures'
+};
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DAILY_GOAL = 20;
+const MAX_ATTEMPTS = 5;
+const LOCK_MS = 15 * 60 * 1000;
+const LETTERS = ['a','b','c','d','e'];
+// エビングハウスの忘却曲線を意識した間隔反復設定。
+// 初回評価時は「難しい=1日後」「できた=2日後」「簡単=4日後」にし、
+// 2回目以降は記憶が薄れる前に段階的に間隔を伸ばします。
+const SRS_OPTIONS = {
+  1:{label:'もう一度', intervals:[0,0,1,2,4,7,14]},
+  2:{label:'難しい', intervals:[1,2,4,7,14,30,60]},
+  3:{label:'できた', intervals:[2,4,7,14,30,60,90]},
+  4:{label:'簡単', intervals:[4,7,14,30,60,90,120]}
+};
+const SRS_LABELS = [1,2,3,4].map(r=>SRS_OPTIONS[r].label);
+
+// 医師国家試験で問われる主要診療科（科目）のマスターリスト。
+// 問題データにまだ存在しない科目もフィルターに並べるための基準。
+const SUBJECT_MASTER = [
+  '消化器','循環器','呼吸器','腎泌尿器','内分泌代謝','血液',
+  '免疫・膠原病','感染症','神経','精神','小児科','産婦人科',
+  '皮膚科','整形外科','眼科','耳鼻咽喉科','泌尿器科','救急・麻酔',
+  '放射線','公衆衛生','総合診療'
+];
+
+// チップ上の表示を短くするための略称（data-valueは正式名のまま維持）
+const SUBJECT_SHORT = {
+  '消化器':'消化','循環器':'循環','呼吸器':'呼吸','腎泌尿器':'腎臓','内分泌代謝':'内代',
+  '血液':'血液','免疫・膠原病':'免疫','感染症':'感染','神経':'神経','精神':'精神',
+  '小児科':'小児','産婦人科':'産婦','皮膚科':'皮膚','整形外科':'整形','眼科':'眼科',
+  '耳鼻咽喉科':'耳鼻','泌尿器科':'泌尿','救急・麻酔':'救急','放射線':'放射',
+  '公衆衛生':'公衆','総合診療':'総合'
+};
+
+const QUESTIONS = [
+  {id:'q001', examLabel:'第119回', year:2025, format:'臨床', subject:'循環器', system:'救急・虚血性心疾患', difficulty:'標準', importance:'A',
+    text:'62歳の男性。3時間前からの持続する激しい胸痛と冷汗を主訴に救急搬送された。心電図でII・III・aVF誘導のST上昇を認める。最も考えられる病態はどれか。',
+    choices:['労作性狭心症','下壁の急性心筋梗塞','急性心膜炎','肺血栓塞栓症','大動脈解離'], correct:1,
+    keyPoint:'II・III・aVF誘導のST上昇は下壁梗塞を示唆する。',
+    trap:'急性心膜炎は広範なST上昇、大動脈解離は裂けるような痛み・血圧左右差が典型。',
+    explanation:'持続する激しい胸痛、冷汗、下壁誘導のST上昇から急性心筋梗塞を考えます。II・III・aVFは下壁、主に右冠動脈領域を反映します。', tags:['ST上昇','急性冠症候群','右冠動脈']},
+  {id:'q002', examLabel:'第118回', year:2024, format:'一般', subject:'循環器', system:'不整脈', difficulty:'基本', importance:'A',
+    text:'心房細動でみられる心電図所見として正しいのはどれか。', choices:['P波の消失と不規則なRR間隔','規則正しい幅広いQRS','デルタ波','ST上昇','著明な徐脈と完全房室ブロック'], correct:0,
+    keyPoint:'心房細動はP波消失、f波、絶対性不整脈。', trap:'デルタ波はWPW症候群、規則的な幅広QRSは心室頻拍などを想起。', explanation:'心房細動ではP波が消失し、RR間隔が絶対的に不規則になります。', tags:['心電図','AF','不整脈']},
+  {id:'q003', examLabel:'第118回', year:2024, format:'一般', subject:'内分泌代謝', system:'糖尿病', difficulty:'基本', importance:'A',
+    text:'1型糖尿病の病態として正しいのはどれか。', choices:['インスリン抵抗性が主体である','膵β細胞の自己免疫性破壊が主体である','中高年に好発する','肥満との関連が強い','食事療法のみで管理可能なことが多い'], correct:1,
+    keyPoint:'1型糖尿病は膵β細胞破壊による絶対的インスリン欠乏。', trap:'肥満・インスリン抵抗性・中高年は2型糖尿病の文脈。', explanation:'1型糖尿病では自己免疫により膵β細胞が破壊され、インスリン分泌が絶対的に不足します。', tags:['1型糖尿病','自己免疫','インスリン']},
+  {id:'q004', examLabel:'第119回', year:2025, format:'臨床', subject:'内分泌代謝', system:'甲状腺', difficulty:'基本', importance:'A',
+    text:'甲状腺機能亢進症（Basedow病）でみられない所見はどれか。', choices:['頻脈','体重減少','眼球突出','徐脈と便秘','手指振戦'], correct:3,
+    keyPoint:'亢進症は代謝亢進、低下症は徐脈・便秘・寒がり。', trap:'「みられない」を聞かれているため、低下症の所見を選ぶ。', explanation:'Basedow病では頻脈、体重減少、眼球突出、手指振戦などを認めます。徐脈と便秘は甲状腺機能低下症の所見です。', tags:['Basedow病','甲状腺','代謝亢進']},
+  {id:'q005', examLabel:'第119回', year:2025, format:'必修', subject:'呼吸器', system:'救急・蘇生', difficulty:'基本', importance:'A',
+    text:'成人の心肺蘇生において、胸骨圧迫の深さとして適切なのはどれか。', choices:['約1cm','約2cm','約5cm','約8cm','約10cm'], correct:2,
+    keyPoint:'成人CPRの胸骨圧迫は約5cm、テンポは100〜120回/分。', trap:'深すぎる圧迫は損傷リスクが高く、浅すぎる圧迫は循環が不十分。', explanation:'成人では胸骨を約5cm沈む深さで圧迫します。6cmを超えないことも意識します。', tags:['CPR','BLS','必修']},
+  {id:'q006', examLabel:'第117回', year:2023, format:'一般', subject:'呼吸器', system:'喘息', difficulty:'基本', importance:'A',
+    text:'気管支喘息の長期管理における第一選択薬はどれか。', choices:['経口ステロイド薬','吸入ステロイド薬','短時間作用性β2刺激薬','抗ヒスタミン薬','去痰薬'], correct:1,
+    keyPoint:'喘息長期管理の基本は吸入ステロイド薬による気道炎症の抑制。', trap:'SABAは発作時治療であり、長期管理の中心ではない。', explanation:'気管支喘息は慢性気道炎症が病態の中心であり、長期管理では吸入ステロイド薬が基本です。', tags:['喘息','ICS','呼吸器']},
+  {id:'q007', examLabel:'第117回', year:2023, format:'臨床', subject:'消化器', system:'急性腹症', difficulty:'基本', importance:'B',
+    text:'急性虫垂炎で右下腹部の圧痛点として知られるのはどれか。', choices:['Murphy徴候','McBurney点','Courvoisier徴候','Cullen徴候','Grey Turner徴候'], correct:1,
+    keyPoint:'McBurney点は虫垂炎の右下腹部圧痛点。', trap:'Murphy徴候は胆嚢炎、Cullen・Grey Turnerは重症膵炎で出る。', explanation:'McBurney点は臍と右上前腸骨棘を結ぶ線の外側1/3付近です。', tags:['虫垂炎','急性腹症','身体診察']},
+  {id:'q008', examLabel:'第118回', year:2024, format:'一般', subject:'消化器', system:'肝炎', difficulty:'基本', importance:'A',
+    text:'A型肝炎の感染経路として正しいのはどれか。', choices:['経口（糞口）感染','血液感染','性行為感染','母子感染','空気感染'], correct:0,
+    keyPoint:'A型肝炎は汚染水・食品を介した糞口感染。慢性化しない。', trap:'血液・母子・性行為感染はB型・C型肝炎で問題になりやすい。', explanation:'A型肝炎は経口感染が主体です。集団発生や渡航歴、食品摂取歴が手がかりになります。', tags:['A型肝炎','感染経路','糞口感染']},
+  {id:'q009', examLabel:'第118回', year:2024, format:'一般', subject:'腎泌尿器', system:'糸球体疾患', difficulty:'標準', importance:'A',
+    text:'ネフローゼ症候群の診断基準に含まれるのはどれか。', choices:['血尿','高度蛋白尿と低アルブミン血症','高血圧','乏尿','白血球尿'], correct:1,
+    keyPoint:'ネフローゼは高度蛋白尿＋低アルブミン血症が必須。', trap:'血尿・高血圧は腎炎症候群で目立つ。', explanation:'ネフローゼ症候群は高度蛋白尿と低アルブミン血症を基本とし、浮腫や脂質異常症を伴います。', tags:['ネフローゼ','蛋白尿','低アルブミン']},
+  {id:'q010', examLabel:'第119回', year:2025, format:'臨床', subject:'腎泌尿器', system:'CKD', difficulty:'標準', importance:'A',
+    text:'慢性腎臓病（CKD）の進行に伴ってみられる電解質異常として正しいのはどれか。', choices:['低カリウム血症','高カリウム血症','高カルシウム血症','低リン血症','代謝性アルカローシス'], correct:1,
+    keyPoint:'CKD進行では高K血症、高P血症、低Ca血症、代謝性アシドーシス。', trap:'腎排泄低下によりKとPは上がる方向に考える。', explanation:'腎機能低下によりカリウム排泄が低下し、高カリウム血症をきたしやすくなります。', tags:['CKD','電解質','高カリウム血症']},
+  {id:'q011', examLabel:'第119回', year:2025, format:'臨床', subject:'神経', system:'脳血管障害', difficulty:'基本', importance:'A',
+    text:'くも膜下出血の典型的な症状として正しいのはどれか。', choices:['緩徐に進行する片麻痺','突然の激しい頭痛','発熱を伴う意識障害の緩徐な進行','一過性の霧視のみ','下肢のみの脱力'], correct:1,
+    keyPoint:'SAHは突然発症の激しい頭痛。項部硬直や意識障害を伴う。', trap:'緩徐進行、発熱主体、一過性症状だけなら別疾患を考える。', explanation:'くも膜下出血では「突然の激しい頭痛」が典型です。脳動脈瘤破裂が原因として重要です。', tags:['くも膜下出血','頭痛','SAH']},
+  {id:'q012', examLabel:'第117回', year:2023, format:'一般', subject:'神経', system:'変性疾患', difficulty:'基本', importance:'B',
+    text:'Parkinson病の四大徴候に含まれないのはどれか。', choices:['安静時振戦','筋強剛（固縮）','無動・寡動','姿勢反射障害','感覚障害'], correct:4,
+    keyPoint:'Parkinson病の四大徴候は振戦・筋強剛・無動・姿勢反射障害。', trap:'感覚障害は四大徴候に含まれない。', explanation:'Parkinson病はドパミン神経変性により運動症状を来します。感覚障害は四大徴候ではありません。', tags:['Parkinson病','四大徴候','神経']}
+];
+
+QUESTIONS.forEach((q, i) => {
+  // プロトタイプ用: 実DBでは「掲載/未掲載」は問題マスタから受け取ります。
+  if(q.published == null) q.published = i < Math.ceil(QUESTIONS.length * 0.8);
+});
+
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+function esc(value){ return String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch])); }
+function loadJSON(key, fallback){ try{ const raw = localStorage.getItem(key); if(raw === null) return fallback; const parsed = JSON.parse(raw); return parsed ?? fallback; }catch(e){ return fallback; } }
+function saveJSON(key, obj){ localStorage.setItem(key, JSON.stringify(obj)); }
+function todayKey(ts=Date.now()){ return new Date(ts).toLocaleDateString('sv-SE', {timeZone:'Asia/Tokyo'}); }
+function shuffle(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function uniq(arr){ return Array.from(new Set(arr)); }
+function toast(msg){ const el=$('#toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('show'),2200); }
+
+function getLog(){ return loadJSON(KEYS.log, []); }
+function appendLog(entry){ const log=getLog(); log.push(entry); saveJSON(KEYS.log, log); }
+function getSrs(){ return loadJSON(KEYS.srs, {}); }
+function saveSrs(v){ saveJSON(KEYS.srs, v); }
+function getMarks(){ return loadJSON(KEYS.marks, {}); }
+function saveMarks(v){ saveJSON(KEYS.marks, v); }
+function getNotes(){ return loadJSON(KEYS.notes, {}); }
+function saveNotes(v){ saveJSON(KEYS.notes, v); }
+function qById(id){ return QUESTIONS.find(q=>q.id===id); }
+
+function lastAttempts(){ const res={}; getLog().forEach(e=>{res[e.qid]=e;}); return res; }
+function seenIds(){ return uniq(getLog().map(e=>e.qid)); }
+function wrongIds(){ const last=lastAttempts(); return Object.keys(last).filter(id=>!last[id].correct); }
+function dueIds(){ const srs=getSrs(); const now=Date.now(); return Object.keys(srs).filter(id=>srs[id].due <= now); }
+function summary(){ const log=getLog(); const answered=log.length; const correct=log.filter(e=>e.correct).length; const today=todayKey(); const weekAgo=Date.now()-7*DAY_MS; return {answered, correct, rate:answered?correct/answered:0, today:log.filter(e=>todayKey(e.ts)===today).length, week:log.filter(e=>e.ts>=weekAgo).length, seen:seenIds().length, due:dueIds().length, marked:Object.keys(getMarks()).filter(id=>getMarks()[id]).length}; }
+function subjectStats(){ const map={}; getLog().forEach(e=>{ const q=qById(e.qid) || {}; const key=e.subject || q.subject || '未分類'; map[key]??={subject:key,attempts:0,correct:0,seen:new Set()}; map[key].attempts++; if(e.correct) map[key].correct++; map[key].seen.add(e.qid); }); QUESTIONS.forEach(q=>{map[q.subject]??={subject:q.subject,attempts:0,correct:0,seen:new Set()};}); return Object.values(map).map(s=>({subject:s.subject, attempts:s.attempts, correct:s.correct, rate:s.attempts?100*s.correct/s.attempts:0, seen:s.seen.size, total:QUESTIONS.filter(q=>q.subject===s.subject).length})).sort((a,b)=>a.rate-b.rate || b.attempts-a.attempts); }
+function formatStats(){ return ['必修','一般','臨床'].map(format=>{ const rows=getLog().filter(e=>e.format===format); const correct=rows.filter(e=>e.correct).length; return {format, attempts:rows.length, correct, rate:rows.length?100*correct/rows.length:0, total:QUESTIONS.filter(q=>q.format===format).length, seen:uniq(rows.map(e=>e.qid)).length}; }); }
+function examStats(){ const labels=uniq(QUESTIONS.map(q=>q.examLabel)).sort(); const log=getLog(); return labels.map(label=>{ const rows=log.filter(e=>e.examLabel===label); const correct=rows.filter(e=>e.correct).length; return {examLabel:label, attempts:rows.length, correct, rate:rows.length?100*correct/rows.length:0, total:QUESTIONS.filter(q=>q.examLabel===label).length, seen:uniq(rows.map(e=>e.qid)).length}; }); }
+const WEAK_MIN_ATTEMPTS = 2; // 苦手判定に必要な最低解答回数（偶発的な誤答での誤判定を防ぐ）
+function weakSubjects(){
+  const attempted=organStats().filter(s=>s.attempts>0);
+  // 2回以上解いた科目を優先。十分なデータが無い段階では全解答済みから拾う。
+  const enough=attempted.filter(s=>s.attempts>=WEAK_MIN_ATTEMPTS);
+  const base=enough.length ? enough : attempted;
+  const below=base.filter(s=>s.rate < s.threshold);
+  const pool=below.length ? below : base;
+  return pool.sort((a,b)=>a.gap-b.gap || b.attempts-a.attempts).slice(0,3);
+}
+function formatSrsDays(days){
+  if(days <= 0) return '本日中';
+  if(days === 1) return '1日後';
+  if(days < 7) return days + '日後';
+  if(days === 7) return '1週間後';
+  if(days < 30) return Math.round(days/7) + '週間後';
+  if(days === 30) return '1か月後';
+  return Math.round(days/30) + 'か月後';
+}
+function nextSrsInterval(card, rating){
+  const r = Number(rating) || 3;
+  const opt = SRS_OPTIONS[r] || SRS_OPTIONS[3];
+  if(r === 1){ return {days:0, reps:0}; }
+  const reps = Math.max(1, (card.reps || 0) + 1);
+  const idx = Math.min(opt.intervals.length - 1, reps - 1);
+  return {days:opt.intervals[idx], reps};
+}
+function previewSrsLabel(questionId, rating){
+  const card = getSrs()[questionId] || {interval:0, reps:0, due:0};
+  const next = nextSrsInterval(card, rating);
+  return formatSrsDays(next.days);
+}
+function updateSrs(questionId, rating){
+  const all=getSrs();
+  const card=all[questionId] || {interval:0, reps:0, due:0};
+  const next=nextSrsInterval(card, rating);
+  card.reps = next.reps;
+  card.interval = next.days;
+  card.due = Date.now() + next.days * DAY_MS;
+  card.lastRating = Number(rating) || 3;
+  card.updatedAt = Date.now();
+  card.policy = 'ebbinghaus-interval-v2';
+  all[questionId]=card;
+  saveSrs(all);
+  return card;
+}
+function colorClass(rate){ return rate>=70?'green':rate>=50?'amber':'red'; }
+
+function renderKpis(){ const s=summary(); $('#kpiGrid').innerHTML = `
+  <div class="kpi"><div class="num">${s.answered}</div><div class="lbl">累計解答数</div><div class="delta">今週 ${s.week}問</div></div>
+  <div class="kpi ${s.rate<.5&&s.answered?'bad':''}"><div class="num">${Math.round(s.rate*100)}%</div><div class="lbl">総合正答率</div><div class="delta">正解 ${s.correct}問</div></div>
+  <div class="kpi warn"><div class="num">${s.due}</div><div class="lbl">復習待ち</div><div class="delta">SRS対象</div></div>
+  <div class="kpi"><div class="num">${s.seen}/${QUESTIONS.length}</div><div class="lbl">着手済み問題</div><div class="delta">★ ${s.marked}問</div></div>`; }
+function renderDailyGoal(){ const s=summary(); const pct=Math.min(100,Math.round(100*s.today/DAILY_GOAL)); $('#dailyGoal').innerHTML = `<div class="progress-line"><div class="progress-head"><strong>今日の演習</strong><span>${s.today}/${DAILY_GOAL}問</span></div><div class="track"><div class="fill ${pct>=100?'green':''}" style="width:${pct}%"></div></div></div><div class="study-plan"><div class="plan-item"><div class="plan-check">1</div><div class="plan-main"><strong>まず10問を解く</strong><p>未演習・誤答優先で知識の穴を発見します。</p></div></div><div class="plan-item"><div class="plan-check">2</div><div class="plan-main"><strong>解説後に手応えを記録</strong><p>SRS復習日を自動設定します。</p></div></div></div>`; }
+function renderExamProgress(){ const rows=examStats(); $('#examProgress').innerHTML = rows.map(r=>{ const pct=Math.round(100*r.seen/r.total); return `<div class="progress-line"><div class="progress-head"><strong>${esc(r.examLabel)}</strong><span>${r.seen}/${r.total}問 · ${pct}%</span></div><div class="track"><div class="fill" style="width:${pct}%"></div></div></div>`; }).join('') || '<div class="empty">進捗データがありません</div>'; }
+function renderStudyPlan(){ const weak=weakSubjects()[0]; const s=summary(); const rows=[
+  ['A','未演習',`未着手 ${QUESTIONS.length-s.seen}問を先に一周します。`],
+  ['B','弱点補強', weak?`${weak.subject}の正答率が${Math.round(weak.rate)}%。重点復習候補です。`:'数問解くと弱点が表示されます。'],
+  ['C','定着確認',`SRS復習待ちは${s.due}問です。難しい=1日後、できた=2日後、簡単=4日後を起点に復習します。`]
+ ]; $('#studyPlan').innerHTML = rows.map(r=>`<div class="plan-item"><div class="plan-check">${r[0]}</div><div class="plan-main"><strong>${esc(r[1])}</strong><p>${esc(r[2])}</p></div></div>`).join(''); }
+function renderDashboard(){ renderKpis(); renderDailyGoal(); renderExamProgress(); renderStudyPlan(); const s=summary(); $('#quickSrsDesc').textContent=s.due?`復習待ちが${s.due}問あります。`:'復習待ちはありません。演習後に追加されます。'; }
+
+let quiz = {mode:'practice', queue:[], pos:0, selected:null, answered:false, examMode:false, target:'#quizArea'};
+function attemptRowsByQuestion(){ const map={}; getLog().forEach(e=>{ (map[e.qid]??=[]).push(e); }); return map; }
+function examNumber(q){ return String(q.examLabel || '').replace(/[^0-9]/g, ''); }
+function sourceOf(q){ return q.published === false ? 'unpublished' : 'published'; }
+function buildQueue(opts={}){
+  let pool=QUESTIONS.slice();
+  const last=lastAttempts();
+  const rowsByQ=attemptRowsByQuestion();
+  const marks=getMarks();
+
+  if(Array.isArray(opts.exams)){
+    if(opts.exams.length || opts.includeOlder) pool=pool.filter(q=>opts.exams.includes(examNumber(q)) || (opts.includeOlder && Number(examNumber(q)) <= 102));
+    else pool=[];
+  } else if(opts.exam&&opts.exam!=='all') pool=pool.filter(q=>q.examLabel===opts.exam);
+
+  if(Array.isArray(opts.formats)){
+    if(opts.formats.length) pool=pool.filter(q=>opts.formats.includes(q.format));
+    else pool=[];
+  } else if(opts.format&&opts.format!=='all') pool=pool.filter(q=>q.format===opts.format);
+
+  if(Array.isArray(opts.subjects)){
+    if(opts.subjects.length) pool=pool.filter(q=>opts.subjects.includes(q.subject));
+    else pool=[];
+  } else if(opts.subject&&opts.subject!=='all') pool=pool.filter(q=>q.subject===opts.subject);
+
+  if(opts.status==='unseen' || opts.onlyUnseen) pool=pool.filter(q=>!last[q.id]);
+  if(opts.status==='recentCorrect') pool=pool.filter(q=>last[q.id]?.correct === true);
+  if(opts.status==='recentWrong' || opts.onlyWrong) pool=pool.filter(q=>last[q.id]?.correct === false);
+
+  if(opts.history==='pastWrongOnce') pool=pool.filter(q=>(rowsByQ[q.id]||[]).filter(e=>!e.correct).length >= 1);
+  if(opts.history==='wrongTwicePlus') pool=pool.filter(q=>(rowsByQ[q.id]||[]).filter(e=>!e.correct).length >= 2);
+
+  if(opts.source && opts.source!=='all') pool=pool.filter(q=>sourceOf(q)===opts.source);
+  if(opts.must==='must') pool=pool.filter(q=>q.importance==='A');
+  if(opts.must==='standard') pool=pool.filter(q=>['A','B'].includes(q.importance));
+  if(opts.onlyMarked) pool=pool.filter(q=>marks[q.id]);
+
+  if(opts.mode==='srs') pool=dueIds().map(qById).filter(Boolean);
+  if(opts.mode==='wrong') pool=wrongIds().map(qById).filter(Boolean);
+  if(opts.mode==='marked') pool=Object.keys(marks).filter(id=>marks[id]).map(qById).filter(Boolean);
+  if(opts.mode==='weak'){
+    const weak=weakSubjects().map(w=>w.subject);
+    pool=weak.length ? QUESTIONS.filter(q=>weak.includes(q.subject)) : QUESTIONS.slice();
+  }
+
+  if(opts.order==='random') pool=shuffle(pool);
+  else if(opts.order==='exam') pool=pool.sort((a,b)=>Number(examNumber(b))-Number(examNumber(a)) || a.id.localeCompare(b.id));
+  else pool=pool.sort((a,b)=>{
+    const la=last[a.id], lb=last[b.id];
+    const scoreA = !la ? 0 : la.correct ? 3 : 1;
+    const scoreB = !lb ? 0 : lb.correct ? 3 : 1;
+    return scoreA-scoreB || String(a.importance).localeCompare(String(b.importance)) || b.year-a.year || a.id.localeCompare(b.id);
+  });
+  const count=Number(opts.count || 10);
+  return pool.slice(0, count>=999?pool.length:count).map(q=>q.id);
+}
+function startQuiz(opts){ quiz={mode:opts.mode||'practice', queue:buildQueue(opts), pos:0, selected:null, answered:false, examMode:!!opts.examMode, target:opts.target||'#quizArea'}; showView(opts.view || (opts.target==='#reviewQuizArea'?'review':'practice')); renderQuestion(); }
+function currentQuestion(){ return qById(quiz.queue[quiz.pos]); }
+function renderQuestion(){ const area=$(quiz.target); if(!quiz.queue.length){ area.innerHTML='<div class="empty"><strong>出題できる問題がありません</strong>条件を変更するか、通常演習を開始してください。</div>'; return; } const q=currentQuestion(); quiz.selected=null; quiz.answered=false; const marks=getMarks(); const note=getNotes()[q.id] || ''; area.innerHTML = `
+  <div class="quiz-top"><div><div class="quiz-progress">${quiz.pos+1} / ${quiz.queue.length}問</div><div class="meta-row">${tag(q.examLabel,'primary')}${tag(q.format)}${tag(q.subject)}${tag(q.difficulty,'amber')}${tag('重要度'+q.importance,'purple')}</div></div><button class="btn btn-secondary btn-small bookmark-btn ${marks[q.id]?'active':''}" id="bookmarkBtn">${marks[q.id]?'★ 登録済み':'☆ ブックマーク'}</button></div>
+  <div class="question-title">${esc(q.text)}</div>
+  <div class="choice-list">${q.choices.map((c,i)=>`<button class="choice" data-index="${i}"><span class="mark">${LETTERS[i]}</span><span>${esc(c)}</span></button>`).join('')}</div>
+  <div class="quiz-footer"><button class="btn btn-primary" id="gradeBtn" disabled>${quiz.examMode?'選択して次へ':'解答する'}</button><button class="btn btn-secondary" id="skipBtn">スキップ</button></div>
+  <div id="afterArea"></div>
+  <div class="note-box result-box"><div class="card-title"><div><h3>自分用メモ</h3><p>覚え方・誤答理由・講義で確認したい点を残せます。</p></div></div><textarea id="noteArea" placeholder="例：II・III・aVF＝下壁。右冠動脈をセットで覚える。">${esc(note)}</textarea><div class="actions" style="margin-top:10px"><button class="btn btn-secondary btn-small" id="saveNoteBtn">メモ保存</button></div></div>`;
+  $$('.choice', area).forEach(el=>el.addEventListener('click',()=>selectChoice(el)));
+  $('#gradeBtn', area).addEventListener('click',()=> quiz.examMode ? gradeAndAutoNext() : gradeAnswer());
+  $('#skipBtn', area).addEventListener('click',nextQuestion);
+  $('#bookmarkBtn', area).addEventListener('click',toggleBookmark);
+  $('#saveNoteBtn', area).addEventListener('click',saveCurrentNote);
+}
+function tag(text, cls=''){ return `<span class="badge ${cls}">${esc(text)}</span>`; }
+function selectChoice(el){ if(quiz.answered) return; quiz.selected=Number(el.dataset.index); $$('.choice', $(quiz.target)).forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); $('#gradeBtn', $(quiz.target)).disabled=false; }
+function toggleBookmark(){ const q=currentQuestion(); const marks=getMarks(); marks[q.id]=!marks[q.id]; if(!marks[q.id]) delete marks[q.id]; saveMarks(marks); renderQuestion(); toast(marks[q.id]?'ブックマークしました':'ブックマークを解除しました'); refreshAll(); }
+function saveCurrentNote(){ const q=currentQuestion(); const notes=getNotes(); const text=$('#noteArea', $(quiz.target)).value.trim(); if(text) notes[q.id]=text; else delete notes[q.id]; saveNotes(notes); toast('メモを保存しました'); renderMemoList(); renderQuestionList(); }
+function logAnswer(isCorrect, rating=null){ const q=currentQuestion(); appendLog({qid:q.id, subject:q.subject, format:q.format, examLabel:q.examLabel, correct:isCorrect, selected:quiz.selected, answer:q.correct, rating, ts:Date.now()}); }
+function gradeAndAutoNext(){ if(quiz.selected===null) return; const q=currentQuestion(); const isCorrect=quiz.selected===q.correct; logAnswer(isCorrect, isCorrect?3:1); updateSrs(q.id, isCorrect?3:1); nextQuestion(); refreshAll(); }
+function gradeAnswer(){ if(quiz.selected===null || quiz.answered) return; quiz.answered=true; const q=currentQuestion(); const isCorrect=quiz.selected===q.correct; logAnswer(isCorrect); const area=$(quiz.target); $$('.choice',area).forEach(el=>{ const i=Number(el.dataset.index); el.classList.add('disabled'); el.classList.remove('selected'); if(i===q.correct) el.classList.add('correct'); else if(i===quiz.selected) el.classList.add('wrong'); }); $('#gradeBtn',area).disabled=true; $('#gradeBtn',area).classList.add('hidden'); $('#afterArea',area).innerHTML = `
+    <div class="result-box ${isCorrect?'ok':'ng'}"><div class="result-head"><strong>${isCorrect?'正解':'不正解'}</strong>${tag('正答 '+LETTERS[q.correct], isCorrect?'green':'red')}</div>
+      <div class="explain-grid"><div class="explain-card"><h4>解説</h4><p>${esc(q.explanation)}</p></div><div class="explain-card"><h4>押さえるポイント</h4><p>${esc(q.keyPoint)}</p></div><div class="explain-card"><h4>ひっかけ・鑑別</h4><p>${esc(q.trap)}</p></div><div class="explain-card"><h4>関連タグ</h4><p>${q.tags.map(t=>tag(t)).join(' ')}</p></div></div>
+      <div class="srs-row" id="srsRow">${[1,2,3,4].map(r=>`<button class="srs-btn" data-rating="${r}">${SRS_OPTIONS[r].label}<span>${previewSrsLabel(q.id,r)}</span></button>`).join('')}</div>
+      <p style="margin:10px 0 0;font-size:12px;color:var(--muted);line-height:1.7">復習間隔は、忘れ始める前に再接触する考え方で設定しています。初回は「難しい＝1日後」「できた＝2日後」「簡単＝4日後」を基準にします。</p>
+    </div>`;
+  $$('#srsRow .srs-btn',area).forEach(btn=>btn.addEventListener('click',()=>{ const rating=Number(btn.dataset.rating); const card=updateSrs(q.id,rating); const dueLabel=formatSrsDays(card.interval); const log=getLog(); if(log.length){ log[log.length-1].rating=rating; saveJSON(KEYS.log,log); } $$('#srsRow .srs-btn',area).forEach(b=>{b.disabled=true;b.style.opacity=.45}); $('#afterArea',area).insertAdjacentHTML('beforeend', `<div class="quiz-footer"><span class="badge green">次回復習：${dueLabel}</span><button class="btn btn-primary" id="nextAfterBtn">${quiz.pos>=quiz.queue.length-1?'終了':'次の問題へ'}</button></div>`); $('#nextAfterBtn',area).addEventListener('click',nextQuestion,{once:true}); toast(`復習予定を${dueLabel}に更新しました`); refreshAll(); },{once:true}));
+  refreshAll(); }
+function nextQuestion(){ if(quiz.pos>=quiz.queue.length-1){ showView('dashboard'); renderDashboard(); return; } quiz.pos++; renderQuestion(); }
+
+function chipValues(group){ return $$(`[data-group="${group}"] .filter-chip.active`).map(btn=>btn.dataset.value); }
+function singleValue(group){ return chipValues(group)[0] || 'all'; }
+function setSingleChip(group, value){ const row=$(`[data-group="${group}"]`); if(!row) return; $$('.filter-chip',row).forEach(btn=>btn.classList.toggle('active', btn.dataset.value===value)); }
+function setMultiChips(group, values){ const row=$(`[data-group="${group}"]`); if(!row) return; const set=new Set(values); $$('.filter-chip',row).forEach(btn=>btn.classList.toggle('active', set.has(btn.dataset.value))); }
+function updateFilterSummary(){
+  const parts=[];
+  const status=singleValue('status');
+  const history=singleValue('history');
+  const source=singleValue('source');
+  const must=singleValue('must');
+  const exams=chipValues('exam');
+  const subjects=chipValues('subject');
+  if(status!=='all') parts.push($(`[data-group="status"] [data-value="${status}"]`)?.textContent.trim());
+  if(history!=='all') parts.push($(`[data-group="history"] [data-value="${history}"]`)?.textContent.trim());
+  if(source!=='all') parts.push($(`[data-group="source"] [data-value="${source}"]`)?.textContent.trim());
+  if(must!=='all') parts.push($(`[data-group="must"] [data-value="${must}"]`)?.textContent.trim());
+  if(exams.length && exams.length < $$('#examChips .filter-chip').length) parts.push(`回数 ${exams.length}件`);
+  if(subjects.length && subjects.length < $$('#subjectChips .filter-chip').length) parts.push(`科目 ${subjects.length}件`);
+  $('#filterSummary').textContent = parts.filter(Boolean).join(' / ') || '条件指定なし';
+}
+function populateFilters(){
+  const examNos = ['119','118','117','116','115','114','113','112','111','110','109','108','107','106','105','104','103','それ以前'];
+  $('#examChips').innerHTML = examNos.map(x=>`<button class="filter-chip active" type="button" data-value="${esc(x)}">${x==='それ以前'?'それ以前':x}</button>`).join('');
+  // マスターの全科目を並べる。問題データにある科目はマージし、各科目の問題数を併記。
+  // 問題が0問の科目は淡色表示にして、選択はできるが中身が無いことを示す。
+  const inData=uniq(QUESTIONS.map(q=>q.subject));
+  const subjects=uniq([...SUBJECT_MASTER, ...inData]);
+  const countBySubject={};
+  for(const q of QUESTIONS){ countBySubject[q.subject]=(countBySubject[q.subject]||0)+1; }
+  $('#subjectChips').innerHTML = subjects.map(x=>{
+    const n=countBySubject[x]||0;
+    const empty=n===0 ? ' empty' : '';
+    const label=SUBJECT_SHORT[x]||x;
+    return `<button class="filter-chip active${empty}" type="button" data-value="${esc(x)}" title="${esc(x)}（${n}問）">${esc(label)}<small>${n}</small></button>`;
+  }).join('');
+  updateFilterSummary();
+}
+function readFilters(){
+  return {
+    count:$('#countFilter').value,
+    order:$('#orderFilter').value,
+    status:singleValue('status'),
+    history:singleValue('history'),
+    source:singleValue('source'),
+    must:singleValue('must'),
+    formats:chipValues('format'),
+    exams:chipValues('exam').filter(v=>v!=='それ以前'),
+    includeOlder:chipValues('exam').includes('それ以前'),
+    subjects:chipValues('subject'),
+    onlyMarked:$('#onlyMarked').checked,
+    examMode:$('#examMode').checked
+  };
+}
+function resetFilters(){
+  setSingleChip('status','all'); setSingleChip('history','all'); setSingleChip('source','all'); setSingleChip('must','all');
+  setMultiChips('format',['必修','一般','臨床']);
+  setMultiChips('exam',$$('#examChips .filter-chip').map(b=>b.dataset.value));
+  setMultiChips('subject',$$('#subjectChips .filter-chip').map(b=>b.dataset.value));
+  $('#countFilter').value='10'; $('#orderFilter').value='smart';
+  ['#onlyMarked','#examMode'].forEach(id=>$(id).checked=false);
+  updateFilterSummary();
+}
+function bindFilterButtons(){
+  $('#advancedFilter').addEventListener('click', e=>{
+    const chip=e.target.closest('.filter-chip');
+    const action=e.target.closest('[data-action]');
+    if(chip){
+      const row=chip.closest('[data-group]');
+      const group=row.dataset.group;
+      const mode=row.dataset.mode;
+      if(mode==='single') setSingleChip(group, chip.dataset.value);
+      else chip.classList.toggle('active');
+      updateFilterSummary();
+    }
+    if(action){
+      const act=action.dataset.action;
+      if(act==='exam-all') setMultiChips('exam',$$('#examChips .filter-chip').map(b=>b.dataset.value));
+      if(act==='exam-none') setMultiChips('exam',[]);
+      if(act==='exam-recent5') setMultiChips('exam',['119','118','117','116','115']);
+      if(act==='subject-all') setMultiChips('subject',$$('#subjectChips .filter-chip').map(b=>b.dataset.value));
+      if(act==='subject-none') setMultiChips('subject',[]);
+      updateFilterSummary();
+    }
+  });
+}
+
+function renderReview(){ const s=summary(); const items=[
+  ['🔄','SRS復習',`復習待ち ${s.due}問`,()=>startQuiz({mode:'srs',count:999,order:'exam',target:'#reviewQuizArea',view:'review'})],
+  ['❌','誤答復習',`直近誤答 ${wrongIds().length}問`,()=>startQuiz({mode:'wrong',count:999,order:'smart',target:'#reviewQuizArea',view:'review'})],
+  ['⭐','ブックマーク',`登録 ${s.marked}問`,()=>startQuiz({mode:'marked',count:999,order:'exam',target:'#reviewQuizArea',view:'review'})]
+ ]; $('#reviewMenu').innerHTML=items.map((it,i)=>`<button class="menu-card" data-review="${i}"><span class="menu-icon ic-blue">${it[0]}</span><span><span class="menu-title">${esc(it[1])}</span><span class="menu-desc">${esc(it[2])}</span></span></button>`).join(''); $$('#reviewMenu [data-review]').forEach(btn=>btn.addEventListener('click',items[Number(btn.dataset.review)][3])); renderMemoList(); if(!$('#reviewQuizArea').innerHTML.trim()) $('#reviewQuizArea').innerHTML='<div class="empty"><strong>復習メニューを選択してください</strong>SRS・誤答・ブックマークから出題できます。</div>'; }
+function renderMemoList(){ const notes=getNotes(); const rows=Object.entries(notes).map(([id,text])=>({q:qById(id),text})).filter(x=>x.q); $('#memoList').innerHTML = rows.length ? rows.map(({q,text})=>`<div class="timeline-item"><div class="dot"></div><div><small>${esc(q.examLabel)}・${esc(q.subject)}</small><p><strong>${esc(q.system)}</strong><br>${esc(text)}</p></div></div>`).join('') : '<div class="empty">保存済みメモはありません。</div>'; }
+
+function getThresholds(){
+  const saved = loadJSON(KEYS.thresholds, null);
+  return {
+    essential: Number(saved?.essential ?? 80),
+    generalClinical: Number(saved?.generalClinical ?? 75)
+  };
+}
+function saveThresholds(v){ saveJSON(KEYS.thresholds, v); }
+function thresholdForFormat(format){ const t=getThresholds(); return format==='必修' ? t.essential : t.generalClinical; }
+function thresholdForRows(rows){
+  if(!rows.length) return thresholdForFormat('一般');
+  const total = rows.reduce((sum,e)=>sum + thresholdForFormat(e.format || qById(e.qid)?.format || '一般'), 0);
+  return total / rows.length;
+}
+function thresholdClass(rate, target){ return rate >= target ? 'ok' : (rate >= target - 10 ? 'need' : 'need'); }
+function rateLabel(rate, attempts){ return attempts ? Math.round(rate) + '%' : '—'; }
+function signedPt(v){ const n=Math.round(v); return (n>=0?'+':'') + n + 'pt'; }
+function organStats(){
+  const log=getLog();
+  const map={};
+  QUESTIONS.forEach(q=>{ map[q.subject] ??= {subject:q.subject,total:0,seen:new Set(),attempts:0,correct:0,wrong:0,rows:[]}; map[q.subject].total++; });
+  log.forEach(e=>{ const q=qById(e.qid) || {}; const key=e.subject || q.subject || '未分類'; map[key] ??= {subject:key,total:0,seen:new Set(),attempts:0,correct:0,wrong:0,rows:[]}; map[key].attempts++; if(e.correct) map[key].correct++; else map[key].wrong++; map[key].seen.add(e.qid); map[key].rows.push({...e, format:e.format || q.format || '一般'}); });
+  return Object.values(map).map(s=>{ const rate=s.attempts?100*s.correct/s.attempts:0; const threshold=thresholdForRows(s.rows); return {...s, rate, threshold, gap:rate-threshold}; }).sort((a,b)=> (a.attempts===0)-(b.attempts===0) || a.gap-b.gap || b.attempts-a.attempts || a.subject.localeCompare(b.subject,'ja'));
+}
+function dailyStats(days=7){
+  const log=getLog();
+  const rows=[];
+  const base=new Date(); base.setHours(0,0,0,0);
+  for(let i=days-1;i>=0;i--){
+    const d=new Date(base.getTime()-i*DAY_MS);
+    const key=todayKey(d.getTime());
+    const dayRows=log.filter(e=>todayKey(e.ts)===key);
+    const correct=dayRows.filter(e=>e.correct).length;
+    rows.push({key, label:`${d.getMonth()+1}/${d.getDate()}`, count:dayRows.length, correct, wrong:dayRows.length-correct});
+  }
+  return rows;
+}
+function bindThresholdControls(){
+  const essential=$('#thresholdEssential');
+  const general=$('#thresholdGeneralClinical');
+  if(!essential || !general) return;
+  const handler=()=>{
+    const next={
+      essential: Math.max(0, Math.min(100, Number(essential.value || 80))),
+      generalClinical: Math.max(0, Math.min(100, Number(general.value || 75)))
+    };
+    essential.value=next.essential;
+    general.value=next.generalClinical;
+    saveThresholds(next);
+    renderAnalytics();
+    toast('基準値を更新しました');
+  };
+  essential.addEventListener('change', handler);
+  general.addEventListener('change', handler);
+}
+function renderAnalytics(){
+  const t=getThresholds();
+  const s=summary();
+  const formats=formatStats().map(f=>({...f, threshold:thresholdForFormat(f.format), gap:(f.attempts?f.rate:0)-thresholdForFormat(f.format)}));
+  const organs=organStats();
+  const attemptedOrgans=organs.filter(o=>o.attempts>0);
+  const belowOrgans=attemptedOrgans.filter(o=>o.rate < o.threshold);
+  const essential = formats.find(f=>f.format==='必修') || {attempts:0,rate:0,threshold:t.essential};
+  const generalRows = formats.filter(f=>f.format!=='必修');
+  const generalAttempts = generalRows.reduce((sum,f)=>sum+f.attempts,0);
+  const generalCorrect = generalRows.reduce((sum,f)=>sum+f.correct,0);
+  const generalRate = generalAttempts ? 100*generalCorrect/generalAttempts : 0;
+  const overallTarget = s.answered ? ((essential.attempts*t.essential) + (generalAttempts*t.generalClinical)) / s.answered : t.generalClinical;
+
+  // 閾値パネルは初回のみ生成する。変更のたびに作り直すと入力欄が消えて
+  // 続けて基準値を編集できなくなるため、以降は値の同期だけ行う。
+  const thresholdPanel=$('#thresholdPanel');
+  if(!thresholdPanel.dataset.ready){
+    thresholdPanel.innerHTML = `
+      <div class="threshold-control"><label for="thresholdEssential">必修 基準値</label><div class="threshold-input"><input id="thresholdEssential" type="number" min="0" max="100" value="${t.essential}"><span>%</span></div></div>
+      <div class="threshold-control"><label for="thresholdGeneralClinical">一般・臨床 基準値</label><div class="threshold-input"><input id="thresholdGeneralClinical" type="number" min="0" max="100" value="${t.generalClinical}"><span>%</span></div></div>`;
+    thresholdPanel.dataset.ready='1';
+    bindThresholdControls();
+  }else{
+    // 入力中でない要素だけ値を最新に同期（フォーカス中は触らない）
+    const essential=$('#thresholdEssential'), general=$('#thresholdGeneralClinical');
+    if(essential && document.activeElement!==essential) essential.value=t.essential;
+    if(general && document.activeElement!==general) general.value=t.generalClinical;
+  }
+
+  $('#analyticsScoreCards').innerHTML = [
+    {label:'総合正答率', value:rateLabel(s.rate*100,s.answered), desc:`基準 ${Math.round(overallTarget)}% ／ ${s.correct}/${s.answered}問`, state:s.answered && s.rate*100>=overallTarget?'good':s.answered?'warn':''},
+    {label:'必修', value:rateLabel(essential.rate,essential.attempts), desc:`基準 ${t.essential}% ／ ${essential.correct||0}/${essential.attempts||0}問`, state:essential.attempts && essential.rate>=t.essential?'good':essential.attempts?'bad':''},
+    {label:'一般・臨床', value:rateLabel(generalRate,generalAttempts), desc:`基準 ${t.generalClinical}% ／ ${generalCorrect}/${generalAttempts}問`, state:generalAttempts && generalRate>=t.generalClinical?'good':generalAttempts?'bad':''},
+    {label:'要補強の臓器', value:`${belowOrgans.length}`, desc:`演習済み ${attemptedOrgans.length}領域中`, state:belowOrgans.length?'warn':'good'}
+  ].map(c=>`<div class="score-card ${c.state}"><small>${esc(c.label)}</small><strong>${esc(c.value)}</strong><p>${esc(c.desc)}</p></div>`).join('');
+
+  $('#organStats').innerHTML = `<div class="organ-list">${organs.map(o=>{
+    const correctW = o.attempts ? Math.max(0, Math.min(100, 100*o.correct/o.attempts)) : 0;
+    const wrongW = o.attempts ? Math.max(0, Math.min(100-correctW, 100*o.wrong/o.attempts)) : 0;
+    const marker = Math.max(0, Math.min(100, o.threshold));
+    const status = !o.attempts ? '未演習' : (o.rate>=o.threshold ? `基準 +${Math.round(o.gap)}pt` : `基準 ${signedPt(o.gap)}`);
+    return `<div class="organ-row ${o.attempts?thresholdClass(o.rate,o.threshold):''}">
+      <div class="organ-name"><strong>${esc(o.subject)}</strong><span>${o.seen.size}/${o.total}問 演習済み · 基準 ${Math.round(o.threshold)}%</span></div>
+      <div class="stacked-track" aria-label="${esc(o.subject)}の正答率">
+        <div class="stacked-correct" style="width:${correctW}%"></div>
+        <div class="stacked-wrong" style="left:${correctW}%;width:${wrongW}%"></div>
+        <div class="threshold-marker" data-label="${Math.round(o.threshold)}%" style="left:${marker}%"></div>
+      </div>
+      <div class="organ-rate"><strong>${rateLabel(o.rate,o.attempts)}</strong><small>${o.correct}/${o.attempts}問 · ${esc(status)}</small></div>
+    </div>`;
+  }).join('')}</div>`;
+
+  const maxDaily=Math.max(1, ...dailyStats().map(d=>d.count));
+  $('#studyVolumeChart').innerHTML = `<div class="volume-chart">${dailyStats().map(d=>{
+    const correctH=d.correct?Math.max(6, 150*d.correct/maxDaily):0;
+    const wrongH=d.wrong?Math.max(6, 150*d.wrong/maxDaily):0;
+    return `<div class="day-bar"><div class="day-stack"><div class="day-correct" style="height:${correctH}px"></div><div class="day-wrong" style="height:${wrongH}px"></div></div><strong>${esc(d.label)}</strong><span>${d.count}問</span></div>`;
+  }).join('')}</div>`;
+
+  $('#formatThresholdStats').innerHTML = `<div class="format-threshold-list">${formats.map(f=>{
+    const rate=f.attempts?f.rate:0;
+    const marker=Math.max(0,Math.min(100,f.threshold));
+    const status=!f.attempts?'未演習':(rate>=f.threshold?'達成':'未達');
+    return `<div class="threshold-line"><div class="threshold-line-head"><strong>${esc(f.format)}</strong><span>${rateLabel(rate,f.attempts)} / 基準 ${f.threshold}% · ${status}</span></div><div class="stacked-track"><div class="stacked-correct" style="width:${f.attempts?100*f.correct/f.attempts:0}%"></div><div class="stacked-wrong" style="left:${f.attempts?100*f.correct/f.attempts:0}%;width:${f.attempts?100*(f.attempts-f.correct)/f.attempts:0}%"></div><div class="threshold-marker" data-label="${f.threshold}%" style="left:${marker}%"></div></div></div>`;
+  }).join('')}</div>`;
+
+  $('#examHeatmap').innerHTML = `<div class="exam-grid">${examStats().map(e=>`<div class="exam-tile"><strong>${esc(e.examLabel)}</strong><p>${e.seen}/${e.total}問 · ${e.attempts?Math.round(e.rate)+'%':'未演習'}</p><div class="track"><div class="fill ${colorClass(e.rate)}" style="width:${Math.round(100*e.seen/e.total)}%"></div></div></div>`).join('')}</div>`;
+
+  const recent=getLog().slice(-8).reverse();
+  $('#recentTimeline').innerHTML = recent.length ? recent.map(e=>{ const q=qById(e.qid)||{}; return `<div class="timeline-item"><div class="dot" style="background:${e.correct?'var(--green)':'var(--red)'}"></div><div><small>${new Date(e.ts).toLocaleString('ja-JP')} · ${esc(q.examLabel||'')} · ${esc(q.format||'')} · ${esc(q.subject||'')}</small><p>${e.correct?'正解':'不正解'}：${esc(q.system||'')} ／ ${esc((q.text||'').slice(0,54))}${(q.text||'').length>54?'…':''}</p></div></div>`; }).join('') : '<div class="empty">解答履歴はまだありません。演習するとここに推移が表示されます。</div>';
+
+}
+
+function renderLibrary(){ renderQuestionList(); $('#opsNotes').innerHTML = [
+  ['認証','現在は固定ID/PWです。本番はSSOまたは個別アカウント管理に変更。'],
+  ['データ','localStorage保存のため端末依存です。本番はクラウドDB保存が必要。'],
+  ['著作権','実際の過去問を収録する場合は利用許諾・出典管理・配信範囲の確認が必要。'],
+  ['管理画面','CSV/Excelから問題登録できる管理画面を用意すると運用しやすいです。']
+  ].map((r,i)=>`<div class="plan-item"><div class="plan-check">${i+1}</div><div class="plan-main"><strong>${esc(r[0])}</strong><p>${esc(r[1])}</p></div></div>`).join(''); }
+function renderQuestionList(){ const kw=($('#searchBox')?.value || '').trim().toLowerCase(); const marks=getMarks(); const last=lastAttempts(); const rows=QUESTIONS.filter(q=>!kw || [q.text,q.subject,q.system,q.examLabel,q.format,...q.tags].join(' ').toLowerCase().includes(kw)); $('#questionList').innerHTML = rows.length ? `<table class="table"><thead><tr><th>問題</th><th>分類</th><th>状態</th><th></th></tr></thead><tbody>${rows.map(q=>`<tr><td>${marks[q.id]?'★ ':''}${esc(q.system)}<br><span style="color:var(--muted);font-weight:500">${esc(q.text.slice(0,54))}${q.text.length>54?'…':''}</span></td><td>${esc(q.examLabel)}<br>${esc(q.subject)}</td><td>${last[q.id]?(last[q.id].correct?'正解':'誤答'):'未演習'}</td><td><button class="btn btn-secondary btn-small" data-lib-start="${q.id}">解く</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">該当する問題がありません。</div>'; $$('[data-lib-start]').forEach(btn=>btn.addEventListener('click',()=>{ quiz={mode:'single',queue:[btn.dataset.libStart],pos:0,selected:null,answered:false,examMode:false,target:'#quizArea'}; showView('practice'); renderQuestion(); })); }
+
+function refreshAll(){ renderDashboard(); renderReview(); renderAnalytics(); renderLibrary(); }
+function showView(name){ $$('.view').forEach(v=>v.classList.add('hidden')); $('#'+name+'View').classList.remove('hidden'); $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name)); if(name==='dashboard') renderDashboard(); if(name==='review') renderReview(); if(name==='analytics') renderAnalytics(); if(name==='library') renderLibrary(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function readLock(){ return loadJSON(KEYS.lock, {}); }
+function writeLock(v){ saveJSON(KEYS.lock, v); }
+function lockState(id){ const all=readLock(); const rec=all[id]; if(!rec) return {attempts:0,lockedUntil:0}; if(rec.lockedUntil && rec.lockedUntil<=Date.now()){ delete all[id]; writeLock(all); return {attempts:0,lockedUntil:0}; } return rec; }
+function registerFailure(id){ const all=readLock(); const attempts=(lockState(id).attempts||0)+1; const rec={attempts,lockedUntil:attempts>=MAX_ATTEMPTS?Date.now()+LOCK_MS:0}; all[id]=rec; writeLock(all); return rec; }
+function clearFailure(id){ const all=readLock(); delete all[id]; writeLock(all); }
+function enterApp(id){ $('#loginScreen').classList.add('hidden'); $('#appScreen').classList.remove('hidden'); $('#idBadge').textContent='ID '+id; renderDashboard(); }
+function login(){ const id=$('#loginId').value.trim(); const pw=$('#loginPw').value; $('#loginErr').classList.add('hidden'); if(!/^\d{5}$/.test(id)){ showLoginError('IDは5桁の数字で入力してください'); return; } if(pw.length<6){ showLoginError('パスワードは6文字以上で入力してください'); return; } const lock=lockState(id); if(lock.lockedUntil>Date.now()){ showLoginError(`ログイン試行回数が上限に達しました。${Math.ceil((lock.lockedUntil-Date.now())/60000)}分後に再度お試しください`); return; } if(id===VALID_ID && pw===VALID_PW){ clearFailure(id); enterApp(id); toast('ログインしました'); } else { const rec=registerFailure(id); showLoginError(rec.lockedUntil?`ログイン試行回数が上限に達しました。15分後に再度お試しください`:`IDまたはパスワードが正しくありません（あと${MAX_ATTEMPTS-rec.attempts}回）`); } }
+function showLoginError(msg){ const el=$('#loginErr'); el.textContent=msg; el.classList.remove('hidden'); }
+function logout(){ $('#appScreen').classList.add('hidden'); $('#loginScreen').classList.remove('hidden'); $('#loginPw').value=''; }
+function ratingLabel(e){
+  // ログのrating→無ければ空欄と明示。手応え未記録の行も一貫した出力にする。
+  const r=e.rating;
+  if(r==null || r==='') return '未記録';
+  return SRS_OPTIONS[r]?.label || String(r);
+}
+function exportCSV(){ const log=getLog(); const header=['日時','問題ID','回次','形式','科目','正誤','選択','正答','手応え','次回復習目安']; const rows=log.map(e=>{ const q=qById(e.qid)||{}; const srs=getSrs()[e.qid]; return [new Date(e.ts).toLocaleString('ja-JP'),e.qid,q.examLabel||e.examLabel,q.format||e.format,q.subject||e.subject,e.correct?'正解':'不正解',LETTERS[e.selected]||'',LETTERS[e.answer]||'',ratingLabel(e),srs?formatSrsDays(srs.interval):'']; }); const csv=[header,...rows].map(row=>row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'); const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='medexam_learning_log.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); toast('CSVを出力しました'); }
+function resetAll(){ if(confirm('解答ログ・SRS・ブックマーク・メモをすべて削除します。よろしいですか？')){ [KEYS.log,KEYS.srs,KEYS.marks,KEYS.notes].forEach(k=>localStorage.removeItem(k)); refreshAll(); toast('学習データをリセットしました'); } }
+
+function bindEvents(){ $('#startWeakFromAnalytics').addEventListener('click',()=>startQuiz({mode:'weak',count:10,order:'smart',target:'#quizArea',view:'practice'})); $('#loginBtn').addEventListener('click',login); $('#loginPw').addEventListener('keydown',e=>{if(e.key==='Enter') login();}); $('#loginId').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,5);}); $('#logoutBtn').addEventListener('click',logout); $$('.tab').forEach(t=>t.addEventListener('click',()=>showView(t.dataset.view))); $('#quickPractice').addEventListener('click',()=>startQuiz({mode:'practice',count:10,order:'smart',view:'practice'})); $('#quickSrs').addEventListener('click',()=>startQuiz({mode:'srs',count:999,order:'exam',target:'#reviewQuizArea',view:'review'})); $('#quickWeak').addEventListener('click',()=>startQuiz({mode:'weak',count:10,order:'smart',view:'practice'})); $('#quickBookmark').addEventListener('click',()=>startQuiz({mode:'marked',count:999,order:'exam',target:'#reviewQuizArea',view:'review'})); $('#startPracticeBtn').addEventListener('click',()=>startQuiz({...readFilters(),mode:'practice',target:'#quizArea',view:'practice'})); $('#resetFilterBtn').addEventListener('click',resetFilters); $('#exportBtn').addEventListener('click',exportCSV); $('#exportBtn2').addEventListener('click',exportCSV); $('#resetAllBtn').addEventListener('click',resetAll); $('#searchBox').addEventListener('input',renderQuestionList); bindFilterButtons(); }
+function init(){ populateFilters(); bindEvents(); resetFilters(); $('#quizArea').innerHTML='<div class="empty"><strong>演習条件を指定して開始してください</strong>未演習・誤答優先、回次別、科目別などの出題が可能です。</div>'; $('#reviewQuizArea').innerHTML='<div class="empty"><strong>復習メニューを選択してください</strong>SRS・誤答・ブックマークから出題できます。</div>'; renderDashboard(); renderReview(); renderAnalytics(); renderLibrary(); if(TEST_AUTOLOGIN){ enterApp(VALID_ID); toast('テスト用に自動ログインしました'); } }
+init();
+</script>
+</body>
+</html>
